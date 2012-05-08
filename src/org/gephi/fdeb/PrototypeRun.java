@@ -8,23 +8,24 @@ import com.itextpdf.text.PageSize;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
+import org.gephi.data.attributes.api.AttributeController;
+import org.gephi.data.attributes.api.*;
+import org.gephi.filters.api.FilterController;
 import org.gephi.graph.api.DirectedGraph;
 import org.gephi.graph.api.GraphController;
-import org.gephi.graph.api.GraphModel;
+import org.gephi.graph.api.*;
 import org.gephi.io.exporter.api.ExportController;
 import org.gephi.io.exporter.preview.PDFExporter;
-import org.gephi.io.generator.plugin.RandomGraph;
 import org.gephi.io.importer.api.Container;
-import org.gephi.io.importer.api.ContainerFactory;
-import org.gephi.io.importer.api.ImportController;
+import org.gephi.io.importer.api.*;
 import org.gephi.io.processor.plugin.DefaultProcessor;
-import org.gephi.preview.api.ManagedRenderer;
-import org.gephi.preview.api.PreviewController;
-import org.gephi.preview.api.PreviewModel;
-import org.gephi.preview.plugin.renderers.EdgeRenderer;
+import org.gephi.preview.api.*;
+import org.gephi.preview.plugin.renderers.*;
 import org.gephi.preview.plugin.renderers.NodeRenderer;
 import org.gephi.project.api.ProjectController;
 import org.gephi.project.api.Workspace;
+import org.gephi.ranking.api.RankingController;
 import org.openide.util.Lookup;
 
 /**
@@ -34,25 +35,43 @@ import org.openide.util.Lookup;
 public class PrototypeRun {
 
     public static void main(String[] args) {
+        new PrototypeRun().run();
+    }
+
+    public static void run() {
+        //Init a project - and therefore a workspace
         //Init a project - and therefore a workspace
         ProjectController pc = Lookup.getDefault().lookup(ProjectController.class);
         pc.newProject();
         Workspace workspace = pc.getCurrentWorkspace();
 
-        //Generate a new random graph into a container
-        Container container = Lookup.getDefault().lookup(ContainerFactory.class).newContainer();
+        //Get models and controllers for this new workspace - will be useful later
+        AttributeModel attributeModel = Lookup.getDefault().lookup(AttributeController.class).getModel();
+        GraphModel graphModel = Lookup.getDefault().lookup(GraphController.class).getModel();
+        PreviewModel model = Lookup.getDefault().lookup(PreviewController.class).getModel();
+        ImportController importController = Lookup.getDefault().lookup(ImportController.class);
+        FilterController filterController = Lookup.getDefault().lookup(FilterController.class);
+        RankingController rankingController = Lookup.getDefault().lookup(RankingController.class);
 
-        RandomGraph randomGraph = new RandomGraph();
-        randomGraph.setNumberOfNodes(50);
-        randomGraph.setWiringProbability(0.005);
-        randomGraph.generate(container.getLoader());
+        //Import file       
+        Container container;
+        try {
+            File file = new File("example.gml");
+            container = importController.importFile(file);
+            container.getLoader().setEdgeDefault(EdgeDefault.DIRECTED);   //Force DIRECTED
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return;
+        }
+
+        //Append imported data to GraphAPI
+        importController.process(container, new DefaultProcessor(), workspace);
+
 
         //Append container to graph structure
-        ImportController importController = Lookup.getDefault().lookup(ImportController.class);
         importController.process(container, new DefaultProcessor(), workspace);
 
         //See if graph is well imported
-        GraphModel graphModel = Lookup.getDefault().lookup(GraphController.class).getModel();
         DirectedGraph graph = graphModel.getDirectedGraph();
         System.out.println("Nodes: " + graph.getNodeCount());
         System.out.println("Edges: " + graph.getEdgeCount());
@@ -68,16 +87,16 @@ public class PrototypeRun {
 
         PreviewController previewController = Lookup.getDefault().lookup(PreviewController.class);
         PreviewModel previewModel = previewController.getModel();
-        ManagedRenderer[] managedRenderers = { new ManagedRenderer(new FDEBRenderer(), true),
+        ManagedRenderer[] managedRenderers = {new ManagedRenderer(new FDEBRenderer(), true),
             new ManagedRenderer(new NodeRenderer(), true),
-            new ManagedRenderer(new EdgeRenderer(), true)};
+            new ManagedRenderer(new EdgeRenderer(), false)};
 
         previewModel.setManagedRenderers(managedRenderers);
-        
+
 
         ExportController ec = Lookup.getDefault().lookup(ExportController.class);
         try {
-            ec.exportFile(new File("simple.pdf"));
+            ec.exportFile(new File("result.pdf"));
         } catch (IOException ex) {
             ex.printStackTrace();
             return;

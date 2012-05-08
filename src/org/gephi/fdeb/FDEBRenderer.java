@@ -52,25 +52,32 @@ public class FDEBRenderer implements Renderer {
 
         //  Edge edge = (Edge) item.getData("edge");
         FDEBLayoutData data = (FDEBLayoutData) item.getSource();
+        System.err.println("edge has " + data.subdivisionPoints.length + " subpoints");
         for (int i = 0; i < data.subdivisionPoints.length - 1; i++) {
             float x1 = (float) data.subdivisionPoints[i].x;
             float y1 = (float) data.subdivisionPoints[i].y;
             float x2 = (float) data.subdivisionPoints[i + 1].x;
             float y2 = (float) data.subdivisionPoints[i + 1].y;
+          //  System.err.println(i + " " + x1 + " " + y1);
             // System.err.println("edge source " + edge.getSource().getNodeData().x() + " " + edge.getSource().getNodeData().y());
             // System.err.println("edge target " + edge.getTarget().getNodeData().x() + " " + edge.getTarget().getNodeData().y());
             // System.err.println();
             renderStraightEdge(x1, y1, x2, y2, target);
         }
+        double x1 = data.subdivisionPoints[data.subdivisionPoints.length - 1].x;
+        double y1 = data.subdivisionPoints[data.subdivisionPoints.length - 1].y;
+        //renderStraightEdge((float)data.subdivisionPoints[0].x, (float)data.subdivisionPoints[0].y, (float)x1, (float)y1, target);
+        //System.err.println(data.subdivisionPoints.length - 1 + " " + x1 + " " + y1);
+        //System.err.println();
     }
 
     /*
-     * variables replaced by contants, method from EdgeRenderer
+     * variables replaced by constants, method from EdgeRenderer
      */
     public void renderStraightEdge(float x1, float y1, float x2, float y2, RenderTarget renderTarget) {
 
         int thickness = 2;
-        Color color = Color.GREEN;
+        Color color = new Color((float)Math.random(), (float)Math.random(), (float)Math.random());
         //Target radius - to start at the base of the arrow
         Float targetRadius = 2f;
         //Avoid edge from passing the node's center:

@@ -32,7 +32,7 @@ public class FDEBBundlerParameters {
     }
     
     void setParametersToDefault() {
-        numCycles = 10;
+        numCycles = 5;
         subdivisionPointsPerEdge = 1;
         stepSize = 1.0;
         iterationsPerCycle = 100;
@@ -46,7 +46,7 @@ public class FDEBBundlerParameters {
         useRepulsionForOppositeEdges = false;
         useSimpleCompatibilityMeasure = false;
         edgeValueAffectsAttraction = false;
-        subdivisionPointsCycleIncreaseRate = 1.3;
+       // subdivisionPointsCycleIncreaseRate = 1.3;
     }
 
     public boolean isBinaryCompatibility() {

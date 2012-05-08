@@ -81,23 +81,27 @@ public class FDEBBundler extends AbstractLayout implements Layout {
 
                     double Fei_x = 0;
                     double Fei_y = 0;
+                    // System.err.println();
+                    //  System.err.println("edge " + data.subdivisionPoints[0].x + " " + data.subdivisionPoints[0].y);
                     for (Edge moveEdge : graphModel.getGraph().getEdges()) {
                         if (moveEdge.isSelfLoop()) {
                             continue;
                         }
+
                         FDEBLayoutData moveData = moveEdge.getEdgeData().getLayoutData();
                         double v_x = moveData.subdivisionPoints[i].x - data.subdivisionPoints[i].x;
                         double v_y = moveData.subdivisionPoints[i].y - data.subdivisionPoints[i].y;
                         if (Math.abs(v_x) > EPS || Math.abs(v_y) > EPS) {
                             double len_sq = v_x * v_x + v_y * v_y;
-                            double m = (1.0 / len_sq);// /len^2
+                            double m = (1.0 / Math.sqrt(len_sq));// /len^2
+                            //   System.err.println("+" + v_x + "," + v_y + " multiply by" + m);
                             v_x *= m;
                             v_y *= m;
                             Fei_x += v_x;
                             Fei_y += v_y;
                         }
                     }
-
+                    System.err.println("moving edge by " + (Fei_x + Fsi_x) + "," + (Fei_y + Fsi_y) + " with stepSize " + stepSize);
                     data.newSubdivisionPoints[i] = new Point.Double(data.subdivisionPoints[i].x + stepSize * (Fei_x + Fsi_x),
                             data.subdivisionPoints[i].y + stepSize * (Fei_y + Fsi_y));
                 }
