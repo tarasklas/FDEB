@@ -13,6 +13,7 @@ public class FDEBBundlerParameters {
     private double stepSize; //S
     private int iterationsPerCycle;//I
     private double sprintConstant;//K
+    private double compatibilityThreshold;
     private int numCycles;
     private double stepDampingFactor;
 
@@ -22,10 +23,11 @@ public class FDEBBundlerParameters {
 
     void setParametersToDefault() {
         numCycles = 5;
-        stepSize = 1.0;
-        iterationsPerCycle = 100;
+        stepSize = 1;
+        iterationsPerCycle = 10;
         sprintConstant = 0.5;
         stepDampingFactor = 0.5;
+        compatibilityThreshold = 0.6;
     }
 
     public int getIterationsPerCycle() {
@@ -67,4 +69,14 @@ public class FDEBBundlerParameters {
     public void setStepSize(double stepSize) {
         this.stepSize = stepSize;
     }
+
+    public double getCompatibilityThreshold() {
+        return compatibilityThreshold;
+    }
+
+    public void setCompatibilityThreshold(double compatibilityThreshold) {
+        this.compatibilityThreshold = compatibilityThreshold;
+    }
+    
+    
 }

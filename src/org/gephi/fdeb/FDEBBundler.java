@@ -13,10 +13,12 @@ import org.gephi.layout.spi.LayoutProperty;
 import org.gephi.dynamic.api.DynamicController;
 import org.gephi.dynamic.api.DynamicModel;
 import org.gephi.graph.api.GraphModel;
+import org.gephi.graph.api.Node;
 import org.gephi.layout.spi.Layout;
 import org.gephi.layout.spi.LayoutBuilder;
 import org.gephi.project.api.Workspace;
 import org.openide.util.Lookup;
+import processing.core.PVector;
 
 /**
  *
@@ -29,6 +31,7 @@ public class FDEBBundler extends AbstractLayout implements Layout {
     private double stepSize;   // S
     private int iterationsPerCycle;    // I
     private double sprintConstant; // K
+    private double compatibilityThreshold;
     private FDEBBundlerParameters parameters;
 
     FDEBBundler(LayoutBuilder layoutBuilder, FDEBBundlerParameters parameters) {
@@ -48,13 +51,32 @@ public class FDEBBundler extends AbstractLayout implements Layout {
         stepSize = parameters.getStepSize();
         sprintConstant = parameters.getSprintConstant();
         iterationsPerCycle = parameters.getIterationsPerCycle();
+        compatibilityThreshold = parameters.getCompatibilityThreshold();
+        // sprintConstant = calculateSprintConstant();
+        System.out.println("K " + sprintConstant);
+    }
 
+    double calculateSprintConstant() {
+        double minX = Integer.MAX_VALUE;
+        double maxX = Integer.MIN_VALUE;
+        double minY = Integer.MAX_VALUE;
+        double maxY = Integer.MIN_VALUE;
+        for (Node node : graphModel.getGraph().getNodes()) {
+            minX = Math.min(minX, node.getNodeData().x());
+            minY = Math.min(minY, node.getNodeData().y());
+
+            maxX = Math.max(maxX, node.getNodeData().x());
+            maxY = Math.max(maxY, node.getNodeData().y());
+        }
+        return Math.min(maxX - minX, maxY - minY) / 1000;
     }
 
     @Override
     public void goAlgo() {
-        for (int step = 0; step < stepSize; step++) {
 
+        long totalEdges = 0;
+        long passedEdges = 0;
+        for (int step = 0; step < iterationsPerCycle; step++) {
             for (Edge edge : graphModel.getGraph().getEdges()) {
                 ((FDEBLayoutData) edge.getEdgeData().getLayoutData()).newSubdivisionPoints = Arrays.copyOf(((FDEBLayoutData) edge.getEdgeData().getLayoutData()).subdivisionPoints,
                         ((FDEBLayoutData) edge.getEdgeData().getLayoutData()).subdivisionPoints.length);
@@ -87,13 +109,18 @@ public class FDEBBundler extends AbstractLayout implements Layout {
                         if (moveEdge.isSelfLoop()) {
                             continue;
                         }
+                        totalEdges++;
+                        if (calculateCompatibility(edge, moveEdge) < EPS) {
+                            continue;
+                        }
+                        passedEdges++;
 
                         FDEBLayoutData moveData = moveEdge.getEdgeData().getLayoutData();
                         double v_x = moveData.subdivisionPoints[i].x - data.subdivisionPoints[i].x;
                         double v_y = moveData.subdivisionPoints[i].y - data.subdivisionPoints[i].y;
                         if (Math.abs(v_x) > EPS || Math.abs(v_y) > EPS) {
                             double len_sq = v_x * v_x + v_y * v_y;
-                            double m = (1.0 / Math.sqrt(len_sq));// /len^2
+                            double m = (calculateCompatibility(edge, moveEdge) / Math.sqrt(len_sq));// /len
                             //   System.err.println("+" + v_x + "," + v_y + " multiply by" + m);
                             v_x *= m;
                             v_y *= m;
@@ -101,7 +128,7 @@ public class FDEBBundler extends AbstractLayout implements Layout {
                             Fei_y += v_y;
                         }
                     }
-                    System.err.println("moving edge by " + (Fei_x + Fsi_x) + "," + (Fei_y + Fsi_y) + " with stepSize " + stepSize);
+                       //System.err.println("moving edge by " + (Fei_x + Fsi_x) + "," + (Fei_y + Fsi_y) + " with stepSize " + stepSize);
                     data.newSubdivisionPoints[i] = new Point.Double(data.subdivisionPoints[i].x + stepSize * (Fei_x + Fsi_x),
                             data.subdivisionPoints[i].y + stepSize * (Fei_y + Fsi_y));
                 }
@@ -113,6 +140,7 @@ public class FDEBBundler extends AbstractLayout implements Layout {
             }
         }
 
+        System.err.println("total: " + totalEdges + " passed " + passedEdges + " fraction " + ((double)passedEdges) / totalEdges);
         if (cycle == parameters.getNumCycles()) {
             setConverged(true);
         } else {
@@ -154,6 +182,87 @@ public class FDEBBundler extends AbstractLayout implements Layout {
             }
             data.subdivisionPoints = subdivisionPoints;
         }
+    }
+
+    double calculateCompatibility(Edge aEdge, Edge bEdge) {
+        PVector a = new PVector(aEdge.getTarget().getNodeData().x() - aEdge.getSource().getNodeData().x(),
+                aEdge.getTarget().getNodeData().y() - aEdge.getSource().getNodeData().y());
+        PVector b = new PVector(bEdge.getTarget().getNodeData().x() - bEdge.getSource().getNodeData().x(),
+                bEdge.getTarget().getNodeData().y() - bEdge.getSource().getNodeData().y());
+        double compatibility = angleCompatibility(a, b) * scaleCompatibility(a, b) * positionCompatibility(a, b, aEdge, bEdge);
+        if (compatibility > .9) {
+        //    compatibility *= visibilityCompatibility(aEdge, bEdge);
+        }
+        return compatibility;
+    }
+
+    double angleCompatibility(PVector a, PVector b) {
+        double compatiblity = Math.abs(a.dot(b) / (a.mag() * b.mag()) + 1.0) / 2.0;
+        if (compatiblity < EPS) {
+            compatiblity = 0;
+        }
+        if (compatiblity > 1 - EPS) {
+            compatiblity = 1;
+        }
+        if (compatiblity < compatibilityThreshold)
+            compatiblity = 0;
+        
+        return compatiblity;
+    }
+
+    double scaleCompatibility(PVector a, PVector b) {
+        double lavg = (a.mag() + b.mag()) / 2;
+        double compatibility =  2.0 / (lavg / Math.min(a.mag(), b.mag()) + Math.max(a.mag(), b.mag()) / lavg);
+        
+        if (compatibility < compatibilityThreshold)
+            compatibility = 0;
+        
+        return compatibility;
+    }
+
+    double positionCompatibility(PVector a, PVector b, Edge ae, Edge be) {
+        PVector aMid = new PVector((ae.getSource().getNodeData().x() + ae.getTarget().getNodeData().x()) / 2,
+                (ae.getSource().getNodeData().y() + ae.getTarget().getNodeData().y()) / 2);
+        PVector bMid = new PVector((be.getSource().getNodeData().x() + be.getTarget().getNodeData().x()) / 2,
+                (be.getSource().getNodeData().y() + be.getTarget().getNodeData().y()) / 2);
+        double lavg = (a.mag() + b.mag()) / 2;
+        double compatibility =  lavg / (lavg + aMid.dist(bMid));
+        
+        if (compatibility < compatibilityThreshold)
+            compatibility = 0;
+        
+        return compatibility;
+    }
+
+    double visibilityCompatibility(Edge aEdge, Edge bEdge) {
+        Point2D.Float as = new Point2D.Float(aEdge.getSource().getNodeData().x(), aEdge.getSource().getNodeData().y());
+        Point2D.Float af = new Point2D.Float(aEdge.getTarget().getNodeData().x(), aEdge.getTarget().getNodeData().y());
+
+        Point2D.Float bs = new Point2D.Float(bEdge.getSource().getNodeData().x(), bEdge.getSource().getNodeData().y());
+        Point2D.Float bf = new Point2D.Float(bEdge.getTarget().getNodeData().x(), bEdge.getTarget().getNodeData().y());
+        double compatibility =  Math.min(visibilityCompatibility(as, af, bs, bf), visibilityCompatibility(bs, bf, as, af));
+        
+        if (compatibility < compatibilityThreshold)
+            compatibility = 0;
+        
+        return compatibility;
+    }
+
+    double visibilityCompatibility(Point2D.Float as, Point2D.Float af, Point2D.Float bs, Point2D.Float bf) {
+        Point2D.Float i1 = projectPointToLine(as.x, as.y, af.x, af.y, bs.x, bs.y);
+        Point2D.Float i2 = projectPointToLine(as.x, as.y, af.x, af.y, bf.x, bf.y);
+        Point2D.Float im = new Point2D.Float((i1.x + i2.x) / 2, (i1.y + i2.y) / 2);
+        Point2D.Float bm = new Point2D.Float((bs.x + bf.x) / 2, (bs.y + bf.y) / 2);
+        return Math.max(0, 1 - 2 * bm.distance(im) / (i1.distance(i2)));
+    }
+
+    /**
+     * See http://www.exaflop.org/docs/cgafaq/cga1.html
+     */
+    public static Point2D.Float projectPointToLine(double x1, double y1, double x2, double y2, double x, double y) {
+        double L = Math.sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1));
+        double r = ((y1 - y) * (y1 - y2) - (x1 - x) * (x2 - x1)) / (L * L);
+        return new Point2D.Float((float) (x1 + r * (x2 - x1)), (float) (y1 + r * (y2 - y1)));
     }
 
     @Override

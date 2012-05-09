@@ -26,6 +26,7 @@ import org.gephi.preview.plugin.renderers.NodeRenderer;
 import org.gephi.project.api.ProjectController;
 import org.gephi.project.api.Workspace;
 import org.gephi.ranking.api.RankingController;
+import org.openide.util.Exceptions;
 import org.openide.util.Lookup;
 
 /**
@@ -80,10 +81,7 @@ public class PrototypeRun {
         layout.setGraphModel(graphModel);
         layout.initAlgo();
         layout.resetPropertiesValues();
-        while (!layout.isConverged()) {
-            layout.goAlgo();
-        }
-        layout.endAlgo();
+        // layout.endAlgo();
 
         PreviewController previewController = Lookup.getDefault().lookup(PreviewController.class);
         PreviewModel previewModel = previewController.getModel();
@@ -93,13 +91,22 @@ public class PrototypeRun {
 
         previewModel.setManagedRenderers(managedRenderers);
 
-
+        int i = 0;
         ExportController ec = Lookup.getDefault().lookup(ExportController.class);
         try {
-            ec.exportFile(new File("result.pdf"));
+            ec.exportFile(new File("result0.pdf"));
         } catch (IOException ex) {
-            ex.printStackTrace();
-            return;
+            Exceptions.printStackTrace(ex);
+        }
+        while (!layout.isConverged()) {
+            i++;
+            layout.goAlgo();
+            try {
+                ec.exportFile(new File("result" + i + ".pdf"));
+            } catch (IOException ex) {
+                ex.printStackTrace();
+                return;
+            }
         }
 
         //PDF Exporter config and export to Byte array
