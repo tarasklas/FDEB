@@ -34,12 +34,14 @@ import org.openide.util.Lookup;
  * @author megaterik
  */
 public class PrototypeRun {
+    
+    public String filename = "example.gml";
 
     public static void main(String[] args) {
         new PrototypeRun().run();
     }
 
-    public static void run() {
+    public void run() {
         //Init a project - and therefore a workspace
         //Init a project - and therefore a workspace
         ProjectController pc = Lookup.getDefault().lookup(ProjectController.class);
@@ -57,7 +59,7 @@ public class PrototypeRun {
         //Import file       
         Container container;
         try {
-            File file = new File("example.gml");
+            File file = new File(filename);
             container = importController.importFile(file);
             container.getLoader().setEdgeDefault(EdgeDefault.DIRECTED);   //Force DIRECTED
         } catch (Exception ex) {
@@ -68,12 +70,12 @@ public class PrototypeRun {
         //Append imported data to GraphAPI
         importController.process(container, new DefaultProcessor(), workspace);
 
-
-        //Append container to graph structure
-        importController.process(container, new DefaultProcessor(), workspace);
-
         //See if graph is well imported
         DirectedGraph graph = graphModel.getDirectedGraph();
+        for (Node node : graph.getNodes())
+        {
+            node.getNodeData().setSize(0.1f);
+        }
         System.out.println("Nodes: " + graph.getNodeCount());
         System.out.println("Edges: " + graph.getEdgeCount());
 
