@@ -13,6 +13,7 @@ public class FDEBLayoutData implements LayoutData{
     Point.Double[] subdivisionPoints;
     double length;
     static final double eps = 1e-7;
+    FDEBCompatibilityRecord[] similarEdges;
 
     public FDEBLayoutData(double startPointX, double startPointY, double endPointX, double endPointY) {
         length = Point.Double.distance(startPointX, startPointY, endPointX, endPointY);

@@ -31,7 +31,7 @@ import processing.core.PVector;
 @ServiceProvider(service = Renderer.class)
 public class FDEBRenderer implements Renderer {
     
-    public static final float thickness = 0.1f;
+    public static final float thickness = 0.2f;
 
     @Override
     public String getDisplayName() {
@@ -65,8 +65,6 @@ public class FDEBRenderer implements Renderer {
 
         PDFTarget pdfTarget = (PDFTarget) renderTarget;
         PdfContentByte cb = pdfTarget.getContentByte();
-        cb.moveTo(x1, y1);
-        cb.lineTo(x2, y2);
         cb.setRGBColorStroke(color.getRed(), color.getGreen(), color.getBlue());
         cb.setLineWidth(thickness);
         if (color.getAlpha() < 255) {
@@ -81,6 +79,9 @@ public class FDEBRenderer implements Renderer {
             cb.restoreState();
 
         }
+        
+        cb.moveTo(x1, y1);
+        cb.lineTo(x2, y2);
     }
 
     @Override

@@ -16,18 +16,20 @@ public class FDEBBundlerParameters {
     private double compatibilityThreshold;
     private int numCycles;
     private double stepDampingFactor;
+    private double subdivisionPointIncreaseRate;
 
     public FDEBBundlerParameters() {
         setParametersToDefault();
     }
 
     void setParametersToDefault() {
-        numCycles = 5;
+        numCycles = 10;
          stepSize = 1;
-        iterationsPerCycle = 30;
+        iterationsPerCycle = 200;
         //sprintConstant = 0.5;
         stepDampingFactor = 0.5;
-        compatibilityThreshold = 0;
+        compatibilityThreshold = 0.6;
+        subdivisionPointIncreaseRate = 3;
     }
 
     public int getIterationsPerCycle() {
@@ -76,6 +78,14 @@ public class FDEBBundlerParameters {
 
     public void setCompatibilityThreshold(double compatibilityThreshold) {
         this.compatibilityThreshold = compatibilityThreshold;
+    }
+
+    public double getSubdivisionPointIncreaseRate() {
+        return subdivisionPointIncreaseRate;
+    }
+
+    public void setSubdivisionPointIncreaseRate(double subdivisionPointIncreaseRate) {
+        this.subdivisionPointIncreaseRate = subdivisionPointIncreaseRate;
     }
     
     

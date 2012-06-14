@@ -3,6 +3,7 @@ package org.gephi.fdeb;
 import java.awt.Point;
 import java.awt.geom.Point2D;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.Arrays;
 import org.gephi.graph.api.Edge;
 import org.gephi.graph.api.Node;
@@ -25,6 +26,7 @@ public class FDEBBundler extends AbstractLayout implements Layout {
     private double sprintConstant; // K
     private double compatibilityThreshold;
     private FDEBBundlerParameters parameters;
+    private double subdivisionPointsPerEdge;
 
     FDEBBundler(LayoutBuilder layoutBuilder, FDEBBundlerParameters parameters) {
         super(layoutBuilder);
@@ -48,11 +50,16 @@ public class FDEBBundler extends AbstractLayout implements Layout {
         iterationsPerCycle = parameters.getIterationsPerCycle();
         compatibilityThreshold = parameters.getCompatibilityThreshold();
         sprintConstant = calculateSprintConstant();
+        subdivisionPointsPerEdge = 1;//start and end doesnt count
         System.out.println("K " + sprintConstant);
+        
+        createCompatibilityLists();
     }
 
     /*
-     * Dynamical calculing of K, in jflowmap K = AxisMarks.ordAlpha(Math.min(xStats.getMax() - xStats.getMin(), yStats.getMax() - yStats.getMin()) / 1000);
+     * Dynamical calculing of K, in jflowmap K =
+     * AxisMarks.ordAlpha(Math.min(xStats.getMax() - xStats.getMin(),
+     * yStats.getMax() - yStats.getMin()) / 1000);
      */
     double calculateSprintConstant() {
         double minX = Integer.MAX_VALUE;
@@ -68,11 +75,10 @@ public class FDEBBundler extends AbstractLayout implements Layout {
         }
         return Math.min(maxX - minX, maxY - minY) / 1000;
     }
-    
+
     @Override
     public void goAlgo() {
-        long totalEdges = 0;
-        long passedEdges = 0;
+        System.err.println("Next iteration");
         for (int step = 0; step < iterationsPerCycle; step++) {
             for (Edge edge : graphModel.getGraph().getEdges()) {
                 ((FDEBLayoutData) edge.getEdgeData().getLayoutData()).newSubdivisionPoints = Arrays.copyOf(((FDEBLayoutData) edge.getEdgeData().getLayoutData()).subdivisionPoints,
@@ -92,24 +98,18 @@ public class FDEBBundler extends AbstractLayout implements Layout {
                     double Fsi_y = (data.subdivisionPoints[i - 1].y - data.subdivisionPoints[i].y)
                             + (data.subdivisionPoints[i + 1].y - data.subdivisionPoints[i].y);
 
-                    if (Math.abs(k) <= 1) 
-                    {
+                    if (Math.abs(k) <= 1) {
                         Fsi_x *= k;
                         Fsi_y *= k;
                     }
                     double Fei_x = 0;
                     double Fei_y = 0;
-                    
-                    for (Edge moveEdge : graphModel.getGraph().getEdges()) {
+
+                    for (FDEBCompatibilityRecord record: (((FDEBLayoutData)edge.getEdgeData().getLayoutData())).similarEdges) {
+                        Edge moveEdge = record.edgeWith;
                         if (moveEdge.isSelfLoop()) {
                             continue;
                         }
-
-                        totalEdges++;
-                        if (calculateCompatibility(edge, moveEdge) < EPS) {
-                            continue;
-                        }
-                        passedEdges++;
 
                         FDEBLayoutData moveData = moveEdge.getEdgeData().getLayoutData();
                         double v_x = moveData.subdivisionPoints[i].x - data.subdivisionPoints[i].x;
@@ -117,18 +117,11 @@ public class FDEBBundler extends AbstractLayout implements Layout {
 
                         if (Math.abs(v_x) > EPS || Math.abs(v_y) > EPS) {
                             double len_sq = v_x * v_x + v_y * v_y;
-                            /*
-                             * I am not sure why at this place(ForceDirectedEdgeBundler 440)
-                             * jflowmap uses m = (compatibility / sqrt(len_sq_) / sqrt(len_sq), 
-                             * shouldn't it be m = compatibility / sqrt(len_sq)?
-                             * 
-                             */
-                            double m = (calculateCompatibility(edge, moveEdge) / Math.sqrt(len_sq));
+                            double m = (record.compatibility / Math.sqrt(len_sq));
 
-                            
                             v_x *= m;
                             v_y *= m;
-                            
+
                             Fei_x += v_x;
                             Fei_y += v_y;
                         }
@@ -136,7 +129,7 @@ public class FDEBBundler extends AbstractLayout implements Layout {
                     /*
                      * store new coordinates to update them simultaniously
                      */
-                   data.newSubdivisionPoints[i] = new Point.Double(data.subdivisionPoints[i].x + stepSize * (Fei_x + Fsi_x),
+                    data.newSubdivisionPoints[i] = new Point.Double(data.subdivisionPoints[i].x + stepSize * (Fei_x + Fsi_x),
                             data.subdivisionPoints[i].y + stepSize * (Fei_y + Fsi_y));
                 }
             }
@@ -147,7 +140,6 @@ public class FDEBBundler extends AbstractLayout implements Layout {
             }
         }
 
-        System.err.println("total: " + totalEdges + " passed " + passedEdges + " fraction " + ((double) passedEdges) / totalEdges);
         if (cycle == parameters.getNumCycles()) {
             setConverged(true);
         } else {
@@ -162,31 +154,42 @@ public class FDEBBundler extends AbstractLayout implements Layout {
         divideEdges();
     }
 
-    /*
-     * Flowmap uses more complicated version with arbitrary multiplier of
-     * subdivision points, but for this prototype I think it's fine to just
-     * double them.
-     */
     void divideEdges() {
+        subdivisionPointsPerEdge *= parameters.getSubdivisionPointIncreaseRate();
         for (Edge edge : graphModel.getGraph().getEdges()) {
             if (edge.isSelfLoop()) {
                 continue;
             }
-
             FDEBLayoutData data = (FDEBLayoutData) edge.getEdgeData().getLayoutData();
-            Point.Double[] subdivisionPoints = new Point.Double[(data.subdivisionPoints.length * 2 - 1)];
-            for (int i = 0; i < subdivisionPoints.length; i++) {
-                if (i % 2 == 0) {
-                    subdivisionPoints[i] = data.subdivisionPoints[i / 2];
-                }
+            Point.Double[] subdivisionPoints = new Point.Double[(int) (subdivisionPointsPerEdge + 2)];//+source/target
+            double totalLength = 0.0;
+            for (int i = 1; i < data.subdivisionPoints.length; i++) {
+                totalLength += Point.Double.distance(data.subdivisionPoints[i - 1].x, data.subdivisionPoints[i - 1].y,
+                        data.subdivisionPoints[i].x, data.subdivisionPoints[i].y);
             }
-
-            for (int i = 0; i < subdivisionPoints.length; i++) {
-                if (i % 2 == 1) {
-                    subdivisionPoints[i] = new Point.Double((subdivisionPoints[i - 1].x + subdivisionPoints[i + 1].x) / 2,
-                            (subdivisionPoints[i - 1].y + subdivisionPoints[i + 1].y) / 2);
+            double lengthPerPoint = totalLength / (((int) subdivisionPointsPerEdge) + 1);
+            double remainingLengthPerPoint = lengthPerPoint;
+            int curSubdivisionPoint = 1;
+            for (int i = 1; i < data.subdivisionPoints.length; i++) {
+                double lengthOfEdge = Point.Double.distance(data.subdivisionPoints[i - 1].x, data.subdivisionPoints[i - 1].y,
+                        data.subdivisionPoints[i].x, data.subdivisionPoints[i].y);
+                double remainingLengthOfEdge = lengthOfEdge;
+                while (remainingLengthPerPoint < remainingLengthOfEdge) {
+                    remainingLengthOfEdge -= remainingLengthPerPoint;
+                    double coef = (lengthOfEdge - remainingLengthOfEdge) / (lengthOfEdge);//0.0--source, 1.0 -- target
+                    subdivisionPoints[curSubdivisionPoint] = new Point2D.Double(
+                            data.subdivisionPoints[i - 1].x
+                            + coef * (data.subdivisionPoints[i].x - data.subdivisionPoints[i - 1].x),
+                            data.subdivisionPoints[i - 1].y
+                            + coef * (data.subdivisionPoints[i].y - data.subdivisionPoints[i - 1].y));
+                    curSubdivisionPoint++;
+                    remainingLengthPerPoint = lengthPerPoint;
                 }
+                remainingLengthPerPoint -= remainingLengthOfEdge;
             }
+            subdivisionPoints[0] = data.subdivisionPoints[0];//source
+            subdivisionPoints[subdivisionPoints.length - 1] = data.subdivisionPoints[data.subdivisionPoints.length - 1];//target
+            
             data.subdivisionPoints = subdivisionPoints;
         }
     }
@@ -211,9 +214,6 @@ public class FDEBBundler extends AbstractLayout implements Layout {
         if (compatiblity > 1 - EPS) {
             compatiblity = 1;
         }
-        if (compatiblity < compatibilityThreshold) {
-            compatiblity = 0;
-        }
 
         return compatiblity;
     }
@@ -221,11 +221,6 @@ public class FDEBBundler extends AbstractLayout implements Layout {
     double scaleCompatibility(PVector a, PVector b) {
         double lavg = (a.mag() + b.mag()) / 2;
         double compatibility = 2.0 / (lavg / Math.min(a.mag(), b.mag()) + Math.max(a.mag(), b.mag()) / lavg);
-
-        if (compatibility < compatibilityThreshold) {
-            compatibility = 0;
-        }
-
         return compatibility;
     }
 
@@ -237,9 +232,6 @@ public class FDEBBundler extends AbstractLayout implements Layout {
         double lavg = (a.mag() + b.mag()) / 2;
         double compatibility = lavg / (lavg + aMid.dist(bMid));
 
-        if (compatibility < compatibilityThreshold) {
-            compatibility = 0;
-        }
 
         return compatibility;
     }
@@ -252,9 +244,6 @@ public class FDEBBundler extends AbstractLayout implements Layout {
         Point2D.Float bf = new Point2D.Float(bEdge.getTarget().getNodeData().x(), bEdge.getTarget().getNodeData().y());
         double compatibility = Math.min(visibilityCompatibility(as, af, bs, bf), visibilityCompatibility(bs, bf, as, af));
 
-        if (compatibility < compatibilityThreshold) {
-            compatibility = 0;
-        }
 
         return compatibility;
     }
@@ -287,5 +276,34 @@ public class FDEBBundler extends AbstractLayout implements Layout {
 
     @Override
     public void resetPropertiesValues() {
+    }
+
+    private void createCompatibilityLists() {
+        ArrayList<FDEBCompatibilityRecord> similar = new ArrayList<FDEBCompatibilityRecord>();
+        double totalEdges = 0;
+        double passedEdges = 0;
+        for (Edge edge : graphModel.getGraph().getEdges())
+        {
+            similar.clear();
+            if (edge.isSelfLoop())
+                continue;
+            for (Edge probablySimilarEdge : graphModel.getGraph().getEdges())
+            {
+                if (probablySimilarEdge.isSelfLoop() || probablySimilarEdge == edge)
+                    continue;
+                double compatibility = calculateCompatibility(edge, probablySimilarEdge);
+                //System.err.println(compatibility + " " + compatibilityThreshold);
+                totalEdges++;
+                if (compatibility < compatibilityThreshold)
+                    continue;
+                passedEdges++;
+                similar.add(new FDEBCompatibilityRecord(compatibility, probablySimilarEdge));
+            }
+            ((FDEBLayoutData)edge.getEdgeData().getLayoutData()).similarEdges = new FDEBCompatibilityRecord[similar.size()];
+            for (int i = 0; i < similar.size(); i++)
+                ((FDEBLayoutData)edge.getEdgeData().getLayoutData()).similarEdges[i] = similar.get(i);
+        }
+        System.err.println("total: " + totalEdges + " passed " + passedEdges + " fraction " + ((double) passedEdges) / totalEdges);
+       
     }
 }
