@@ -9,11 +9,11 @@ import org.gephi.graph.spi.LayoutData;
 
 
 public class FDEBLayoutData implements LayoutData{
-    Point.Double[] newSubdivisionPoints;//to store changes before merging them
-    Point.Double[] subdivisionPoints;
-    double length;
-    static final double eps = 1e-7;
-    FDEBCompatibilityRecord[] similarEdges;
+    public Point.Double[] newSubdivisionPoints;//to store changes before merging them
+    public Point.Double[] subdivisionPoints;
+    public double length;
+    public static final double eps = 1e-7;
+    public FDEBCompatibilityRecord[] similarEdges;
 
     public FDEBLayoutData(double startPointX, double startPointY, double endPointX, double endPointY) {
         length = Point.Double.distance(startPointX, startPointY, endPointX, endPointY);

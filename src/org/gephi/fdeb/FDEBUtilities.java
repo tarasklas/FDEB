@@ -8,13 +8,14 @@ import java.awt.Point;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import org.gephi.graph.api.*;
+import org.jfree.data.gantt.Task;
 
 /**
  *
  * @author megaterik
  */
 public class FDEBUtilities {
-    
+
     static final double EPS = 1e-6;
     /*
      * Dynamical calculing of K, in jflowmap K =
@@ -22,7 +23,7 @@ public class FDEBUtilities {
      * yStats.getMax() - yStats.getMin()) / 1000);
      */
 
-    static double calculateSprintConstant(Graph graph) {
+    static public double calculateSprintConstant(Graph graph) {
         double minX = Integer.MAX_VALUE;
         double maxX = Integer.MIN_VALUE;
         double minY = Integer.MAX_VALUE;
@@ -37,7 +38,7 @@ public class FDEBUtilities {
         return Math.min(maxX - minX, maxY - minY) / 1000;
     }
 
-    static void divideEdge(Edge edge, double subdivisionPointsPerEdge) {
+    static public void divideEdge(Edge edge, double subdivisionPointsPerEdge) {
         if (edge.isSelfLoop()) {
             return;
         }
@@ -73,10 +74,10 @@ public class FDEBUtilities {
 
         data.subdivisionPoints = subdivisionPoints;
     }
-    static int totalEdges = 0;
-    static int passedEdges = 0;
+    static public int totalEdges = 0;
+    static public int passedEdges = 0;
 
-    static void createCompatibilityRecords(Edge edge, double compatibilityThreshold, Graph graph) {
+    static public void createCompatibilityRecords(Edge edge, double compatibilityThreshold, Graph graph) {
         ArrayList<FDEBCompatibilityRecord> similar = new ArrayList<FDEBCompatibilityRecord>();
         if (edge.isSelfLoop()) {
             return;
@@ -100,7 +101,7 @@ public class FDEBUtilities {
         }
     }
 
-    static void updateNewSubdivisionPoints(Edge edge, double sprintConstant, double stepSize) {
+    static public void updateNewSubdivisionPoints(Edge edge, double sprintConstant, double stepSize) {
         if (edge.isSelfLoop()) {
             return;
         }

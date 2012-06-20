@@ -28,7 +28,7 @@ public class FDEBBundlerParameters {
         iterationsPerCycle = 50;
         //sprintConstant = 0.5;
         stepDampingFactor = 0.5;
-        compatibilityThreshold = 0.1;
+        compatibilityThreshold = 0;
         subdivisionPointIncreaseRate = 2;
     }
 

@@ -2,7 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package org.gephi.fdeb;
+package org.gephi.fdeb.demo.multithreading;
 
 import com.itextpdf.text.PageSize;
 import java.io.ByteArrayOutputStream;
@@ -13,6 +13,8 @@ import java.io.PrintWriter;
 import java.net.URI;
 import org.gephi.data.attributes.api.AttributeController;
 import org.gephi.data.attributes.api.*;
+import org.gephi.fdeb.*;
+import org.gephi.fdeb.FDEBLayoutData;
 import org.gephi.filters.api.FilterController;
 import org.gephi.graph.api.DirectedGraph;
 import org.gephi.graph.api.GraphController;
@@ -35,16 +37,16 @@ import org.openide.util.Lookup;
  *
  * @author megaterik
  */
-public class PrototypeRun {
-    
+public class MultithreadingRun {
+
     public String filename = "example.gml";
 
     public static void main(String[] args) {
-        new PrototypeRun().run();
+        new MultithreadingRun().run();
     }
 
     public void run() {
-        System.err.println("Example of simple bundling:");
+        System.err.println("Example of simple bundling with threads:");
         ProjectController pc = Lookup.getDefault().lookup(ProjectController.class);
         pc.newProject();
         Workspace workspace = pc.getCurrentWorkspace();
@@ -73,14 +75,13 @@ public class PrototypeRun {
 
         //See if graph is well imported
         DirectedGraph graph = graphModel.getDirectedGraph();
-        for (Node node : graph.getNodes())
-        {
+        for (Node node : graph.getNodes()) {
             node.getNodeData().setSize(0.1f);
         }
         System.out.println("Nodes: " + graph.getNodeCount());
         System.out.println("Edges: " + graph.getEdgeCount());
 
-        FDEBBundler layout = new FDEBBundler(null, new FDEBBundlerParameters());
+        FDEBBundlerMultithreading layout = new FDEBBundlerMultithreading(null, new FDEBBundlerParameters());
         layout.setGraphModel(graphModel);
         layout.initAlgo();
         layout.resetPropertiesValues();
@@ -114,21 +115,20 @@ public class PrototypeRun {
         }
         layout.endAlgo();
         System.err.println("Time spent " + (System.currentTimeMillis() - startMeasure) + " ms.");
-        
+
         PrintWriter debug = null;
         try {
-            debug = new PrintWriter("debugSimple.txt");
+            debug = new PrintWriter("debugThreaded.txt");
         } catch (FileNotFoundException ex) {
             Exceptions.printStackTrace(ex);
         }
-        for (Edge edge : graph.getEdges())
-        {
+        for (Edge edge : graph.getEdges()) {
             FDEBLayoutData data = edge.getEdgeData().getLayoutData();
-            for (int j = 0; j < data.subdivisionPoints.length; j++)
-            {
+            for (int j = 0; j < data.subdivisionPoints.length; j++) {
                 debug.println(data.subdivisionPoints[j].x + " " + data.subdivisionPoints[j].y);
             }
         }
         debug.close();
+
     }
 };
