@@ -23,13 +23,13 @@ public class FDEBBundlerParameters {
     }
 
     void setParametersToDefault() {
-        numCycles = 10;
-         stepSize = 1;
-        iterationsPerCycle = 200;
+        numCycles = 5;
+         stepSize = 0.04;
+        iterationsPerCycle = 50;
         //sprintConstant = 0.5;
         stepDampingFactor = 0.5;
-        compatibilityThreshold = 0.6;
-        subdivisionPointIncreaseRate = 3;
+        compatibilityThreshold = 0.1;
+        subdivisionPointIncreaseRate = 2;
     }
 
     public int getIterationsPerCycle() {

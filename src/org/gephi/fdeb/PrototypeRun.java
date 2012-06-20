@@ -7,7 +7,9 @@ package org.gephi.fdeb;
 import com.itextpdf.text.PageSize;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.net.URI;
 import org.gephi.data.attributes.api.AttributeController;
 import org.gephi.data.attributes.api.*;
@@ -42,8 +44,7 @@ public class PrototypeRun {
     }
 
     public void run() {
-        //Init a project - and therefore a workspace
-        //Init a project - and therefore a workspace
+        System.err.println("Example of simple bundling:");
         ProjectController pc = Lookup.getDefault().lookup(ProjectController.class);
         pc.newProject();
         Workspace workspace = pc.getCurrentWorkspace();
@@ -94,6 +95,7 @@ public class PrototypeRun {
         previewModel.setManagedRenderers(managedRenderers);
 
         int i = 0;
+        long startMeasure = System.currentTimeMillis();
         ExportController ec = Lookup.getDefault().lookup(ExportController.class);
         try {
             ec.exportFile(new File("result0.pdf"));
@@ -110,13 +112,22 @@ public class PrototypeRun {
                 return;
             }
         }
-
-        //PDF Exporter config and export to Byte array
-        PDFExporter pdfExporter = (PDFExporter) ec.getExporter("pdf");
-        pdfExporter.setPageSize(PageSize.A0);
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        ec.exportStream(baos, pdfExporter);
-        // byte[] pdf = baos.toByteArray(); 
-
+        System.err.println("Time spent " + (System.currentTimeMillis() - startMeasure) + " ms.");
+        
+        PrintWriter debug = null;
+        try {
+            debug = new PrintWriter("debugSimple.txt");
+        } catch (FileNotFoundException ex) {
+            Exceptions.printStackTrace(ex);
+        }
+        for (Edge edge : graph.getEdges())
+        {
+            FDEBLayoutData data = edge.getEdgeData().getLayoutData();
+            for (int j = 0; j < data.subdivisionPoints.length; j++)
+            {
+                debug.println(data.subdivisionPoints[j].x + " " + data.subdivisionPoints[j].y);
+            }
+        }
+        debug.close();
     }
 };
