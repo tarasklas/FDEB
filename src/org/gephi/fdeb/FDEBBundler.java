@@ -115,7 +115,11 @@ public class FDEBBundler extends AbstractLayout implements Layout {
         for (Edge edge : graphModel.getGraph().getEdges()) {
             FDEBUtilities.createCompatibilityRecords(edge, compatibilityThreshold, graphModel.getGraph());
         }
-        System.err.println("total: " + FDEBUtilities.totalEdges + " passed " + FDEBUtilities.passedEdges
-                + " fraction " + ((double) FDEBUtilities.passedEdges) / FDEBUtilities.totalEdges);
+        int totalEdges = graphModel.getGraph().getEdgeCount() * graphModel.getGraph().getEdgeCount();
+        int passedEdges = 0;
+        for (Edge edge : graphModel.getGraph().getEdges())
+            passedEdges += ((FDEBLayoutData)edge.getEdgeData().getLayoutData()).similarEdges.length;
+        System.err.println("total: " + totalEdges + " passed " + passedEdges
+                + " fraction " + ((double) passedEdges) / totalEdges);
     }
 }

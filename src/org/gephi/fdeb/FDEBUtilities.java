@@ -74,8 +74,6 @@ public class FDEBUtilities {
 
         data.subdivisionPoints = subdivisionPoints;
     }
-    static public int totalEdges = 0;
-    static public int passedEdges = 0;
 
     static public void createCompatibilityRecords(Edge edge, double compatibilityThreshold, Graph graph) {
         ArrayList<FDEBCompatibilityRecord> similar = new ArrayList<FDEBCompatibilityRecord>();
@@ -88,11 +86,9 @@ public class FDEBUtilities {
             }
             double compatibility = FDEBCompatibilityComputator.calculateCompatibility(edge, probablySimilarEdge);
             //System.err.println(compatibility + " " + compatibilityThreshold);
-            totalEdges++;
             if (compatibility < compatibilityThreshold) {
                 continue;
             }
-            passedEdges++;
             similar.add(new FDEBCompatibilityRecord(compatibility, probablySimilarEdge));
         }
         ((FDEBLayoutData) edge.getEdgeData().getLayoutData()).similarEdges = new FDEBCompatibilityRecord[similar.size()];

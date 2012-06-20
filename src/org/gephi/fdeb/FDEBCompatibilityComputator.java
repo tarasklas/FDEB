@@ -20,7 +20,9 @@ public class FDEBCompatibilityComputator {
                 aEdge.getTarget().getNodeData().y() - aEdge.getSource().getNodeData().y());
         PVector b = new PVector(bEdge.getTarget().getNodeData().x() - bEdge.getSource().getNodeData().x(),
                 bEdge.getTarget().getNodeData().y() - bEdge.getSource().getNodeData().y());
-        double compatibility = angleCompatibility(a, b) * scaleCompatibility(a, b) * positionCompatibility(a, b, aEdge, bEdge) * visibilityCompatibility(aEdge, bEdge);
+        double compatibility = angleCompatibility(a, b) * scaleCompatibility(a, b) * positionCompatibility(a, b, aEdge, bEdge)
+                 * visibilityCompatibility(aEdge, bEdge);
+        //System.err.println(compatibility);
         return compatibility;
     }
 

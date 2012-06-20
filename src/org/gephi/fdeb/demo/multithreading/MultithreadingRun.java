@@ -116,7 +116,7 @@ public class MultithreadingRun {
         layout.endAlgo();
         System.err.println("Time spent " + (System.currentTimeMillis() - startMeasure) + " ms.");
 
-        PrintWriter debug = null;
+        /* PrintWriter debug = null;
         try {
             debug = new PrintWriter("debugThreaded.txt");
         } catch (FileNotFoundException ex) {
@@ -129,6 +129,6 @@ public class MultithreadingRun {
             }
         }
         debug.close();
-
+        */
     }
 };

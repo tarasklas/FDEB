@@ -12,7 +12,7 @@ import org.gephi.graph.api.Graph;
  *
  * @author megaterik
  */
-public class FDEBCompatibilityRecordsTask implements Runnable{
+public class FDEBCompatibilityRecordsTask implements Runnable {
 
     Edge[] edges;
     int from;
@@ -27,13 +27,11 @@ public class FDEBCompatibilityRecordsTask implements Runnable{
         this.compatibilityThreshold = compatibilityThreshold;
         this.graph = graph;
     }
-    
-    
-    
+
     @Override
     public void run() {
-        for (int i = from; i < to; i++)
+        for (int i = from; i < to; i++) {
             FDEBUtilities.createCompatibilityRecords(edges[i], compatibilityThreshold, graph);
+        }
     }
-    
 }

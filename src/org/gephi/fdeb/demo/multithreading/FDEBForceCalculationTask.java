@@ -29,7 +29,8 @@ public class FDEBForceCalculationTask implements Runnable {
 
     @Override
     public void run() {
-        for (int i = from; i < to; i++)
+        for (int i = from; i < to; i++) {
             FDEBUtilities.updateNewSubdivisionPoints(edge[i], sprintConstant, stepSize);
+        }
     }
 }

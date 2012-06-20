@@ -94,6 +94,8 @@ public class FDEBBundlerMultithreading extends AbstractLayout implements Layout 
 
             for (int i = 0; i < calculationTasks.length; i++) {
                 try {
+                    if (calculationTasks[i] == null)
+                        System.err.println("o_O");
                     calculationTasks[i].get();
                 } catch (InterruptedException ex) {
                     Exceptions.printStackTrace(ex);
@@ -145,8 +147,6 @@ public class FDEBBundlerMultithreading extends AbstractLayout implements Layout 
     }
 
     private void createCompatibilityLists() {
-        FDEBUtilities.passedEdges = 0;
-        FDEBUtilities.totalEdges = 0;
         ArrayList<FDEBCompatibilityRecord> similar = new ArrayList<FDEBCompatibilityRecord>();
         Future[] tasks = new Future[numberOfTasks];
         int cedges = graphModel.getGraph().getEdgeCount();
@@ -155,7 +155,27 @@ public class FDEBBundlerMultithreading extends AbstractLayout implements Layout 
             tasks[i] = executor.submit(new FDEBCompatibilityRecordsTask(edges, cedges * i / numberOfTasks,
                     Math.min(cedges, cedges * (i + 1) / numberOfTasks), compatibilityThreshold, graphModel.getGraph()));
         }
-        System.err.println("total: " + FDEBUtilities.totalEdges + " passed " + FDEBUtilities.passedEdges + " fraction "
-                + ((double) FDEBUtilities.passedEdges) / FDEBUtilities.totalEdges);
+        
+        for (int i = 0; i < numberOfTasks; i++)
+        {
+            try {
+                tasks[i].get();
+            } catch (InterruptedException ex) {
+                Exceptions.printStackTrace(ex);
+            } catch (ExecutionException ex) {
+                Exceptions.printStackTrace(ex);
+            }
+        }
+
+
+        int totalEdges = graphModel.getGraph().getEdgeCount() * graphModel.getGraph().getEdgeCount();
+        int passedEdges = 0;
+        for (Edge edge : graphModel.getGraph().getEdges()) {
+            if (((FDEBLayoutData) edge.getEdgeData().getLayoutData()).similarEdges != null) {
+                passedEdges += ((FDEBLayoutData) edge.getEdgeData().getLayoutData()).similarEdges.length;
+            }
+        }
+        System.err.println("total: " + totalEdges + " passed " + passedEdges
+                + " fraction " + ((double) passedEdges) / totalEdges);
     }
 }

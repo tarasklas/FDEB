@@ -115,7 +115,7 @@ public class PrototypeRun {
         layout.endAlgo();
         System.err.println("Time spent " + (System.currentTimeMillis() - startMeasure) + " ms.");
         
-        PrintWriter debug = null;
+        /* PrintWriter debug = null;
         try {
             debug = new PrintWriter("debugSimple.txt");
         } catch (FileNotFoundException ex) {
@@ -129,6 +129,6 @@ public class PrototypeRun {
                 debug.println(data.subdivisionPoints[j].x + " " + data.subdivisionPoints[j].y);
             }
         }
-        debug.close();
+        debug.close(); */
     }
 };
