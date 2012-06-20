@@ -2,8 +2,9 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package org.gephi.fdeb.demo.multithreading;
+package org.gephi.example;
 
+import org.gephi.bundler.FDEBBundlerMultithreading;
 import com.itextpdf.text.PageSize;
 import java.io.ByteArrayOutputStream;
 import java.io.File;

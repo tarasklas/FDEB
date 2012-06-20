@@ -2,8 +2,9 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package org.gephi.fdeb;
+package org.gephi.example;
 
+import org.gephi.bundler.FDEBBundler;
 import com.itextpdf.text.PageSize;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -13,6 +14,8 @@ import java.io.PrintWriter;
 import java.net.URI;
 import org.gephi.data.attributes.api.AttributeController;
 import org.gephi.data.attributes.api.*;
+import org.gephi.fdeb.FDEBBundlerParameters;
+import org.gephi.fdeb.FDEBRenderer;
 import org.gephi.filters.api.FilterController;
 import org.gephi.graph.api.DirectedGraph;
 import org.gephi.graph.api.GraphController;

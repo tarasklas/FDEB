@@ -4,7 +4,7 @@
  */
 package org.gephi.fdeb.demo.multithreading;
 
-import org.gephi.fdeb.FDEBUtilities;
+import org.gephi.fdeb.utils.FDEBUtilities;
 import org.gephi.graph.api.Edge;
 import org.gephi.graph.api.Graph;
 

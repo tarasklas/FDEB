@@ -3,7 +3,7 @@
  * So far it just keep compatibility functions
  * 
  */
-package org.gephi.fdeb;
+package org.gephi.fdeb.utils;
 
 import java.awt.geom.Point2D;
 import org.gephi.graph.api.Edge;
@@ -15,7 +15,7 @@ import processing.core.PVector;
  */
 public class FDEBCompatibilityComputator {
 
-    static double calculateCompatibility(Edge aEdge, Edge bEdge) {
+    public static double calculateCompatibility(Edge aEdge, Edge bEdge) {
         PVector a = new PVector(aEdge.getTarget().getNodeData().x() - aEdge.getSource().getNodeData().x(),
                 aEdge.getTarget().getNodeData().y() - aEdge.getSource().getNodeData().y());
         PVector b = new PVector(bEdge.getTarget().getNodeData().x() - bEdge.getSource().getNodeData().x(),
@@ -26,19 +26,19 @@ public class FDEBCompatibilityComputator {
         return compatibility;
     }
 
-    static double angleCompatibility(PVector a, PVector b) {
+    public static double angleCompatibility(PVector a, PVector b) {
         double compatiblity = Math.abs(a.dot(b) / (a.mag() * b.mag()));
 
         return compatiblity;
     }
 
-    static double scaleCompatibility(PVector a, PVector b) {
+    public static double scaleCompatibility(PVector a, PVector b) {
         double lavg = (a.mag() + b.mag()) / 2;
         double compatibility = 2.0 / (lavg / Math.min(a.mag(), b.mag()) + Math.max(a.mag(), b.mag()) / lavg);
         return compatibility;
     }
 
-    static double positionCompatibility(PVector a, PVector b, Edge ae, Edge be) {
+    public static double positionCompatibility(PVector a, PVector b, Edge ae, Edge be) {
         PVector aMid = new PVector((ae.getSource().getNodeData().x() + ae.getTarget().getNodeData().x()) / 2,
                 (ae.getSource().getNodeData().y() + ae.getTarget().getNodeData().y()) / 2);
         PVector bMid = new PVector((be.getSource().getNodeData().x() + be.getTarget().getNodeData().x()) / 2,
@@ -49,7 +49,7 @@ public class FDEBCompatibilityComputator {
         return compatibility;
     }
 
-    static double visibilityCompatibility(Edge aEdge, Edge bEdge) {
+    public static double visibilityCompatibility(Edge aEdge, Edge bEdge) {
         Point2D.Float as = new Point2D.Float(aEdge.getSource().getNodeData().x(), aEdge.getSource().getNodeData().y());
         Point2D.Float af = new Point2D.Float(aEdge.getTarget().getNodeData().x(), aEdge.getTarget().getNodeData().y());
 
@@ -60,7 +60,7 @@ public class FDEBCompatibilityComputator {
         return compatibility;
     }
 
-    static double visibilityCompatibility(Point2D.Float as, Point2D.Float af, Point2D.Float bs, Point2D.Float bf) {
+    public static double visibilityCompatibility(Point2D.Float as, Point2D.Float af, Point2D.Float bs, Point2D.Float bf) {
         Point2D.Float i1 = projectPointToLine(as.x, as.y, af.x, af.y, bs.x, bs.y);
         Point2D.Float i2 = projectPointToLine(as.x, as.y, af.x, af.y, bf.x, bf.y);
         Point2D.Float im = new Point2D.Float((i1.x + i2.x) / 2, (i1.y + i2.y) / 2);

@@ -11,8 +11,8 @@ import org.gephi.graph.api.Edge;
  * @author Администратор
  */
 public class FDEBCompatibilityRecord {
-    double compatibility;
-    Edge edgeWith;
+    public double compatibility;
+    public Edge edgeWith;
 
     public FDEBCompatibilityRecord(double compatibility, Edge edgeWith) {
         this.compatibility = compatibility;

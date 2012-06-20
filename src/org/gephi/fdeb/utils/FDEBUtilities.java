@@ -2,11 +2,13 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package org.gephi.fdeb;
+package org.gephi.fdeb.utils;
 
 import java.awt.Point;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
+import org.gephi.fdeb.FDEBCompatibilityRecord;
+import org.gephi.fdeb.FDEBLayoutData;
 import org.gephi.graph.api.*;
 import org.jfree.data.gantt.Task;
 

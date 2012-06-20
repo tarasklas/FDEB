@@ -1,4 +1,4 @@
-package org.gephi.fdeb.demo.multithreading;
+package org.gephi.bundler;
 
 import java.awt.Point;
 import java.awt.geom.Point2D;
@@ -12,7 +12,9 @@ import java.util.concurrent.Future;
 import org.gephi.fdeb.FDEBBundlerParameters;
 import org.gephi.fdeb.FDEBCompatibilityRecord;
 import org.gephi.fdeb.FDEBLayoutData;
-import org.gephi.fdeb.FDEBUtilities;
+import org.gephi.fdeb.demo.multithreading.FDEBCompatibilityRecordsTask;
+import org.gephi.fdeb.demo.multithreading.FDEBForceCalculationTask;
+import org.gephi.fdeb.utils.FDEBUtilities;
 import org.gephi.graph.api.Edge;
 import org.gephi.graph.api.Node;
 import org.gephi.layout.plugin.AbstractLayout;
