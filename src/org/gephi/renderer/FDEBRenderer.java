@@ -2,12 +2,15 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package org.gephi.fdeb;
+package org.gephi.renderer;
 
 import com.itextpdf.text.pdf.PdfContentByte;
 import com.itextpdf.text.pdf.PdfGState;
 import java.awt.Color;
 import java.util.Locale;
+import org.gephi.fdeb.FDEBItem;
+import org.gephi.fdeb.FDEBItemBuilder;
+import org.gephi.fdeb.FDEBLayoutData;
 import org.gephi.graph.api.Edge;
 import org.gephi.graph.api.HierarchicalDirectedGraph;
 import org.gephi.graph.api.MetaEdge;

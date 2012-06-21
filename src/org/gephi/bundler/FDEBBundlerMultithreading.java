@@ -39,7 +39,7 @@ public class FDEBBundlerMultithreading extends AbstractLayout implements Layout 
     private FDEBBundlerParameters parameters;
     private double subdivisionPointsPerEdge;
 
-    FDEBBundlerMultithreading(LayoutBuilder layoutBuilder, FDEBBundlerParameters parameters) {
+    public FDEBBundlerMultithreading(LayoutBuilder layoutBuilder, FDEBBundlerParameters parameters) {
         super(layoutBuilder);
         this.parameters = parameters;
     }

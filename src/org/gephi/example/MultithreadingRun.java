@@ -4,6 +4,7 @@
  */
 package org.gephi.example;
 
+import org.gephi.renderer.FDEBRenderer;
 import org.gephi.bundler.FDEBBundlerMultithreading;
 import com.itextpdf.text.PageSize;
 import java.io.ByteArrayOutputStream;
@@ -31,6 +32,7 @@ import org.gephi.preview.plugin.renderers.NodeRenderer;
 import org.gephi.project.api.ProjectController;
 import org.gephi.project.api.Workspace;
 import org.gephi.ranking.api.RankingController;
+import org.gephi.renderer.FDEBSimpleBitmapExport;
 import org.openide.util.Exceptions;
 import org.openide.util.Lookup;
 
@@ -116,20 +118,25 @@ public class MultithreadingRun {
         }
         layout.endAlgo();
         System.err.println("Time spent " + (System.currentTimeMillis() - startMeasure) + " ms.");
+        try {
+            new FDEBSimpleBitmapExport().export(graphModel.getGraph(), "exported");
+        } catch (IOException ex) {
+            Exceptions.printStackTrace(ex);
+        }
 
         /* PrintWriter debug = null;
         try {
-            debug = new PrintWriter("debugThreaded.txt");
+        debug = new PrintWriter("debugThreaded.txt");
         } catch (FileNotFoundException ex) {
-            Exceptions.printStackTrace(ex);
+        Exceptions.printStackTrace(ex);
         }
         for (Edge edge : graph.getEdges()) {
-            FDEBLayoutData data = edge.getEdgeData().getLayoutData();
-            for (int j = 0; j < data.subdivisionPoints.length; j++) {
-                debug.println(data.subdivisionPoints[j].x + " " + data.subdivisionPoints[j].y);
-            }
+        FDEBLayoutData data = edge.getEdgeData().getLayoutData();
+        for (int j = 0; j < data.subdivisionPoints.length; j++) {
+        debug.println(data.subdivisionPoints[j].x + " " + data.subdivisionPoints[j].y);
+        }
         }
         debug.close();
-        */
+         */
     }
 };

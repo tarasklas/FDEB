@@ -33,7 +33,7 @@ public class FDEBBundler extends AbstractLayout implements Layout {
     private FDEBBundlerParameters parameters;
     private double subdivisionPointsPerEdge;
     
-    FDEBBundler(LayoutBuilder layoutBuilder, FDEBBundlerParameters parameters) {
+    public FDEBBundler(LayoutBuilder layoutBuilder, FDEBBundlerParameters parameters) {
         super(layoutBuilder);
         this.parameters = parameters;
     }

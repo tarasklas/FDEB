@@ -15,7 +15,7 @@ import java.net.URI;
 import org.gephi.data.attributes.api.AttributeController;
 import org.gephi.data.attributes.api.*;
 import org.gephi.fdeb.FDEBBundlerParameters;
-import org.gephi.fdeb.FDEBRenderer;
+import org.gephi.renderer.FDEBRenderer;
 import org.gephi.filters.api.FilterController;
 import org.gephi.graph.api.DirectedGraph;
 import org.gephi.graph.api.GraphController;

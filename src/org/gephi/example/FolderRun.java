@@ -4,6 +4,7 @@
  */
 package org.gephi.example;
 
+import org.gephi.renderer.FDEBRenderer;
 import org.gephi.bundler.FDEBBundlerMultithreading;
 import com.itextpdf.text.PageSize;
 import java.io.ByteArrayOutputStream;
