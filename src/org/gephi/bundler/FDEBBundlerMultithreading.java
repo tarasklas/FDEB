@@ -1,8 +1,5 @@
 package org.gephi.bundler;
 
-import java.awt.Point;
-import java.awt.geom.Point2D;
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.concurrent.ExecutionException;
@@ -16,13 +13,11 @@ import org.gephi.fdeb.demo.multithreading.FDEBCompatibilityRecordsTask;
 import org.gephi.fdeb.demo.multithreading.FDEBForceCalculationTask;
 import org.gephi.fdeb.utils.FDEBUtilities;
 import org.gephi.graph.api.Edge;
-import org.gephi.graph.api.Node;
 import org.gephi.layout.plugin.AbstractLayout;
 import org.gephi.layout.spi.Layout;
 import org.gephi.layout.spi.LayoutBuilder;
 import org.gephi.layout.spi.LayoutProperty;
 import org.openide.util.Exceptions;
-import processing.core.PVector;
 
 /**
  *

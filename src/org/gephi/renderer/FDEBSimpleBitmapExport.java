@@ -5,8 +5,6 @@
 package org.gephi.renderer;
 
 import java.awt.Color;
-import java.awt.LinearGradientPaint;
-import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;

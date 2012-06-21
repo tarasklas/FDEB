@@ -1,22 +1,16 @@
 package org.gephi.bundler;
 
 import org.gephi.fdeb.utils.FDEBUtilities;
-import java.awt.Point;
-import java.awt.geom.Point2D;
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import org.gephi.fdeb.FDEBBundlerParameters;
 import org.gephi.fdeb.FDEBCompatibilityRecord;
 import org.gephi.fdeb.FDEBLayoutData;
 import org.gephi.graph.api.Edge;
-import org.gephi.graph.api.GraphModel;
-import org.gephi.graph.api.Node;
 import org.gephi.layout.plugin.AbstractLayout;
 import org.gephi.layout.spi.Layout;
 import org.gephi.layout.spi.LayoutBuilder;
 import org.gephi.layout.spi.LayoutProperty;
-import processing.core.PVector;
 
 /**
  *

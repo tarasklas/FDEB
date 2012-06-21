@@ -6,7 +6,6 @@ package org.gephi.debug;
 
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.PrintWriter;
 import java.util.Scanner;
 
 /**

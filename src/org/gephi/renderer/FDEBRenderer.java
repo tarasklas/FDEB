@@ -7,25 +7,13 @@ package org.gephi.renderer;
 import com.itextpdf.text.pdf.PdfContentByte;
 import com.itextpdf.text.pdf.PdfGState;
 import java.awt.Color;
-import java.util.Locale;
 import org.gephi.fdeb.FDEBItem;
 import org.gephi.fdeb.FDEBItemBuilder;
 import org.gephi.fdeb.FDEBLayoutData;
-import org.gephi.graph.api.Edge;
-import org.gephi.graph.api.HierarchicalDirectedGraph;
-import org.gephi.graph.api.MetaEdge;
 import org.gephi.preview.api.*;
-import org.gephi.preview.plugin.builders.EdgeBuilder;
-import org.gephi.preview.plugin.items.EdgeItem;
-import org.gephi.preview.plugin.items.NodeItem;
-import org.gephi.preview.plugin.renderers.EdgeRenderer;
-import org.gephi.preview.plugin.renderers.NodeRenderer;
 import org.gephi.preview.spi.ItemBuilder;
 import org.gephi.preview.spi.Renderer;
 import org.openide.util.lookup.ServiceProvider;
-import org.w3c.dom.Element;
-import processing.core.PGraphics;
-import processing.core.PVector;
 
 /**
  *
