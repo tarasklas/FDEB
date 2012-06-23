@@ -13,6 +13,7 @@ import org.gephi.fdeb.FDEBLayoutData;
 import org.gephi.graph.api.Edge;
 import org.gephi.graph.api.Graph;
 import org.gephi.graph.api.Node;
+import org.w3c.dom.css.RGBColor;
 
 /**
  *
@@ -20,19 +21,19 @@ import org.gephi.graph.api.Node;
  */
 public class FDEBSimpleBitmapExport {
 
-    int getX(int x, int i) {
-        return (int) Math.round(((double) (x - minX)) * image.getWidth() / (maxX - minX)) + i;
+    double getX(double x) {
+        return Math.round(((double) (x - minX)) * image.getWidth() / (maxX - minX));
     }
 
-    int getY(int y, int j) {
-        return (int) Math.round(((double) (y - minY)) * image.getHeight() / (maxY - minY)) + j;
+    double getY(double y) {
+        return Math.round(((double) (y - minY)) * image.getHeight() / (maxY - minY));
     }
 
     void incPoint(int x, int y) {
-        for (int i = -2; i <= 2; i++) {
-            for (int j = -2; j <= 2; j++) {
-                if (getX(x, i) >= 0 && getY(y, j) >= 0 && getX(x, i) < image.getWidth() && getY(y, j) < image.getHeight()) {
-                    points[getX(x, i)][getY(y, j)] += 1.0 / (1.0 + Math.abs(i) + Math.abs(j));
+        for (int i = -0; i <= 0; i++) {
+            for (int j = -0; j <= 0; j++) {
+                if (x + i >= 0 && y + j >= 0 && x + i < image.getWidth() && y + j < image.getHeight()) {
+                    points[x + i][y + j] += 1.0 / (1.0 + Math.abs(i) + Math.abs(j));
                     //1 for center, less otherwise, kind of smoothing
                 }
 
@@ -44,9 +45,12 @@ public class FDEBSimpleBitmapExport {
     float[][] points;
 
     void makeLine(double x1, double y1, double x2, double y2) {
-        double len = Math.sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
-        double incx = (x2 - x1) / len;//move one pixel per turn
-        double incy = (y2 - y1) / len;
+        double len = Math.sqrt((getX(x1) - getX(x2)) * (getX(x1) - getX(x2))
+                + (getY(y1) - getY(y2)) * (getY(y1) - getY(y2)));
+        double incx = (getX(x2) - getX(x1)) / len;//move one pixel per turn
+        double incy = (getY(y2) - getY(y1)) / len;
+        x1 = getX(x1);
+        y1 = getY(y1);
         for (int i = 0; i < len; i++) {
             x1 += incx;
             y1 += incy;
@@ -55,6 +59,9 @@ public class FDEBSimpleBitmapExport {
     }
 
     public void export(Graph graph, String filename) throws IOException {
+        if (graph.getNodeCount() <= 1)
+            return;
+        
         for (Node node : graph.getNodes()) {
             minX = Math.min((int) node.getNodeData().x(), minX);
             minY = Math.min((int) node.getNodeData().y(), minY);
@@ -62,7 +69,10 @@ public class FDEBSimpleBitmapExport {
             maxX = Math.max((int) node.getNodeData().x(), maxX);
             maxY = Math.max((int) node.getNodeData().y(), maxY);
         }
-        image = new BufferedImage(maxX - minX, (maxY - minY), BufferedImage.TYPE_INT_RGB);
+        int width = 1024 * 4;
+        //int width = maxX - minX;
+        int height = width * (maxY - minY) / (maxX - minX); //scale
+        image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
         points = new float[image.getWidth()][image.getHeight()];
 
         for (int i = 0; i < image.getWidth(); i++) {
@@ -85,22 +95,31 @@ public class FDEBSimpleBitmapExport {
             }
         }
 
+       // max = 25;
 
+        /* 
         for (int i = 0; i < image.getWidth(); i++) {
             for (int j = 0; j < image.getHeight(); j++) {
                 if (points[i][j] < max / 3) {
-                   // points[i][j] = 0;
+                    // points[i][j] = 0;
                 }
             }
-        }
+        } */
 
         for (int i = 0; i < image.getWidth(); i++) {
             for (int j = 0; j < image.getHeight(); j++) {
                 if (points[i][j] > 0) {
-                    image.setRGB(i, j, new Color(0f, 0f, 0.3f + 0.7f * points[i][j] / max, 1.0f).getRGB());
+                    //image.setRGB(i, j, new Color(0f, 0f, Math.min(1f, 1f * (float) Math.sqrt(points[i][j] / max)), 1.0f).getRGB());
+                    image.setRGB(i, j, generateGradient(points[i][j] / max));
                 }
             }
-        }
+        } 
+        
         System.err.println("Export to png: " + ImageIO.write(image, "png", new File(filename + ".png")));
+    }
+
+    private int generateGradient(float f) {
+        f = Math.min(f * 2.25f, 1f);// move closer to blue
+        return new Color(1f * (1 - f), 1f * (1 - f), 1f).getRGB(); //white to blue
     }
 }

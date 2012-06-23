@@ -21,6 +21,7 @@ import org.gephi.preview.plugin.renderers.NodeRenderer;
 import org.gephi.project.api.ProjectController;
 import org.gephi.project.api.Workspace;
 import org.gephi.ranking.api.RankingController;
+import org.gephi.renderer.FDEBSimpleBitmapExport;
 import org.openide.util.Exceptions;
 import org.openide.util.Lookup;
 
@@ -73,8 +74,7 @@ public class FolderRun {
             }
             System.out.println("Nodes: " + graph.getNodeCount());
             System.out.println("Edges: " + graph.getEdgeCount());
-            if (graph.getEdgeCount() > 2500)
-            {
+            if (graph.getEdgeCount() > 2500) {
                 System.out.println("Graph is too large, skip");
                 continue;
             }
@@ -112,6 +112,11 @@ public class FolderRun {
                 }
             }
             layout.endAlgo();
+            try {
+                new FDEBSimpleBitmapExport().export(graphModel.getGraph(), "output/" + file.getName() + "exported" + i + ".pdf");
+            } catch (IOException ex) {
+                Exceptions.printStackTrace(ex);
+            }
             System.err.println("Time spent " + (System.currentTimeMillis() - startMeasure) + " ms.");
         }
 
