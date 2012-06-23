@@ -69,8 +69,8 @@ public class FDEBSimpleBitmapExport {
             maxX = Math.max((int) node.getNodeData().x(), maxX);
             maxY = Math.max((int) node.getNodeData().y(), maxY);
         }
-        int width = 1024 * 4;
-        //int width = maxX - minX;
+        //int width = 1024 * 4;
+        int width = maxX - minX;
         int height = width * (maxY - minY) / (maxX - minX); //scale
         image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
         points = new float[image.getWidth()][image.getHeight()];
