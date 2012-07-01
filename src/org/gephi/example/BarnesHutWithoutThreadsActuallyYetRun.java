@@ -4,15 +4,16 @@
  */
 package org.gephi.example;
 
-import org.gephi.bundler.FDEBBundler;
+import org.gephi.renderer.FDEBRenderer;
+import org.gephi.bundler.FDEBBundlerMultithreading;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
+import org.gephi.bundler.FDEBBundlerBarnesHut;
 import org.gephi.data.attributes.api.*;
-import org.gephi.fdeb.FDEBBundlerParameters;
-import org.gephi.fdeb.FDEBLayoutData;
-import org.gephi.renderer.FDEBRenderer;
+import org.gephi.fdeb.*;
+import org.gephi.fdeb.utils.FDEBUtilities;
 import org.gephi.filters.api.FilterController;
 import org.gephi.graph.api.*;
 import org.gephi.io.exporter.api.ExportController;
@@ -24,6 +25,7 @@ import org.gephi.preview.plugin.renderers.NodeRenderer;
 import org.gephi.project.api.ProjectController;
 import org.gephi.project.api.Workspace;
 import org.gephi.ranking.api.RankingController;
+import org.gephi.renderer.FDEBSimpleBitmapExport;
 import org.openide.util.Exceptions;
 import org.openide.util.Lookup;
 
@@ -31,16 +33,16 @@ import org.openide.util.Lookup;
  *
  * @author megaterik
  */
-public class PrototypeRun {
+public class BarnesHutWithoutThreadsActuallyYetRun {
 
     public String filename = "example.gml";
 
     public static void main(String[] args) {
-        new PrototypeRun().run();
+        new BarnesHutWithoutThreadsActuallyYetRun().run();
     }
 
     public void run() {
-        System.err.println("Example of simple bundling:");
+        System.err.println("Example of bundling with threads and Barnes-Hut optimization:");
         ProjectController pc = Lookup.getDefault().lookup(ProjectController.class);
         pc.newProject();
         Workspace workspace = pc.getCurrentWorkspace();
@@ -75,7 +77,7 @@ public class PrototypeRun {
         System.out.println("Nodes: " + graph.getNodeCount());
         System.out.println("Edges: " + graph.getEdgeCount());
 
-        FDEBBundler layout = new FDEBBundler(null, new FDEBBundlerParameters());
+        FDEBBundlerBarnesHut layout = new FDEBBundlerBarnesHut(null, new FDEBBundlerParameters());
         layout.setGraphModel(graphModel);
         layout.initAlgo();
         layout.resetPropertiesValues();
@@ -109,10 +111,15 @@ public class PrototypeRun {
         }
         layout.endAlgo();
         System.err.println("Time spent " + (System.currentTimeMillis() - startMeasure) + " ms.");
+        try {
+            new FDEBSimpleBitmapExport().export(graphModel.getGraph(), "exported");
+        } catch (IOException ex) {
+            Exceptions.printStackTrace(ex);
+        }
 
         PrintWriter debug = null;
         try {
-            debug = new PrintWriter("debugWithoutBundling.txt");
+            debug = new PrintWriter("debugBarnesHut.txt");
         } catch (FileNotFoundException ex) {
             Exceptions.printStackTrace(ex);
         }
@@ -123,5 +130,6 @@ public class PrototypeRun {
             }
         }
         debug.close();
+
     }
 };

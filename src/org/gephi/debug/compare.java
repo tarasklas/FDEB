@@ -16,8 +16,15 @@ public class compare {
     
     public static void main(String[] args) throws FileNotFoundException
     {
-        Scanner in1 = new Scanner(new FileReader("debugSimple.txt"));
-        Scanner in2 = new Scanner(new FileReader("debugThreaded.txt"));
+        diff("debugSimple.txt", "debugBarnesHut.txt");
+        diff("debugSimple.txt", "debugWithoutBundling.txt");
+    }
+    
+    public static void diff(String f1, String f2) throws FileNotFoundException
+    {
+        System.err.println("Difference between " + f1 + " and " + f2);
+        Scanner in1 = new Scanner(new FileReader(f1));
+        Scanner in2 = new Scanner(new FileReader(f2));
         int total = 0;
         double averageDifference = 0;
         double fullDifference = 0;
@@ -32,7 +39,7 @@ public class compare {
         }
         averageDifference = fullDifference / total;
         System.out.println("difference " + fullDifference);
-        System.out.println("average " + averageDifference);
+        System.out.println("average " + averageDifference + " " + fullSum / total);
         System.out.println("Sum " + fullSum);
     }
     

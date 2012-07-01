@@ -7,9 +7,14 @@ package org.gephi.fdeb.utils;
 import java.awt.Point;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import org.gephi.barnes_hut.QuadNode;
 import org.gephi.fdeb.FDEBCompatibilityRecord;
 import org.gephi.fdeb.FDEBLayoutData;
 import org.gephi.graph.api.*;
+import processing.core.PVector;
 
 /**
  *
@@ -144,6 +149,95 @@ public class FDEBUtilities {
              */
             data.newSubdivisionPoints[i] = new Point.Double(data.subdivisionPoints[i].x + stepSize * (Fei_x + Fsi_x),
                     data.subdivisionPoints[i].y + stepSize * (Fei_y + Fsi_y));
+        }
+    }
+    public static int passed = 0;
+    public static double passedValue = 0;
+    public static int total = 0;
+    public static int visited = 0;
+
+    public static void updateNewSubdivisionPointsWithBarnesHutOptimization(Edge edge, double sprintConstant, double stepSize, QuadNode root, double compatibilityThreshold) {
+        if (edge.isSelfLoop()) {
+            return;
+        }
+        FDEBLayoutData data = edge.getEdgeData().getLayoutData();
+        double k = sprintConstant / (data.length * (data.subdivisionPoints.length - 1));
+
+        total += root.size;
+        for (int i = 1; i < data.subdivisionPoints.length - 1; i++)//first and last are fixed
+        {
+            double Fsi_x = (data.subdivisionPoints[i - 1].x - data.subdivisionPoints[i].x)
+                    + (data.subdivisionPoints[i + 1].x - data.subdivisionPoints[i].x);
+            double Fsi_y = (data.subdivisionPoints[i - 1].y - data.subdivisionPoints[i].y)
+                    + (data.subdivisionPoints[i + 1].y - data.subdivisionPoints[i].y);
+
+            if (Math.abs(k) <= 1) {
+                Fsi_x *= k;
+                Fsi_y *= k;
+            }
+            data.newSubdivisionPoints[i] = new Point.Double(data.subdivisionPoints[i].x + stepSize * (Fsi_x),
+                    data.subdivisionPoints[i].y + stepSize * (Fsi_y));
+        }
+        appendSimilarEdgesUsingBarnesHut(root, edge, compatibilityThreshold, stepSize);
+    }
+
+    private static void appendSimilarEdgesUsingBarnesHut(QuadNode node, Edge edge, double compatibilityThreshold, double stepSize) {
+        visited++;
+        if (node.isLeaf) {
+            if (node.storedElement != null) {
+                Edge moveEdge = (Edge) node.storedElement;
+                FDEBLayoutData data = edge.getEdgeData().getLayoutData();
+                double compatibility = FDEBCompatibilityComputator.calculateCompatibility(edge, moveEdge);
+                if (compatibility < compatibilityThreshold) {
+                    return;
+                }
+                if (moveEdge.isSelfLoop()) {
+                    return;
+                }
+                if (moveEdge == edge) {
+                    return;
+                }
+
+                passed++;
+                passedValue += compatibility;
+                for (int i = 1; i < data.subdivisionPoints.length - 1; i++) {
+                    FDEBLayoutData moveData = moveEdge.getEdgeData().getLayoutData();
+                    double v_x = moveData.subdivisionPoints[i].x - data.subdivisionPoints[i].x;
+                    double v_y = moveData.subdivisionPoints[i].y - data.subdivisionPoints[i].y;
+
+                    if (Math.abs(v_x) > EPS || Math.abs(v_y) > EPS) {
+                        double len_sq = v_x * v_x + v_y * v_y;
+                        double m = (compatibility / Math.sqrt(len_sq));
+
+                        v_x *= m * stepSize;
+                        v_y *= m * stepSize;
+                        data.newSubdivisionPoints[i].x += v_x;
+                        data.newSubdivisionPoints[i].y += v_y;
+                    }
+                }
+            }
+        } else {
+            Point2D.Float projection = FDEBCompatibilityComputator.projectPointToLine(edge.getSource().getNodeData().x(), edge.getSource().getNodeData().y(),
+                    edge.getTarget().getNodeData().x(), edge.getTarget().getNodeData().y(), node.center.x, node.center.y);
+            double distanceToCenter = Point2D.distance(node.center.x, node.center.y, projection.x, projection.y);
+            if (projection.x > Math.max(edge.getSource().getNodeData().x(), edge.getTarget().getNodeData().x())
+                    || (projection.x < Math.min(edge.getSource().getNodeData().x(), edge.getTarget().getNodeData().x()))) {
+                if (projection.y > Math.max(edge.getSource().getNodeData().y(), edge.getTarget().getNodeData().y())
+                        || (projection.y < Math.min(edge.getSource().getNodeData().y(), edge.getTarget().getNodeData().y()))) {
+                    //projection outside edge, therefore minimum will be at one of the ends
+                    distanceToCenter = Math.min(
+                            Point2D.distance(node.center.x, node.center.y, edge.getSource().getNodeData().x(), edge.getSource().getNodeData().y()),
+                            Point2D.distance(node.center.x, node.center.y, edge.getTarget().getNodeData().x(), edge.getTarget().getNodeData().y()));
+                }
+            }
+
+            if ((node.xr - node.xl + node.yr - node.yl) / distanceToCenter < 0.25) {
+                return;
+            }
+            appendSimilarEdgesUsingBarnesHut(node.ld, edge, compatibilityThreshold, stepSize);
+            appendSimilarEdgesUsingBarnesHut(node.lu, edge, compatibilityThreshold, stepSize);
+            appendSimilarEdgesUsingBarnesHut(node.rd, edge, compatibilityThreshold, stepSize);
+            appendSimilarEdgesUsingBarnesHut(node.ru, edge, compatibilityThreshold, stepSize);
         }
     }
 }
