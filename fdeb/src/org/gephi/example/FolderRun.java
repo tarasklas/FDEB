@@ -79,7 +79,7 @@ public class FolderRun {
                 continue;
             }
 
-            FDEBBundlerMultithreading layout = new FDEBBundlerMultithreading(null, new FDEBBundlerParameters());
+            FDEBBundlerMultithreading layout = new FDEBBundlerMultithreading(null);
             layout.setGraphModel(graphModel);
             layout.initAlgo();
             layout.resetPropertiesValues();

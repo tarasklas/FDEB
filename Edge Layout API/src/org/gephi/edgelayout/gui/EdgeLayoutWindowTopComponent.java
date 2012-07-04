@@ -1,31 +1,34 @@
 /*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+ * Api package isn't the best place to host gui, probably.
  */
 package org.gephi.edgelayout.gui;
 
+import java.awt.event.ActionEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import javax.swing.DefaultComboBoxModel;
 import org.gephi.edgelayout.spi.EdgeLayout;
 import org.gephi.edgelayout.spi.EdgeLayoutBuilder;
-import org.gephi.graph.api.Edge;
-import org.gephi.graph.api.GraphController;
-import org.gephi.graph.api.GraphModel;
-import org.gephi.graph.api.Model;
 import org.gephi.layout.api.LayoutController;
 import org.gephi.layout.api.LayoutModel;
-import org.gephi.preview.api.PreviewController;
-import org.gephi.preview.api.RenderTarget;
+import org.gephi.layout.spi.Layout;
+import org.gephi.layout.spi.LayoutProperty;
 import org.netbeans.api.settings.ConvertAsProperties;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
+import org.openide.explorer.propertysheet.PropertySheet;
+import org.openide.nodes.AbstractNode;
+import org.openide.nodes.Children;
+import org.openide.nodes.Node;
+import org.openide.nodes.Sheet;
+import org.openide.util.Exceptions;
 import org.openide.util.Lookup;
 import org.openide.util.NbBundle.Messages;
 import org.openide.windows.TopComponent;
-import sun.java2d.pipe.RenderBuffer;
 
 /**
  * Top component which displays something.
@@ -48,9 +51,9 @@ preferredID = "EdgeLayoutWindowTopComponent")
     "HINT_EdgeLayoutWindowTopComponent=This is a EdgeLayoutWindow window"
 })
 public final class EdgeLayoutWindowTopComponent extends TopComponent implements PropertyChangeListener {
-
+    
     private LayoutController controller;
-
+    
     public EdgeLayoutWindowTopComponent() {
         initComponents();
         setName(Bundle.CTL_EdgeLayoutWindowTopComponent());
@@ -58,21 +61,37 @@ public final class EdgeLayoutWindowTopComponent extends TopComponent implements 
         putClientProperty(TopComponent.PROP_MAXIMIZATION_DISABLED, Boolean.TRUE);
         putClientProperty(TopComponent.PROP_UNDOCKING_DISABLED, Boolean.TRUE);
         controller = Lookup.getDefault().lookup(LayoutController.class);
-
+        
         regenerateCombobox();
         controller.getModel().addPropertyChangeListener(this);
         regenerateRunButton();
+        regenerateSettings();
     }
-
+    
+    private void regenerateSettings() {
+        if (controller.getModel().getSelectedLayout() != null) {
+            LayoutNode layoutNode;
+            layoutNode = new LayoutNode(controller.getModel().getSelectedLayout());
+            layoutNode.getPropertySets();
+            ((PropertySheet) settingsPanel).setNodes(new Node[]{layoutNode});
+        } else {
+            ((PropertySheet) settingsPanel).setNodes(new Node[0]);
+        }
+        settingsPanel.setVisible(true);
+    }
+    
     private void regenerateCombobox() {
         ArrayList<EdgeLayoutBuilder> list = new ArrayList(Lookup.getDefault().lookupAll(EdgeLayoutBuilder.class));
-        ArrayList<EdgeLayoutWrapper> sortedlist = new ArrayList<EdgeLayoutWrapper>(list.size());
+        
+        ArrayList sortedlist = new ArrayList(list.size());
         for (int i = 0; i < list.size(); i++) {
             sortedlist.add(new EdgeLayoutWrapper(list.get(i)));
         }
         Collections.sort(sortedlist);
+        sortedlist.add(0, "--Choose a layout");
         DefaultComboBoxModel model = new DefaultComboBoxModel(sortedlist.toArray());
         layoutComboBox.setModel(model);
+        layoutComboBoxItemStateChanged(null);
     }
 
     /**
@@ -85,7 +104,7 @@ public final class EdgeLayoutWindowTopComponent extends TopComponent implements 
 
         runButton = new javax.swing.JButton();
         layoutComboBox = new javax.swing.JComboBox();
-        settingsPanel = new javax.swing.JPanel();
+        settingsPanel = new PropertySheet();
         deleteButton = new javax.swing.JButton();
 
         org.openide.awt.Mnemonics.setLocalizedText(runButton, org.openide.util.NbBundle.getMessage(EdgeLayoutWindowTopComponent.class, "EdgeLayoutWindowTopComponent.runButton.text")); // NOI18N
@@ -101,17 +120,6 @@ public final class EdgeLayoutWindowTopComponent extends TopComponent implements 
                 layoutComboBoxItemStateChanged(evt);
             }
         });
-
-        javax.swing.GroupLayout settingsPanelLayout = new javax.swing.GroupLayout(settingsPanel);
-        settingsPanel.setLayout(settingsPanelLayout);
-        settingsPanelLayout.setHorizontalGroup(
-            settingsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 0, Short.MAX_VALUE)
-        );
-        settingsPanelLayout.setVerticalGroup(
-            settingsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 165, Short.MAX_VALUE)
-        );
 
         org.openide.awt.Mnemonics.setLocalizedText(deleteButton, org.openide.util.NbBundle.getMessage(EdgeLayoutWindowTopComponent.class, "EdgeLayoutWindowTopComponent.deleteButton.text")); // NOI18N
         deleteButton.setToolTipText(org.openide.util.NbBundle.getMessage(EdgeLayoutWindowTopComponent.class, "EdgeLayoutWindowTopComponent.deleteButton.toolTipText")); // NOI18N
@@ -143,38 +151,37 @@ public final class EdgeLayoutWindowTopComponent extends TopComponent implements 
                 .addComponent(layoutComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, 38, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(runButton)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(settingsPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addGap(18, 18, 18)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(settingsPanel, javax.swing.GroupLayout.DEFAULT_SIZE, 289, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(deleteButton)
                 .addContainerGap())
         );
     }// </editor-fold>//GEN-END:initComponents
 
-    private void removeEdgeLayoutData() {
-    }
-
     private void deleteButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_deleteButtonActionPerformed
         EdgeLayout layout = (EdgeLayout) controller.getModel().getSelectedLayout();
         layout.removeLayoutData();
-        Lookup.getDefault().lookup(PreviewController.class).refreshPreview();
+        // Lookup.getDefault().lookup(PreviewController.class).refreshPreview();
     }//GEN-LAST:event_deleteButtonActionPerformed
-
+    
     private void run() {
         if (controller.canExecute()) {
             controller.executeLayout();
         }
-        Lookup.getDefault().lookup(PreviewController.class).refreshPreview();
+        //Lookup.getDefault().lookup(PreviewController.class).refreshPreview();
     }
-
+    
     private void stop() {
-        controller.stopLayout();
+        if (controller.canStop()) {
+            controller.stopLayout();
+        }
     }
-
+    
     private boolean layoutIsRunning() {
         return controller.getModel().isRunning();
     }
-
+    
     private void regenerateRunButton() {
         if (layoutIsRunning()) {
             runButton.setText("Stop");
@@ -185,21 +192,28 @@ public final class EdgeLayoutWindowTopComponent extends TopComponent implements 
             layoutComboBox.setEnabled(true);
         }
     }
-
+    
     private void runButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_runButtonActionPerformed
+        regenerateRunButton();
         if (layoutIsRunning()) {
             stop();
         } else {
             run();
         }
         regenerateRunButton();
+        regenerateSettings();
     }//GEN-LAST:event_runButtonActionPerformed
-
+    
     private void layoutComboBoxItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_layoutComboBoxItemStateChanged
         if (layoutComboBox.getSelectedItem() instanceof EdgeLayoutWrapper) {
             EdgeLayoutWrapper wrapper = (EdgeLayoutWrapper) layoutComboBox.getSelectedItem();
             controller.setLayout(wrapper.getBuilder().buildLayout());
+            runButton.setEnabled(true);
+        } else {
+            controller.setLayout(null);
+            runButton.setEnabled(false);
         }
+        regenerateSettings();
     }//GEN-LAST:event_layoutComboBoxItemStateChanged
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton deleteButton;
@@ -212,51 +226,101 @@ public final class EdgeLayoutWindowTopComponent extends TopComponent implements 
     public void componentOpened() {
         // TODO add custom code on component opening
     }
-
+    
     @Override
     public void componentClosed() {
         // TODO add custom code on component closing
     }
-
+    
     void writeProperties(java.util.Properties p) {
         // better to version settings since initial version as advocated at
         // http://wiki.apidesign.org/wiki/PropertyFiles
         p.setProperty("version", "1.0");
         // TODO store your settings
     }
-
+    
     void readProperties(java.util.Properties p) {
         String version = p.getProperty("version");
         // TODO read your settings according to their version
     }
-
+    
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
         if (evt.getPropertyName().equals(LayoutModel.RUNNING)) {
             regenerateRunButton();
         }
+        regenerateSettings();
     }
-
+    
     private class EdgeLayoutWrapper implements Comparable<EdgeLayoutWrapper> {
-
+        
         EdgeLayoutBuilder builder;
-
+        
         public EdgeLayoutWrapper(EdgeLayoutBuilder builder) {
             this.builder = builder;
         }
-
+        
         public EdgeLayoutBuilder getBuilder() {
             return builder;
         }
-
+        
         @Override
         public String toString() {
             return builder.getName().toString();
         }
-
+        
         @Override
         public int compareTo(EdgeLayoutWrapper o) {
             return builder.getName().compareTo(o.getBuilder().getName());
+        }
+    }
+
+    /*
+     * Package org.gephi.desktop.layout isn't declared as public, had to copy
+     * this class
+     */
+    /**
+     *
+     * @author Mathieu Bastian
+     */
+    private class LayoutNode extends AbstractNode {
+        
+        private Layout layout;
+        private PropertySet[] propertySets;
+        
+        public LayoutNode(Layout layout) {
+            super(Children.LEAF);
+            this.layout = layout;
+            setName(layout.getBuilder().getName());
+        }
+        
+        @Override
+        public PropertySet[] getPropertySets() {
+            if (propertySets == null) {
+                try {
+                    Map<String, Sheet.Set> sheetMap = new HashMap<String, Sheet.Set>();
+                    System.err.println("layout has " + layout.getProperties().length + " properties");
+                    for (LayoutProperty layoutProperty : layout.getProperties()) {
+                        Sheet.Set set = sheetMap.get(layoutProperty.getCategory());
+                        if (set == null) {
+                            set = Sheet.createPropertiesSet();
+                            set.setDisplayName(layoutProperty.getCategory());
+                            sheetMap.put(layoutProperty.getCategory(), set);
+                        }
+                        set.put(layoutProperty.getProperty());
+                    }
+                    propertySets = sheetMap.values().toArray(new PropertySet[0]);
+                } catch (Exception ex) {
+                    Exceptions.printStackTrace(ex);
+                    return null;
+                }
+            }
+            System.err.println("size of result is " + propertySets.length);
+            return propertySets;
+        }
+        
+        public Layout getLayout() {
+            return layout;
         }
     }
 }

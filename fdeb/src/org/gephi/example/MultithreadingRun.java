@@ -73,7 +73,7 @@ public class MultithreadingRun {
         System.out.println("Nodes: " + graph.getNodeCount());
         System.out.println("Edges: " + graph.getEdgeCount());
 
-        FDEBBundlerMultithreading layout = new FDEBBundlerMultithreading(null, new FDEBBundlerParameters());
+        FDEBBundlerMultithreading layout = new FDEBBundlerMultithreading(null);
         layout.setGraphModel(graphModel);
         layout.initAlgo();
         layout.resetPropertiesValues();

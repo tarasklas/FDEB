@@ -40,11 +40,11 @@ public class FDEBBundlerParameters {
         this.iterationsPerCycle = iterationsPerCycle;
     }
 
-    public int getNumCycles() {
+    public Integer getNumCycles() {
         return numCycles;
     }
 
-    public void setNumCycles(int numCycles) {
+    public void setNumCycles(Integer numCycles) {
         this.numCycles = numCycles;
     }
 

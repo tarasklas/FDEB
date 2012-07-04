@@ -75,7 +75,7 @@ public class PrototypeRun {
         System.out.println("Nodes: " + graph.getNodeCount());
         System.out.println("Edges: " + graph.getEdgeCount());
 
-        FDEBBundler layout = new FDEBBundler(null, new FDEBBundlerParameters());
+        FDEBBundler layout = new FDEBBundler(null);
         layout.setGraphModel(graphModel);
         layout.initAlgo();
         layout.resetPropertiesValues();
