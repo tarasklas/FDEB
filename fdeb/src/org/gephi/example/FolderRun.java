@@ -40,7 +40,7 @@ public class FolderRun {
 
         //Get models and controllers for this new workspace - will be useful later
 
-        File[] files = new File("input/").listFiles();
+        File[] files = new File("testing/").listFiles();
         for (File file : files) {
             System.err.println("Process " + file.getAbsolutePath());
 

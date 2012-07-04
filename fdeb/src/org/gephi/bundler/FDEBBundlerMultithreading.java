@@ -6,6 +6,9 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import org.gephi.edgelayout.plugin.AbstractEdgeLayout;
+import org.gephi.edgelayout.spi.EdgeLayout;
+import org.gephi.edgelayout.spi.EdgeLayoutBuilder;
 import org.gephi.fdeb.FDEBBundlerParameters;
 import org.gephi.fdeb.FDEBCompatibilityRecord;
 import org.gephi.fdeb.FDEBLayoutData;
@@ -23,8 +26,8 @@ import org.openide.util.Exceptions;
  *
  * @author megaterik
  */
-public class FDEBBundlerMultithreading extends AbstractLayout implements Layout {
-
+public class FDEBBundlerMultithreading extends AbstractEdgeLayout implements EdgeLayout {
+    
     private static final double EPS = 1e-7;
     private int cycle;
     private double stepSize;   // S
@@ -33,8 +36,8 @@ public class FDEBBundlerMultithreading extends AbstractLayout implements Layout 
     private double compatibilityThreshold;
     private FDEBBundlerParameters parameters;
     private double subdivisionPointsPerEdge;
-
-    public FDEBBundlerMultithreading(LayoutBuilder layoutBuilder, FDEBBundlerParameters parameters) {
+    
+    public FDEBBundlerMultithreading(EdgeLayoutBuilder layoutBuilder, FDEBBundlerParameters parameters) {
         super(layoutBuilder);
         this.parameters = parameters;
     }
@@ -44,11 +47,11 @@ public class FDEBBundlerMultithreading extends AbstractLayout implements Layout 
      */
     int numberOfTasks = 8;
     ExecutorService executor;
-
+    
     @Override
     public void initAlgo() {
         executor = Executors.newCachedThreadPool();
-
+        
         for (Edge edge : graphModel.getGraph().getEdges()) {
             edge.getEdgeData().setLayoutData(
                     new FDEBLayoutData(edge.getSource().getNodeData().x(), edge.getSource().getNodeData().y(),
@@ -63,7 +66,7 @@ public class FDEBBundlerMultithreading extends AbstractLayout implements Layout 
         sprintConstant = FDEBUtilities.calculateSprintConstant(graphModel.getGraph());
         subdivisionPointsPerEdge = 1;//start and end doesnt count
         System.out.println("K " + sprintConstant);
-
+        
         createCompatibilityLists();
     }
 
@@ -72,15 +75,15 @@ public class FDEBBundlerMultithreading extends AbstractLayout implements Layout 
      */
     @Override
     public void goAlgo() {
-
+        
         for (Edge edge : graphModel.getGraph().getEdges()) {
             ((FDEBLayoutData) edge.getEdgeData().getLayoutData()).newSubdivisionPoints = Arrays.copyOf(((FDEBLayoutData) edge.getEdgeData().getLayoutData()).subdivisionPoints,
                     ((FDEBLayoutData) edge.getEdgeData().getLayoutData()).subdivisionPoints.length);
         }
-
+        
         System.err.println("Next iteration");
         for (int step = 0; step < iterationsPerCycle; step++) {
-
+            
             Future[] calculationTasks = new Future[numberOfTasks];
             int cedges = graphModel.getGraph().getEdgeCount();
             Edge[] edges = graphModel.getGraph().getEdges().toArray();
@@ -88,11 +91,12 @@ public class FDEBBundlerMultithreading extends AbstractLayout implements Layout 
                 calculationTasks[i] = executor.submit(new FDEBForceCalculationTask(edges, cedges * i / numberOfTasks,
                         Math.min(cedges, cedges * (i + 1) / numberOfTasks), sprintConstant, stepSize));
             }
-
+            
             for (int i = 0; i < calculationTasks.length; i++) {
                 try {
-                    if (calculationTasks[i] == null)
+                    if (calculationTasks[i] == null) {
                         System.err.println("o_O");
+                    }
                     calculationTasks[i].get();
                 } catch (InterruptedException ex) {
                     Exceptions.printStackTrace(ex);
@@ -100,49 +104,56 @@ public class FDEBBundlerMultithreading extends AbstractLayout implements Layout 
                     Exceptions.printStackTrace(ex);
                 }
             }
-
+            
             for (Edge edge : edges) {
                 FDEBLayoutData data = edge.getEdgeData().getLayoutData();
                 System.arraycopy(data.newSubdivisionPoints, 0, data.subdivisionPoints, 0, data.newSubdivisionPoints.length);
             }
         }
-
-
+        
+        
         if (cycle == parameters.getNumCycles()) {
             setConverged(true);
         } else {
             prepareForTheNextStep();
         }
     }
-
+    
     void prepareForTheNextStep() {
         cycle++;
         stepSize *= (1.0 - parameters.getStepDampingFactor());
         iterationsPerCycle = (iterationsPerCycle * 2) / 3;
         divideEdges();
     }
-
+    
     void divideEdges() {
         subdivisionPointsPerEdge *= parameters.getSubdivisionPointIncreaseRate();
         for (Edge edge : graphModel.getGraph().getEdges()) {
             FDEBUtilities.divideEdge(edge, subdivisionPointsPerEdge);
         }
     }
-
+    
     @Override
     public void endAlgo() {
         executor.shutdown();
     }
-
+    
     @Override
     public LayoutProperty[] getProperties() {
         return new LayoutProperty[0];
     }
-
+    
     @Override
     public void resetPropertiesValues() {
     }
 
+    @Override
+    public void removeLayoutData() {
+        for (Edge edge : graphModel.getGraph().getEdges()) {
+            edge.getEdgeData().setLayoutData(null);
+        }
+    }
+    
     private void createCompatibilityLists() {
         ArrayList<FDEBCompatibilityRecord> similar = new ArrayList<FDEBCompatibilityRecord>();
         Future[] tasks = new Future[numberOfTasks];
@@ -153,8 +164,7 @@ public class FDEBBundlerMultithreading extends AbstractLayout implements Layout 
                     Math.min(cedges, cedges * (i + 1) / numberOfTasks), compatibilityThreshold, graphModel.getGraph()));
         }
         
-        for (int i = 0; i < numberOfTasks; i++)
-        {
+        for (int i = 0; i < numberOfTasks; i++) {
             try {
                 tasks[i].get();
             } catch (InterruptedException ex) {
@@ -163,8 +173,8 @@ public class FDEBBundlerMultithreading extends AbstractLayout implements Layout 
                 Exceptions.printStackTrace(ex);
             }
         }
-
-
+        
+        
         int totalEdges = graphModel.getGraph().getEdgeCount() * graphModel.getGraph().getEdgeCount();
         int passedEdges = 0;
         for (Edge edge : graphModel.getGraph().getEdges()) {
@@ -174,5 +184,10 @@ public class FDEBBundlerMultithreading extends AbstractLayout implements Layout 
         }
         System.err.println("total: " + totalEdges + " passed " + passedEdges
                 + " fraction " + ((double) passedEdges) / totalEdges);
+    }
+    
+    @Override
+    public void modifyAlgo() {
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 }

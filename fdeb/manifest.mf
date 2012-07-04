@@ -1,3 +1,5 @@
 Manifest-Version: 1.0
-X-COMMENT: Main-Class will be added automatically by build
+OpenIDE-Module: org.gephi.fdeb
+OpenIDE-Module-Localizing-Bundle: org/gephi/fdeb/Bundle.properties
+OpenIDE-Module-Specification-Version: 1.0
 

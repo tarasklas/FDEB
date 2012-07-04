@@ -5,6 +5,9 @@ import org.gephi.fdeb.utils.FDEBUtilities;
 import java.util.ArrayList;
 import java.util.Arrays;
 import org.gephi.barnes_hut.QuadNode;
+import org.gephi.edgelayout.plugin.AbstractEdgeLayout;
+import org.gephi.edgelayout.spi.EdgeLayout;
+import org.gephi.edgelayout.spi.EdgeLayoutBuilder;
 import org.gephi.fdeb.FDEBBundlerParameters;
 import org.gephi.fdeb.FDEBCompatibilityRecord;
 import org.gephi.fdeb.FDEBLayoutData;
@@ -13,12 +16,14 @@ import org.gephi.layout.plugin.AbstractLayout;
 import org.gephi.layout.spi.Layout;
 import org.gephi.layout.spi.LayoutBuilder;
 import org.gephi.layout.spi.LayoutProperty;
+import org.gephi.utils.longtask.spi.LongTask;
+import org.gephi.utils.progress.ProgressTicket;
 
 /**
  *
  * @author megaterik
  */
-public class FDEBBundlerBarnesHut extends AbstractLayout implements Layout {
+public class FDEBBundlerBarnesHut extends AbstractEdgeLayout implements EdgeLayout, LongTask {
 
     private static final double EPS = 1e-7;
     private int cycle;
@@ -29,8 +34,10 @@ public class FDEBBundlerBarnesHut extends AbstractLayout implements Layout {
     private FDEBBundlerParameters parameters;
     private double subdivisionPointsPerEdge;
     private QuadNode root;
+    private boolean cancel;
+    private ProgressTicket progressTicket;
 
-    public FDEBBundlerBarnesHut(LayoutBuilder layoutBuilder, FDEBBundlerParameters parameters) {
+    public FDEBBundlerBarnesHut(EdgeLayoutBuilder layoutBuilder, FDEBBundlerParameters parameters) {
         super(layoutBuilder);
         this.parameters = parameters;
     }
@@ -61,6 +68,10 @@ public class FDEBBundlerBarnesHut extends AbstractLayout implements Layout {
     @Override
     public void goAlgo() {
         System.err.println("Next iteration");
+        if (cancel) {
+            return;
+        }
+
         for (int step = 0; step < iterationsPerCycle; step++) {
             for (Edge edge : graphModel.getGraph().getEdges()) {
                 ((FDEBLayoutData) edge.getEdgeData().getLayoutData()).newSubdivisionPoints = Arrays.copyOf(((FDEBLayoutData) edge.getEdgeData().getLayoutData()).subdivisionPoints,
@@ -68,16 +79,22 @@ public class FDEBBundlerBarnesHut extends AbstractLayout implements Layout {
             }
 
             for (Edge edge : graphModel.getGraph().getEdges()) {
+                if (cancel) {
+                    return;
+                }
                 FDEBUtilities.updateNewSubdivisionPointsWithBarnesHutOptimization(edge, sprintConstant, stepSize, root, compatibilityThreshold);
             }
             if (step == 0 && cycle == 1) {
                 System.err.println(FDEBUtilities.passed + " " + FDEBUtilities.passedValue);
-                System.err.println(FDEBUtilities.total + " " + FDEBUtilities.visited + " " + ((double)FDEBUtilities.visited)/FDEBUtilities.total);
+                System.err.println(FDEBUtilities.total + " " + FDEBUtilities.visited + " " + ((double) FDEBUtilities.visited) / FDEBUtilities.total);
             }
 
             for (Edge edge : graphModel.getGraph().getEdges()) {
                 ((FDEBLayoutData) edge.getEdgeData().getLayoutData()).subdivisionPoints = ((FDEBLayoutData) edge.getEdgeData().getLayoutData()).newSubdivisionPoints;
                 ((FDEBLayoutData) edge.getEdgeData().getLayoutData()).newSubdivisionPoints = null;
+            }
+            if (cancel) {
+                return;
             }
         }
 
@@ -107,12 +124,14 @@ public class FDEBBundlerBarnesHut extends AbstractLayout implements Layout {
     }
 
     @Override
-    public LayoutProperty[] getProperties() {
-        return new LayoutProperty[0];
+    public void resetPropertiesValues() {
     }
 
     @Override
-    public void resetPropertiesValues() {
+    public void removeLayoutData() {
+        for (Edge edge : graphModel.getGraph().getEdges()) {
+            edge.getEdgeData().setLayoutData(null);
+        }
     }
 
     public void buildAQuadTree(Edge[] edges) {
@@ -137,5 +156,27 @@ public class FDEBBundlerBarnesHut extends AbstractLayout implements Layout {
             root.push(new Point2D.Float((edge.getSource().getNodeData().x() + edge.getTarget().getNodeData().x()) / 2f,
                     (edge.getSource().getNodeData().y()) + edge.getTarget().getNodeData().y() / 2f), edge);
         }
+    }
+
+    @Override
+    public void modifyAlgo() {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public boolean cancel() {
+        this.cancel = true;
+        setConverged(true);
+        return true;
+    }
+
+    @Override
+    public void setProgressTicket(ProgressTicket progressTicket) {
+        this.progressTicket = progressTicket;
+    }
+
+    @Override
+    public LayoutProperty[] getProperties() {
+        return new LayoutProperty[0];
     }
 }
