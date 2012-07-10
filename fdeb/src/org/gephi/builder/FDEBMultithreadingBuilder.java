@@ -9,9 +9,7 @@ import javax.swing.JPanel;
 import org.gephi.bundler.FDEBBundlerMultithreading;
 import org.gephi.edgelayout.spi.EdgeLayout;
 import org.gephi.edgelayout.spi.EdgeLayoutBuilder;
-import org.gephi.fdeb.FDEBBundlerParameters;
-import org.gephi.layout.spi.Layout;
-import org.gephi.layout.spi.LayoutUI;
+import org.gephi.edgelayout.spi.EdgeLayoutUI;
 import org.openide.util.lookup.ServiceProvider;
 
 /**
@@ -21,7 +19,7 @@ import org.openide.util.lookup.ServiceProvider;
 @ServiceProvider(service = EdgeLayoutBuilder.class)
 public class FDEBMultithreadingBuilder implements EdgeLayoutBuilder{
 
-    private static class FDEBMultithreadingUI implements LayoutUI{
+    private static class FDEBMultithreadingUI implements EdgeLayoutUI{
         
         @Override
         public String getDescription() {
@@ -34,7 +32,7 @@ public class FDEBMultithreadingBuilder implements EdgeLayoutBuilder{
         }
 
         @Override
-        public JPanel getSimplePanel(Layout layout) {
+        public JPanel getSimplePanel(EdgeLayout layout) {
             return null;
         }
 
@@ -56,7 +54,7 @@ public class FDEBMultithreadingBuilder implements EdgeLayoutBuilder{
     }
 
     @Override
-    public LayoutUI getUI() {
+    public EdgeLayoutUI getUI() {
         return ui;
     }
 

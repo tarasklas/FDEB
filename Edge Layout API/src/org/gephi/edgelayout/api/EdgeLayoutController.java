@@ -1,6 +1,6 @@
 /*
  Copyright 2008-2010 Gephi
- Authors : Helder Suzuki <heldersuzuki@gephi.org>
+ Authors : Mathieu Bastian <mathieu.bastian@gephi.org>
  Website : http://www.gephi.org
 
  This file is part of Gephi.
@@ -39,56 +39,65 @@
 
  Portions Copyrighted 2011 Gephi Consortium.
  */
-package org.gephi.edgelayout.plugin;
+package org.gephi.edgelayout.api;
 
-import org.gephi.dynamic.api.DynamicController;
-import org.gephi.dynamic.api.DynamicModel;
 import org.gephi.edgelayout.spi.EdgeLayout;
-import org.gephi.edgelayout.spi.EdgeLayoutBuilder;
-import org.gephi.graph.api.GraphModel;
 import org.gephi.project.api.Workspace;
-import org.openide.util.Lookup;
 
 /**
- * Base class for layout algorithms.
+ * A LayoutController is the one responsible for controlling the states of the {@link LayoutModel}.
+ * It always controls the current workspace model. <p> This controller is a
+ * singleton and can therefore be found in Lookup:
+ * <pre>LayoutController lc = Lookup.getDefault().lookup(LayoutController.class);</pre>
  *
- * @author Helder Suzuki <heldersuzuki@gephi.org>
+ * @author Mathieu Bastian
  */
-public abstract class AbstractEdgeLayout implements EdgeLayout {
+public interface EdgeLayoutController {
 
-    private final EdgeLayoutBuilder layoutBuilder;
-    protected GraphModel graphModel;
-    protected DynamicModel dynamicModel;
-    private boolean converged;
+    /**
+     * Returns the model of the currently selected {@link Workspace}.
+     */
+    public EdgeLayoutModel getModel();
 
-    public AbstractEdgeLayout(EdgeLayoutBuilder layoutBuilder) {
-        this.layoutBuilder = layoutBuilder;
-    }
+    /**
+     * Sets the Layout to execute.
+     *
+     * @param layout the layout that is to be selected
+     */
+    public void setLayout(EdgeLayout layout);
 
-    @Override
-    public EdgeLayoutBuilder getBuilder() {
-        return layoutBuilder;
-    }
+    /**
+     * Executes the current Layout.
+     */
+    public void executeLayout();
 
-    @Override
-    public void setGraphModel(GraphModel graphModel) {
-        this.graphModel = graphModel;
-        Workspace workspace = graphModel.getWorkspace();
-        DynamicController dynamicController = Lookup.getDefault().lookup(DynamicController.class);
-        if (dynamicController != null && workspace != null) {
-            dynamicModel = dynamicController.getModel(workspace);
-        }
-    }
+    /**
+     * Executes the current layout for
+     * <code>numIterations</code> iterations.
+     *
+     * @param numIterations the number of iterations of the algorithm
+     */
+    public void executeLayout(int numIterations);
 
-    public boolean canAlgo() {
-        return !isConverged() && graphModel != null;
-    }
+    /**
+     * Determine if the current Layout can be executed.
+     *
+     * @return
+     * <code>true</code> if the layout is executable.
+     */
+    public boolean canExecute();
 
-    public void setConverged(boolean converged) {
-        this.converged = converged;
-    }
+    /**
+     * Stop the Layout's execution.
+     */
+    public void stopLayout();
 
-    public boolean isConverged() {
-        return converged;
-    }
+    /**
+     * Determine if the current Layout execution can be stopped. If the current
+     * Layout is not running, it generally cannot be stopped.
+     *
+     * @return
+     * <code>true</code> if the layout can be stopped.
+     */
+    public boolean canStop();
 }

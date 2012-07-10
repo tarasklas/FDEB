@@ -7,9 +7,8 @@ package org.gephi.builder;
 import org.gephi.bundler.FDEBBundlerBarnesHut;
 import org.gephi.edgelayout.spi.EdgeLayout;
 import org.gephi.edgelayout.spi.EdgeLayoutBuilder;
+import org.gephi.edgelayout.spi.EdgeLayoutUI;
 import org.gephi.fdeb.FDEBBundlerParameters;
-import org.gephi.layout.spi.LayoutUI;
-import org.openide.util.lookup.ServiceProvider;
 
 /**
  *
@@ -24,7 +23,7 @@ public class FDEBBarnesHutBuilder implements EdgeLayoutBuilder {
     }
 
     @Override
-    public LayoutUI getUI() {
+    public EdgeLayoutUI getUI() {
         return null;
     }
 

@@ -5,10 +5,13 @@
 package org.gephi.fdeb;
 
 import java.awt.Point;
+import java.awt.geom.Point2D;
+import java.awt.geom.Point2D.Float;
+import org.gephi.edgelayout.spi.EdgeLayoutData;
 import org.gephi.graph.spi.LayoutData;
 
 
-public class FDEBLayoutData implements LayoutData{
+public class FDEBLayoutData implements EdgeLayoutData{
     public Point.Double[] newSubdivisionPoints;//to store changes before merging them
     public Point.Double[] subdivisionPoints;
     public double length;
@@ -23,5 +26,10 @@ public class FDEBLayoutData implements LayoutData{
         subdivisionPoints[0] = new Point.Double(startPointX, startPointY);
         subdivisionPoints[1] = new Point.Double((startPointX + endPointX) / 2, (startPointY + endPointY) / 2);
         subdivisionPoints[2] = new Point.Double(endPointX, endPointY);
+    }
+
+    @Override
+    public Point.Double[] getSubdivisonPoints() {
+        return subdivisionPoints;
     }
 }

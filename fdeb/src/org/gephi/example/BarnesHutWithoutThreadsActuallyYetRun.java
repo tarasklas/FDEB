@@ -4,7 +4,6 @@
  */
 package org.gephi.example;
 
-import org.gephi.renderer.FDEBRenderer;
 import org.gephi.bundler.FDEBBundlerMultithreading;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -12,6 +11,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import org.gephi.bundler.FDEBBundlerBarnesHut;
 import org.gephi.data.attributes.api.*;
+import org.gephi.edgelayout.api.SubdividedEdgeRenderer;
 import org.gephi.fdeb.*;
 import org.gephi.fdeb.utils.FDEBUtilities;
 import org.gephi.filters.api.FilterController;
@@ -85,7 +85,7 @@ public class BarnesHutWithoutThreadsActuallyYetRun {
 
         PreviewController previewController = Lookup.getDefault().lookup(PreviewController.class);
         PreviewModel previewModel = previewController.getModel();
-        ManagedRenderer[] managedRenderers = {new ManagedRenderer(new FDEBRenderer(), true),
+        ManagedRenderer[] managedRenderers = {new ManagedRenderer(new SubdividedEdgeRenderer(), true),
             new ManagedRenderer(new NodeRenderer(), true),
             new ManagedRenderer(new EdgeRenderer(), false)};
 

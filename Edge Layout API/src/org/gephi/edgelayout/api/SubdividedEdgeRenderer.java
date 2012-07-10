@@ -2,17 +2,14 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package org.gephi.renderer;
+package org.gephi.edgelayout.api;
 
 import com.itextpdf.text.pdf.PdfContentByte;
 import com.itextpdf.text.pdf.PdfGState;
 import java.awt.Color;
-import org.gephi.fdeb.FDEBItem;
-import org.gephi.fdeb.FDEBItemBuilder;
-import org.gephi.fdeb.FDEBLayoutData;
-import org.gephi.graph.api.Edge;
+import java.awt.geom.Point2D;
+import org.gephi.edgelayout.spi.EdgeLayoutData;
 import org.gephi.preview.api.*;
-import org.gephi.preview.plugin.renderers.EdgeRenderer;
 import org.gephi.preview.spi.ItemBuilder;
 import org.gephi.preview.spi.Renderer;
 import org.openide.util.lookup.ServiceProvider;
@@ -23,7 +20,7 @@ import processing.core.PGraphics;
  * @author megaterik Will be rewritten soon.
  */
 @ServiceProvider(service = Renderer.class)
-public class FDEBRenderer implements Renderer {
+public class SubdividedEdgeRenderer implements Renderer {
 
     public static final float thickness = 1f;
 
@@ -41,12 +38,13 @@ public class FDEBRenderer implements Renderer {
         if (item.getSource() == null) {
             return;
         }
-        FDEBLayoutData data = (FDEBLayoutData) item.getSource();
-        for (int i = 0; i < data.subdivisionPoints.length - 1; i++) {
-            float x1 = (float) data.subdivisionPoints[i].x;
-            float y1 = (float) data.subdivisionPoints[i].y;
-            float x2 = (float) data.subdivisionPoints[i + 1].x;
-            float y2 = (float) data.subdivisionPoints[i + 1].y;
+        EdgeLayoutData data = (EdgeLayoutData) item.getSource();
+        Point2D.Double[] points = data.getSubdivisonPoints();
+        for (int i = 0; i < points.length - 1; i++) {
+            float x1 = (float) points[i].x;
+            float y1 = (float) points[i].y;
+            float x2 = (float) points[i + 1].x;
+            float y2 = (float) points[i + 1].y;
             renderStraightEdge(x1, y1, x2, y2, target);
         }
     }
@@ -93,12 +91,11 @@ public class FDEBRenderer implements Renderer {
 
     @Override
     public boolean isRendererForitem(Item item, PreviewProperties properties) {
-        return (item instanceof FDEBItem);
+        return (item instanceof SubdividedEdgeItem);
     }
 
     @Override
     public boolean needsItemBuilder(ItemBuilder itemBuilder, PreviewProperties properties) {
-        return (itemBuilder instanceof FDEBItemBuilder);
-        //return (itemBuilder instanceof EdgeBuilder);
+        return (itemBuilder instanceof SubdividedEdgeItemBuilder);
     }
 }

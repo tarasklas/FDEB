@@ -7,20 +7,16 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import org.gephi.edgelayout.plugin.AbstractEdgeLayout;
+import org.gephi.edgelayout.spi.AbstractEdgeLayout;
 import org.gephi.edgelayout.spi.EdgeLayout;
 import org.gephi.edgelayout.spi.EdgeLayoutBuilder;
-import org.gephi.fdeb.FDEBBundlerParameters;
+import org.gephi.edgelayout.spi.EdgeLayoutProperty;
 import org.gephi.fdeb.FDEBCompatibilityRecord;
 import org.gephi.fdeb.FDEBLayoutData;
 import org.gephi.fdeb.demo.multithreading.FDEBCompatibilityRecordsTask;
 import org.gephi.fdeb.demo.multithreading.FDEBForceCalculationTask;
 import org.gephi.fdeb.utils.FDEBUtilities;
 import org.gephi.graph.api.Edge;
-import org.gephi.layout.plugin.AbstractLayout;
-import org.gephi.layout.spi.Layout;
-import org.gephi.layout.spi.LayoutBuilder;
-import org.gephi.layout.spi.LayoutProperty;
 import org.openide.util.Exceptions;
 
 /**
@@ -254,42 +250,42 @@ public class FDEBBundlerMultithreading extends AbstractEdgeLayout implements Edg
     }
 
     @Override
-    public LayoutProperty[] getProperties() {
-        List<LayoutProperty> properties = new ArrayList<LayoutProperty>();
+    public EdgeLayoutProperty[] getProperties() {
+        List<EdgeLayoutProperty> properties = new ArrayList<EdgeLayoutProperty>();
         /*
-         * try { properties.add(LayoutProperty.createProperty( this,
+         * try { properties.add(EdgeLayoutProperty.createProperty( this,
          * Double.class, "tratata", null, "angle", "this is tratata",
          * "getAngle", "setAngle")); } catch (Exception e) {
          * e.printStackTrace(); }
          */
         try {
-            properties.add(LayoutProperty.createProperty(this, Integer.class,
+            properties.add(EdgeLayoutProperty.createProperty(this, Integer.class,
                     "Number of cycles",
                     null,
                     null,
                     "getNumCycles", "setNumCycles"));
 
-            properties.add(LayoutProperty.createProperty(this, Integer.class,
+            properties.add(EdgeLayoutProperty.createProperty(this, Integer.class,
                     "iterationsPerCycle",
                     null, null,
                     "getIterationsPerCycle", "setIterationsPerCycle"));
 
-            properties.add(LayoutProperty.createProperty(this, Double.class,
+            properties.add(EdgeLayoutProperty.createProperty(this, Double.class,
                     "StepDampingFactor",
                     null, null,
                     "getStepDampingFactor", "setStepDampingFactor"));
 
-            properties.add(LayoutProperty.createProperty(this, Double.class,
+            properties.add(EdgeLayoutProperty.createProperty(this, Double.class,
                     "stepSize",
                     null, null,
                     "getStepSize", "setStepSize"));
 
-            properties.add(LayoutProperty.createProperty(this, Double.class,
+            properties.add(EdgeLayoutProperty.createProperty(this, Double.class,
                     "compatibilityThreshold",
                     null, null,
                     "getCompatibilityThreshold", "setCompatibilityThreshold"));
 
-            properties.add(LayoutProperty.createProperty(this, Double.class,
+            properties.add(EdgeLayoutProperty.createProperty(this, Double.class,
                     "SubdivisionPointIncreaseRate",
                     null, null,
                     "getSubdivisionPointIncreaseRate", "setSubdivisionPointIncreaseRate"));
@@ -297,6 +293,6 @@ public class FDEBBundlerMultithreading extends AbstractEdgeLayout implements Edg
         } catch (NoSuchMethodException ex) {
             Exceptions.printStackTrace(ex);
         }
-        return properties.toArray(new LayoutProperty[0]);
+        return properties.toArray(new EdgeLayoutProperty[0]);
     }
 }

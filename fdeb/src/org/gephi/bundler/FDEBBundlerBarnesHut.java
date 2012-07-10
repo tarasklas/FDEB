@@ -2,20 +2,15 @@ package org.gephi.bundler;
 
 import java.awt.geom.Point2D;
 import org.gephi.fdeb.utils.FDEBUtilities;
-import java.util.ArrayList;
 import java.util.Arrays;
 import org.gephi.barnes_hut.QuadNode;
-import org.gephi.edgelayout.plugin.AbstractEdgeLayout;
+import org.gephi.edgelayout.spi.AbstractEdgeLayout;
 import org.gephi.edgelayout.spi.EdgeLayout;
 import org.gephi.edgelayout.spi.EdgeLayoutBuilder;
+import org.gephi.edgelayout.spi.EdgeLayoutProperty;
 import org.gephi.fdeb.FDEBBundlerParameters;
-import org.gephi.fdeb.FDEBCompatibilityRecord;
 import org.gephi.fdeb.FDEBLayoutData;
 import org.gephi.graph.api.Edge;
-import org.gephi.layout.plugin.AbstractLayout;
-import org.gephi.layout.spi.Layout;
-import org.gephi.layout.spi.LayoutBuilder;
-import org.gephi.layout.spi.LayoutProperty;
 import org.gephi.utils.longtask.spi.LongTask;
 import org.gephi.utils.progress.ProgressTicket;
 
@@ -176,7 +171,7 @@ public class FDEBBundlerBarnesHut extends AbstractEdgeLayout implements EdgeLayo
     }
 
     @Override
-    public LayoutProperty[] getProperties() {
-        return new LayoutProperty[0];
+    public EdgeLayoutProperty[] getProperties() {
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 }

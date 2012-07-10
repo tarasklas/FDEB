@@ -4,11 +4,11 @@
  */
 package org.gephi.example;
 
-import org.gephi.renderer.FDEBRenderer;
 import org.gephi.bundler.FDEBBundlerMultithreading;
 import java.io.File;
 import java.io.IOException;
 import org.gephi.data.attributes.api.*;
+import org.gephi.edgelayout.api.SubdividedEdgeRenderer;
 import org.gephi.fdeb.*;
 import org.gephi.filters.api.FilterController;
 import org.gephi.graph.api.*;
@@ -87,7 +87,7 @@ public class FolderRun {
 
             PreviewController previewController = Lookup.getDefault().lookup(PreviewController.class);
             PreviewModel previewModel = previewController.getModel();
-            ManagedRenderer[] managedRenderers = {new ManagedRenderer(new FDEBRenderer(), true),
+            ManagedRenderer[] managedRenderers = {new ManagedRenderer(new SubdividedEdgeRenderer(), true),
                 new ManagedRenderer(new NodeRenderer(), true),
                 new ManagedRenderer(new EdgeRenderer(), false)};
 

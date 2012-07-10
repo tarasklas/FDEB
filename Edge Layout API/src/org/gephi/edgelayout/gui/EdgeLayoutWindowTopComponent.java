@@ -3,7 +3,6 @@
  */
 package org.gephi.edgelayout.gui;
 
-import java.awt.event.ActionEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
@@ -11,12 +10,11 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import javax.swing.DefaultComboBoxModel;
+import org.gephi.edgelayout.api.EdgeLayoutController;
+import org.gephi.edgelayout.api.EdgeLayoutModel;
 import org.gephi.edgelayout.spi.EdgeLayout;
 import org.gephi.edgelayout.spi.EdgeLayoutBuilder;
-import org.gephi.layout.api.LayoutController;
-import org.gephi.layout.api.LayoutModel;
-import org.gephi.layout.spi.Layout;
-import org.gephi.layout.spi.LayoutProperty;
+import org.gephi.edgelayout.spi.EdgeLayoutProperty;
 import org.netbeans.api.settings.ConvertAsProperties;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
@@ -52,7 +50,7 @@ preferredID = "EdgeLayoutWindowTopComponent")
 })
 public final class EdgeLayoutWindowTopComponent extends TopComponent implements PropertyChangeListener {
     
-    private LayoutController controller;
+    private EdgeLayoutController controller;
     
     public EdgeLayoutWindowTopComponent() {
         initComponents();
@@ -60,7 +58,7 @@ public final class EdgeLayoutWindowTopComponent extends TopComponent implements 
         setToolTipText(Bundle.HINT_EdgeLayoutWindowTopComponent());
         putClientProperty(TopComponent.PROP_MAXIMIZATION_DISABLED, Boolean.TRUE);
         putClientProperty(TopComponent.PROP_UNDOCKING_DISABLED, Boolean.TRUE);
-        controller = Lookup.getDefault().lookup(LayoutController.class);
+        controller = Lookup.getDefault().lookup(EdgeLayoutController.class);
         
         regenerateCombobox();
         controller.getModel().addPropertyChangeListener(this);
@@ -69,7 +67,7 @@ public final class EdgeLayoutWindowTopComponent extends TopComponent implements 
     }
     
     private void regenerateSettings() {
-        if (controller.getModel().getSelectedLayout() != null) {
+        if (controller.getModel() != null && controller.getModel().getSelectedLayout() != null) {
             LayoutNode layoutNode;
             layoutNode = new LayoutNode(controller.getModel().getSelectedLayout());
             layoutNode.getPropertySets();
@@ -210,7 +208,6 @@ public final class EdgeLayoutWindowTopComponent extends TopComponent implements 
             controller.setLayout(wrapper.getBuilder().buildLayout());
             runButton.setEnabled(true);
         } else {
-            controller.setLayout(null);
             runButton.setEnabled(false);
         }
         regenerateSettings();
@@ -246,7 +243,7 @@ public final class EdgeLayoutWindowTopComponent extends TopComponent implements 
     
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
-        if (evt.getPropertyName().equals(LayoutModel.RUNNING)) {
+        if (evt.getPropertyName().equals(EdgeLayoutModel.RUNNING)) {
             regenerateRunButton();
         }
         regenerateSettings();
@@ -275,20 +272,16 @@ public final class EdgeLayoutWindowTopComponent extends TopComponent implements 
         }
     }
 
-    /*
-     * Package org.gephi.desktop.layout isn't declared as public, had to copy
-     * this class
-     */
     /**
      *
      * @author Mathieu Bastian
      */
     private class LayoutNode extends AbstractNode {
         
-        private Layout layout;
+        private EdgeLayout layout;
         private PropertySet[] propertySets;
         
-        public LayoutNode(Layout layout) {
+        public LayoutNode(EdgeLayout layout) {
             super(Children.LEAF);
             this.layout = layout;
             setName(layout.getBuilder().getName());
@@ -300,7 +293,7 @@ public final class EdgeLayoutWindowTopComponent extends TopComponent implements 
                 try {
                     Map<String, Sheet.Set> sheetMap = new HashMap<String, Sheet.Set>();
                     System.err.println("layout has " + layout.getProperties().length + " properties");
-                    for (LayoutProperty layoutProperty : layout.getProperties()) {
+                    for (EdgeLayoutProperty layoutProperty : layout.getProperties()) {
                         Sheet.Set set = sheetMap.get(layoutProperty.getCategory());
                         if (set == null) {
                             set = Sheet.createPropertiesSet();
@@ -319,7 +312,7 @@ public final class EdgeLayoutWindowTopComponent extends TopComponent implements 
             return propertySets;
         }
         
-        public Layout getLayout() {
+        public EdgeLayout getLayout() {
             return layout;
         }
     }

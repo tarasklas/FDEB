@@ -23,14 +23,6 @@
                     </run-dependency>
                 </dependency>
                 <dependency>
-                    <code-name-base>org.gephi.edgelayout.plugin</code-name-base>
-                    <build-prerequisite/>
-                    <compile-dependency/>
-                    <run-dependency>
-                        <specification-version>1.0</specification-version>
-                    </run-dependency>
-                </dependency>
-                <dependency>
                     <code-name-base>org.gephi.filters.api</code-name-base>
                     <build-prerequisite/>
                     <compile-dependency/>
@@ -68,22 +60,6 @@
                     <compile-dependency/>
                     <run-dependency>
                         <specification-version>0.8</specification-version>
-                    </run-dependency>
-                </dependency>
-                <dependency>
-                    <code-name-base>org.gephi.layout.api</code-name-base>
-                    <build-prerequisite/>
-                    <compile-dependency/>
-                    <run-dependency>
-                        <specification-version>0.8.0.1</specification-version>
-                    </run-dependency>
-                </dependency>
-                <dependency>
-                    <code-name-base>org.gephi.layout.plugin</code-name-base>
-                    <build-prerequisite/>
-                    <compile-dependency/>
-                    <run-dependency>
-                        <specification-version>0.8.0.3</specification-version>
                     </run-dependency>
                 </dependency>
                 <dependency>

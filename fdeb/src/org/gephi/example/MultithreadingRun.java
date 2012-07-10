@@ -4,11 +4,11 @@
  */
 package org.gephi.example;
 
-import org.gephi.renderer.FDEBRenderer;
 import org.gephi.bundler.FDEBBundlerMultithreading;
 import java.io.File;
 import java.io.IOException;
 import org.gephi.data.attributes.api.*;
+import org.gephi.edgelayout.api.SubdividedEdgeRenderer;
 import org.gephi.fdeb.*;
 import org.gephi.filters.api.FilterController;
 import org.gephi.graph.api.*;
@@ -81,7 +81,7 @@ public class MultithreadingRun {
 
         PreviewController previewController = Lookup.getDefault().lookup(PreviewController.class);
         PreviewModel previewModel = previewController.getModel();
-        ManagedRenderer[] managedRenderers = {new ManagedRenderer(new FDEBRenderer(), true),
+        ManagedRenderer[] managedRenderers = {new ManagedRenderer(new SubdividedEdgeRenderer(), true),
             new ManagedRenderer(new NodeRenderer(), true),
             new ManagedRenderer(new EdgeRenderer(), false)};
 
@@ -113,19 +113,15 @@ public class MultithreadingRun {
             Exceptions.printStackTrace(ex);
         }
 
-        /* PrintWriter debug = null;
-        try {
-        debug = new PrintWriter("debugThreaded.txt");
-        } catch (FileNotFoundException ex) {
-        Exceptions.printStackTrace(ex);
-        }
-        for (Edge edge : graph.getEdges()) {
-        FDEBLayoutData data = edge.getEdgeData().getLayoutData();
-        for (int j = 0; j < data.subdivisionPoints.length; j++) {
-        debug.println(data.subdivisionPoints[j].x + " " + data.subdivisionPoints[j].y);
-        }
-        }
-        debug.close();
+        /*
+         * PrintWriter debug = null; try { debug = new
+         * PrintWriter("debugThreaded.txt"); } catch (FileNotFoundException ex)
+         * { Exceptions.printStackTrace(ex); } for (Edge edge :
+         * graph.getEdges()) { FDEBLayoutData data =
+         * edge.getEdgeData().getLayoutData(); for (int j = 0; j <
+         * data.subdivisionPoints.length; j++) {
+         * debug.println(data.subdivisionPoints[j].x + " " +
+         * data.subdivisionPoints[j].y); } } debug.close();
          */
     }
 };

@@ -5,17 +5,80 @@
 package org.gephi.edgelayout.spi;
 
 import org.gephi.graph.api.GraphModel;
-import org.gephi.layout.spi.Layout;
-import org.gephi.layout.spi.LayoutBuilder;
-import org.gephi.layout.spi.LayoutProperty;
 
+/**
+ * A Layout algorithm should implement the
+ * <code>Layout</code> interface to allow the
+ * <code>LayoutController</code> to run it properly. <p> See the
+ * <code>LayoutBuilder</code> documentation to know how layout should be
+ * instanciated. <p> To have fully integrated properties that can be changed in
+ * real-time by users, properly define the various
+ * <code>LayoutProperty</code> returned by the
+ * {@link #getProperties()} method and provide getter and setter for each.
+ *
+ * @author Helder Suzuki <heldersuzuki@gephi.org>
+ * @see LayoutBuilder
+ */
+public interface EdgeLayout{
 
-public interface EdgeLayout extends Layout{
+    /**
+     * initAlgo() is called to initialize the algorithm (prepare to run).
+     */
+    public void initAlgo();
+
+    /**
+     * Injects the graph model for the graph this Layout should operate on. <p>
+     * It's preferable to get <b>visible</b> graph to perform on visualization.
+     *
+     * @param graphModel the graph model that the layout is to be working on
+     */
+    public void setGraphModel(GraphModel graphModel);
+
+    /**
+     * Run a step in the algorithm, should be called only if canAlgo() returns
+     * true.
+     */
+    public void goAlgo();
+
+    /**
+     * Tests if the algorithm can run, called before each pass.
+     *
+     * @return
+     * <code>true</code> if the algorithm can run,
+     * <code>
+     *                      false</code> otherwise
+     */
+    public boolean canAlgo();
+
+    /**
+     * Called when the algorithm is finished (canAlgo() returns false).
+     */
+    public void endAlgo();
+
+    /**
+     * The properties for this layout.
+     *
+     * @return the layout properties
+     * @throws NoSuchMethodException
+     */
+    public EdgeLayoutProperty[] getProperties();
+
+    /**
+     * Resets the properties values to the default values.
+     */
+    public void resetPropertiesValues();
+
+    /**
+     * The reference to the LayoutBuilder that instanciated this Layout.
+     *
+     * @return the reference to the builder that builts this instance
+     */
+    public EdgeLayoutBuilder getBuilder();
+
     /*
      * Called when it's possible to change something without full recalculation
      */
     public void modifyAlgo();
-    
-    
+
     public void removeLayoutData();
 }
