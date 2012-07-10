@@ -174,4 +174,9 @@ public class FDEBBundlerBarnesHut extends AbstractEdgeLayout implements EdgeLayo
     public EdgeLayoutProperty[] getProperties() {
         throw new UnsupportedOperationException("Not supported yet.");
     }
+
+    @Override
+    public boolean shouldRefreshPreview() {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
 }

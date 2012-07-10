@@ -27,6 +27,7 @@ import org.openide.util.Exceptions;
 import org.openide.util.Lookup;
 import org.openide.util.NbBundle.Messages;
 import org.openide.windows.TopComponent;
+import org.gephi.desktop.preview.api.PreviewUIController;
 
 /**
  * Top component which displays something.
@@ -49,9 +50,9 @@ preferredID = "EdgeLayoutWindowTopComponent")
     "HINT_EdgeLayoutWindowTopComponent=This is a EdgeLayoutWindow window"
 })
 public final class EdgeLayoutWindowTopComponent extends TopComponent implements PropertyChangeListener {
-    
+
     private EdgeLayoutController controller;
-    
+
     public EdgeLayoutWindowTopComponent() {
         initComponents();
         setName(Bundle.CTL_EdgeLayoutWindowTopComponent());
@@ -59,13 +60,13 @@ public final class EdgeLayoutWindowTopComponent extends TopComponent implements 
         putClientProperty(TopComponent.PROP_MAXIMIZATION_DISABLED, Boolean.TRUE);
         putClientProperty(TopComponent.PROP_UNDOCKING_DISABLED, Boolean.TRUE);
         controller = Lookup.getDefault().lookup(EdgeLayoutController.class);
-        
+
         regenerateCombobox();
         controller.getModel().addPropertyChangeListener(this);
         regenerateRunButton();
         regenerateSettings();
     }
-    
+
     private void regenerateSettings() {
         if (controller.getModel() != null && controller.getModel().getSelectedLayout() != null) {
             LayoutNode layoutNode;
@@ -77,10 +78,10 @@ public final class EdgeLayoutWindowTopComponent extends TopComponent implements 
         }
         settingsPanel.setVisible(true);
     }
-    
+
     private void regenerateCombobox() {
         ArrayList<EdgeLayoutBuilder> list = new ArrayList(Lookup.getDefault().lookupAll(EdgeLayoutBuilder.class));
-        
+
         ArrayList sortedlist = new ArrayList(list.size());
         for (int i = 0; i < list.size(); i++) {
             sortedlist.add(new EdgeLayoutWrapper(list.get(i)));
@@ -160,27 +161,34 @@ public final class EdgeLayoutWindowTopComponent extends TopComponent implements 
     private void deleteButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_deleteButtonActionPerformed
         EdgeLayout layout = (EdgeLayout) controller.getModel().getSelectedLayout();
         layout.removeLayoutData();
-        // Lookup.getDefault().lookup(PreviewController.class).refreshPreview();
+        /*
+         * Note: had to make Desktop Preview public, to make
+         * PreviewUIController.class accessible
+         */
+        Lookup.getDefault().lookup(PreviewUIController.class).refreshPreview();
     }//GEN-LAST:event_deleteButtonActionPerformed
-    
+
     private void run() {
         if (controller.canExecute()) {
             controller.executeLayout();
         }
-        //Lookup.getDefault().lookup(PreviewController.class).refreshPreview();
     }
-    
+
     private void stop() {
         if (controller.canStop()) {
             controller.stopLayout();
         }
     }
-    
+
     private boolean layoutIsRunning() {
         return controller.getModel().isRunning();
     }
-    
+
     private void regenerateRunButton() {
+        if (layoutIsRunning() != !layoutComboBox.isEnabled()) //i.e., it just changed and we should update preview
+        {
+            Lookup.getDefault().lookup(PreviewUIController.class).refreshPreview();
+        }
         if (layoutIsRunning()) {
             runButton.setText("Stop");
             layoutComboBox.setEnabled(false);
@@ -190,7 +198,7 @@ public final class EdgeLayoutWindowTopComponent extends TopComponent implements 
             layoutComboBox.setEnabled(true);
         }
     }
-    
+
     private void runButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_runButtonActionPerformed
         regenerateRunButton();
         if (layoutIsRunning()) {
@@ -201,7 +209,7 @@ public final class EdgeLayoutWindowTopComponent extends TopComponent implements 
         regenerateRunButton();
         regenerateSettings();
     }//GEN-LAST:event_runButtonActionPerformed
-    
+
     private void layoutComboBoxItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_layoutComboBoxItemStateChanged
         if (layoutComboBox.getSelectedItem() instanceof EdgeLayoutWrapper) {
             EdgeLayoutWrapper wrapper = (EdgeLayoutWrapper) layoutComboBox.getSelectedItem();
@@ -223,24 +231,24 @@ public final class EdgeLayoutWindowTopComponent extends TopComponent implements 
     public void componentOpened() {
         // TODO add custom code on component opening
     }
-    
+
     @Override
     public void componentClosed() {
         // TODO add custom code on component closing
     }
-    
+
     void writeProperties(java.util.Properties p) {
         // better to version settings since initial version as advocated at
         // http://wiki.apidesign.org/wiki/PropertyFiles
         p.setProperty("version", "1.0");
         // TODO store your settings
     }
-    
+
     void readProperties(java.util.Properties p) {
         String version = p.getProperty("version");
         // TODO read your settings according to their version
     }
-    
+
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
         if (evt.getPropertyName().equals(EdgeLayoutModel.RUNNING)) {
@@ -248,24 +256,24 @@ public final class EdgeLayoutWindowTopComponent extends TopComponent implements 
         }
         regenerateSettings();
     }
-    
+
     private class EdgeLayoutWrapper implements Comparable<EdgeLayoutWrapper> {
-        
+
         EdgeLayoutBuilder builder;
-        
+
         public EdgeLayoutWrapper(EdgeLayoutBuilder builder) {
             this.builder = builder;
         }
-        
+
         public EdgeLayoutBuilder getBuilder() {
             return builder;
         }
-        
+
         @Override
         public String toString() {
             return builder.getName().toString();
         }
-        
+
         @Override
         public int compareTo(EdgeLayoutWrapper o) {
             return builder.getName().compareTo(o.getBuilder().getName());
@@ -277,16 +285,16 @@ public final class EdgeLayoutWindowTopComponent extends TopComponent implements 
      * @author Mathieu Bastian
      */
     private class LayoutNode extends AbstractNode {
-        
+
         private EdgeLayout layout;
         private PropertySet[] propertySets;
-        
+
         public LayoutNode(EdgeLayout layout) {
             super(Children.LEAF);
             this.layout = layout;
             setName(layout.getBuilder().getName());
         }
-        
+
         @Override
         public PropertySet[] getPropertySets() {
             if (propertySets == null) {
@@ -311,7 +319,7 @@ public final class EdgeLayoutWindowTopComponent extends TopComponent implements 
             System.err.println("size of result is " + propertySets.length);
             return propertySets;
         }
-        
+
         public EdgeLayout getLayout() {
             return layout;
         }

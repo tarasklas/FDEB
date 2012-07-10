@@ -190,6 +190,7 @@ public class FDEBBundlerMultithreading extends AbstractEdgeLayout implements Edg
     private int numCycles;
     private double stepDampingFactor;
     private double subdivisionPointIncreaseRate;
+    private int refreshRate;
 
     public Integer getIterationsPerCycle() {
         return iterationsPerCycleAtTheBeginning;
@@ -249,6 +250,14 @@ public class FDEBBundlerMultithreading extends AbstractEdgeLayout implements Edg
         this.subdivisionPointIncreaseRate = subdivisionPointIncreaseRate;
     }
 
+    public Integer getRefreshRate() {
+        return refreshRate;
+    }
+
+    public void setRefreshRate(Integer refreshRate) {
+        this.refreshRate = refreshRate;
+    }
+
     @Override
     public EdgeLayoutProperty[] getProperties() {
         List<EdgeLayoutProperty> properties = new ArrayList<EdgeLayoutProperty>();
@@ -290,9 +299,23 @@ public class FDEBBundlerMultithreading extends AbstractEdgeLayout implements Edg
                     null, null,
                     "getSubdivisionPointIncreaseRate", "setSubdivisionPointIncreaseRate"));
 
+            properties.add(EdgeLayoutProperty.createProperty(this, Integer.class,
+                    "Refresh after every nth cycle",
+                    null, null,
+                    "getRefreshRate", "setRefreshRate"));
+
         } catch (NoSuchMethodException ex) {
             Exceptions.printStackTrace(ex);
         }
         return properties.toArray(new EdgeLayoutProperty[0]);
+    }
+
+    @Override
+    public boolean shouldRefreshPreview() {
+        if (refreshRate == 0) {
+            return true;
+        } else {
+            return (cycle % refreshRate == 0);
+        }
     }
 }

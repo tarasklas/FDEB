@@ -81,4 +81,9 @@ public interface EdgeLayout{
     public void modifyAlgo();
 
     public void removeLayoutData();
+    
+    /*
+     * Called after each goAlgo() or initAlgo() call, so could be used, for example, to refresh after every fifth iteration
+     */
+    public boolean shouldRefreshPreview();
 }

@@ -67,8 +67,9 @@ public class FDEBBundler extends AbstractEdgeLayout implements EdgeLayout, LongT
             }
 
             for (Edge edge : graphModel.getGraph().getEdges()) {
-                if (cancel)
+                if (cancel) {
                     return;
+                }
                 FDEBUtilities.updateNewSubdivisionPoints(edge, sprintConstant, stepSize);
             }
 
@@ -169,13 +170,14 @@ public class FDEBBundler extends AbstractEdgeLayout implements EdgeLayout, LongT
         this.progressTicket = progressTicket;
     }
     ///////////////////////////////////////
-    private double stepSize,stepSizeAtTheBeginning; //S
-    private int iterationsPerCycle,iterationsPerCycleAtTheBeginning;//I
+    private double stepSize, stepSizeAtTheBeginning; //S
+    private int iterationsPerCycle, iterationsPerCycleAtTheBeginning;//I
     private double sprintConstant;//K
     private double compatibilityThreshold;
     private int numCycles;
     private double stepDampingFactor;
     private double subdivisionPointIncreaseRate;
+    private int refreshRate;
 
     public Integer getIterationsPerCycle() {
         return iterationsPerCycleAtTheBeginning;
@@ -235,6 +237,14 @@ public class FDEBBundler extends AbstractEdgeLayout implements EdgeLayout, LongT
         this.subdivisionPointIncreaseRate = subdivisionPointIncreaseRate;
     }
 
+    public Integer getRefreshRate() {
+        return refreshRate;
+    }
+
+    public void setRefreshRate(Integer refreshRate) {
+        this.refreshRate = refreshRate;
+    }
+
     @Override
     public EdgeLayoutProperty[] getProperties() {
         List<EdgeLayoutProperty> properties = new ArrayList<EdgeLayoutProperty>();
@@ -270,15 +280,29 @@ public class FDEBBundler extends AbstractEdgeLayout implements EdgeLayout, LongT
                     "compatibilityThreshold",
                     null, null,
                     "getCompatibilityThreshold", "setCompatibilityThreshold"));
-            
-            properties.add(EdgeLayoutProperty.createProperty(this, Double.class, 
+
+            properties.add(EdgeLayoutProperty.createProperty(this, Double.class,
                     "SubdivisionPointIncreaseRate",
                     null, null,
                     "getSubdivisionPointIncreaseRate", "setSubdivisionPointIncreaseRate"));
+
+            properties.add(EdgeLayoutProperty.createProperty(this, Integer.class,
+                    "Refresh after every nth cycle",
+                    null, null,
+                    "getRefreshRate", "setRefreshRate"));
 
         } catch (NoSuchMethodException ex) {
             Exceptions.printStackTrace(ex);
         }
         return properties.toArray(new EdgeLayoutProperty[0]);
+    }
+
+    @Override
+    public boolean shouldRefreshPreview() {
+        if (refreshRate == 0) {
+            return true;
+        } else {
+            return (cycle % refreshRate == 0);
+        }
     }
 }

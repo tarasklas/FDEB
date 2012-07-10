@@ -41,6 +41,7 @@
  */
 package org.gephi.edgelayout.api;
 
+import org.gephi.desktop.preview.api.PreviewUIController;
 import org.gephi.edgelayout.spi.EdgeLayout;
 import org.gephi.graph.api.GraphController;
 import org.gephi.project.api.ProjectController;
@@ -149,6 +150,7 @@ public class EdgeLayoutControllerImpl implements EdgeLayoutController {
     public void stopLayout() {
         model.getExecutor().cancel();
     }
+
     private static class EdgeLayoutRun implements LongTask, Runnable {
 
         private final EdgeLayout layout;
@@ -170,6 +172,10 @@ public class EdgeLayoutControllerImpl implements EdgeLayoutController {
             Progress.setDisplayName(progressTicket, layout.getBuilder().getName());
             Progress.start(progressTicket);
             layout.initAlgo();
+            if (layout.shouldRefreshPreview()) {
+                Lookup.getDefault().lookup(PreviewUIController.class).refreshPreview();
+            }
+
             long i = 0;
             while (layout.canAlgo() && !stopRun) {
                 layout.goAlgo();
@@ -177,10 +183,15 @@ public class EdgeLayoutControllerImpl implements EdgeLayoutController {
                 if (iterations != null && iterations.longValue() == i) {
                     break;
                 }
+                if (layout.shouldRefreshPreview()) {
+                    System.err.flush();
+                    Lookup.getDefault().lookup(PreviewUIController.class).refreshPreview();
+                }
             }
             layout.endAlgo();
+            Lookup.getDefault().lookup(PreviewUIController.class).refreshPreview();
             if (i > 1) {
-               // Progress.finish(progressTicket, NbBundle.getMessage(EdgeLayoutControllerImpl.class, "LayoutRun.end", layout.getBuilder().getName(), i));
+                // Progress.finish(progressTicket, NbBundle.getMessage(EdgeLayoutControllerImpl.class, "LayoutRun.end", layout.getBuilder().getName(), i));
                 Progress.finish(progressTicket);
             } else {
                 Progress.finish(progressTicket);
