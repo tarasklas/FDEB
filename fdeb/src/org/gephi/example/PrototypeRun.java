@@ -11,7 +11,6 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import org.gephi.data.attributes.api.*;
 import org.gephi.edgelayout.api.SubdividedEdgeRenderer;
-import org.gephi.fdeb.FDEBBundlerParameters;
 import org.gephi.fdeb.FDEBLayoutData;
 import org.gephi.filters.api.FilterController;
 import org.gephi.graph.api.*;

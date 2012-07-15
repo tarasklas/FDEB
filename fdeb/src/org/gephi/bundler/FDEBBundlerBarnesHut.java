@@ -8,7 +8,6 @@ import org.gephi.edgelayout.spi.AbstractEdgeLayout;
 import org.gephi.edgelayout.spi.EdgeLayout;
 import org.gephi.edgelayout.spi.EdgeLayoutBuilder;
 import org.gephi.edgelayout.spi.EdgeLayoutProperty;
-import org.gephi.fdeb.FDEBBundlerParameters;
 import org.gephi.fdeb.FDEBLayoutData;
 import org.gephi.graph.api.Edge;
 import org.gephi.utils.longtask.spi.LongTask;
@@ -18,28 +17,28 @@ import org.gephi.utils.progress.ProgressTicket;
  *
  * @author megaterik
  */
-public class FDEBBundlerBarnesHut extends AbstractEdgeLayout implements EdgeLayout, LongTask {
-
+public class FDEBBundlerBarnesHut /*extends AbstractEdgeLayout implements EdgeLayout, LongTask*/ {
+/*
     private static final double EPS = 1e-7;
     private int cycle;
     private double stepSize;   // S
     private int iterationsPerCycle;    // I
     private double sprintConstant; // K
     private double compatibilityThreshold;
-    private FDEBBundlerParameters parameters;
     private double subdivisionPointsPerEdge;
     private QuadNode root;
     private boolean cancel;
     private ProgressTicket progressTicket;
-
-    public FDEBBundlerBarnesHut(EdgeLayoutBuilder layoutBuilder, FDEBBundlerParameters parameters) {
-        super(layoutBuilder);
-        this.parameters = parameters;
+ */
+    public FDEBBundlerBarnesHut(EdgeLayoutBuilder layoutBuilder) {
+        //super(layoutBuilder);
     }
 
     /*
      * Get parameters and init structures
      */
+    
+    /*
     @Override
     public void initAlgo() {
         for (Edge edge : graphModel.getGraph().getEdges()) {
@@ -59,9 +58,10 @@ public class FDEBBundlerBarnesHut extends AbstractEdgeLayout implements EdgeLayo
 
         buildAQuadTree(graphModel.getGraph().getEdges().toArray());
     }
-
+  
     @Override
     public void goAlgo() {
+        
         System.err.println("Next iteration");
         if (cancel) {
             return;
@@ -97,7 +97,7 @@ public class FDEBBundlerBarnesHut extends AbstractEdgeLayout implements EdgeLayo
             setConverged(true);
         } else {
             prepareForTheNextStep();
-        }
+        } 
     }
 
     void prepareForTheNextStep() {
@@ -178,5 +178,5 @@ public class FDEBBundlerBarnesHut extends AbstractEdgeLayout implements EdgeLayo
     @Override
     public boolean shouldRefreshPreview() {
         throw new UnsupportedOperationException("Not supported yet.");
-    }
+    } */
 }

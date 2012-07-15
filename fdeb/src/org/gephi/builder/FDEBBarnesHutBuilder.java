@@ -8,7 +8,6 @@ import org.gephi.bundler.FDEBBundlerBarnesHut;
 import org.gephi.edgelayout.spi.EdgeLayout;
 import org.gephi.edgelayout.spi.EdgeLayoutBuilder;
 import org.gephi.edgelayout.spi.EdgeLayoutUI;
-import org.gephi.fdeb.FDEBBundlerParameters;
 
 /**
  *
@@ -29,6 +28,6 @@ public class FDEBBarnesHutBuilder implements EdgeLayoutBuilder {
 
     @Override
     public EdgeLayout buildLayout() {
-        return new FDEBBundlerBarnesHut(this, new FDEBBundlerParameters());
+        return null;//new FDEBBundlerBarnesHut(this, new FDEBBundlerParameters());
     }
 }

@@ -77,10 +77,10 @@ public class BarnesHutWithoutThreadsActuallyYetRun {
         System.out.println("Nodes: " + graph.getNodeCount());
         System.out.println("Edges: " + graph.getEdgeCount());
 
-        FDEBBundlerBarnesHut layout = new FDEBBundlerBarnesHut(null, new FDEBBundlerParameters());
-        layout.setGraphModel(graphModel);
-        layout.initAlgo();
-        layout.resetPropertiesValues();
+        FDEBBundlerBarnesHut layout = null;//new FDEBBundlerBarnesHut(null, new FDEBBundlerParameters());
+       // layout.setGraphModel(graphModel);
+       // layout.initAlgo();
+       // layout.resetPropertiesValues();
         // layout.endAlgo();
 
         PreviewController previewController = Lookup.getDefault().lookup(PreviewController.class);
@@ -99,7 +99,7 @@ public class BarnesHutWithoutThreadsActuallyYetRun {
         } catch (IOException ex) {
             Exceptions.printStackTrace(ex);
         }
-        while (!layout.isConverged()) {
+       /* while (!layout.isConverged()) {
             i++;
             layout.goAlgo();
             try {
@@ -130,6 +130,6 @@ public class BarnesHutWithoutThreadsActuallyYetRun {
             }
         }
         debug.close();
-
+        */
     }
 };

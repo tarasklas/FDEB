@@ -18,19 +18,21 @@ public class FDEBForceCalculationTask implements Runnable {
     int to;
     double sprintConstant;
     double stepSize;
+    boolean useInverseQuadratic;
 
-    public FDEBForceCalculationTask(Edge[] edge, int from, int to, double sprintConstant, double stepSize) {
+    public FDEBForceCalculationTask(Edge[] edge, int from, int to, double sprintConstant, double stepSize, boolean useInverseQuadratic) {
         this.edge = edge;
         this.from = from;
         this.to = to;
         this.sprintConstant = sprintConstant;
         this.stepSize = stepSize;
+        this.useInverseQuadratic = useInverseQuadratic;
     }
 
     @Override
     public void run() {
         for (int i = from; i < to; i++) {
-            FDEBUtilities.updateNewSubdivisionPoints(edge[i], sprintConstant, stepSize);
+            FDEBUtilities.updateNewSubdivisionPoints(edge[i], sprintConstant, stepSize, useInverseQuadratic);
         }
     }
 }

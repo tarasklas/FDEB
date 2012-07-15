@@ -81,16 +81,16 @@ public class FDEBUtilities {
         data.subdivisionPoints = subdivisionPoints;
     }
 
-    static public void createCompatibilityRecords(Edge edge, double compatibilityThreshold, Graph graph) {
+    static public void createCompatibilityRecords(Edge edge, double compatibilityThreshold, Graph graph, FDEBCompatibilityComputator computator) {
         ArrayList<FDEBCompatibilityRecord> similar = new ArrayList<FDEBCompatibilityRecord>();
         if (edge.isSelfLoop()) {
-            return;
+            ((FDEBLayoutData) edge.getEdgeData().getLayoutData()).similarEdges = new FDEBCompatibilityRecord[0];
         }
         for (Edge probablySimilarEdge : graph.getEdges()) {
             if (probablySimilarEdge.isSelfLoop() || probablySimilarEdge == edge) {
                 continue;
             }
-            double compatibility = FDEBCompatibilityComputator.calculateCompatibility(edge, probablySimilarEdge);
+            double compatibility = computator.calculateCompatibility(edge, probablySimilarEdge);
             //System.err.println(compatibility + " " + compatibilityThreshold);
             if (compatibility < compatibilityThreshold) {
                 continue;
@@ -103,7 +103,7 @@ public class FDEBUtilities {
         }
     }
 
-    static public void updateNewSubdivisionPoints(Edge edge, double sprintConstant, double stepSize) {
+    static public void updateNewSubdivisionPoints(Edge edge, double sprintConstant, double stepSize, boolean useInverseQuadraticModel) {
         if (edge.isSelfLoop()) {
             return;
         }
@@ -135,7 +135,12 @@ public class FDEBUtilities {
 
                 if (Math.abs(v_x) > EPS || Math.abs(v_y) > EPS) {
                     double len_sq = v_x * v_x + v_y * v_y;
-                    double m = (record.compatibility / Math.sqrt(len_sq));
+                    double m;
+                    if (!useInverseQuadraticModel) {
+                        m = (record.compatibility / Math.sqrt(len_sq));
+                    } else {
+                        m = (record.compatibility / len_sq);
+                    }
 
                     v_x *= m;
                     v_y *= m;
@@ -156,7 +161,7 @@ public class FDEBUtilities {
     public static int total = 0;
     public static int visited = 0;
 
-    public static void updateNewSubdivisionPointsWithBarnesHutOptimization(Edge edge, double sprintConstant, double stepSize, QuadNode root, double compatibilityThreshold) {
+    public static void updateNewSubdivisionPointsWithBarnesHutOptimization(Edge edge, double sprintConstant, double stepSize, QuadNode root, double compatibilityThreshold, FDEBCompatibilityComputator computator) {
         if (edge.isSelfLoop()) {
             return;
         }
@@ -178,16 +183,16 @@ public class FDEBUtilities {
             data.newSubdivisionPoints[i] = new Point.Double(data.subdivisionPoints[i].x + stepSize * (Fsi_x),
                     data.subdivisionPoints[i].y + stepSize * (Fsi_y));
         }
-        appendSimilarEdgesUsingBarnesHut(root, edge, compatibilityThreshold, stepSize);
+        appendSimilarEdgesUsingBarnesHut(root, edge, compatibilityThreshold, stepSize, computator);
     }
 
-    private static void appendSimilarEdgesUsingBarnesHut(QuadNode node, Edge edge, double compatibilityThreshold, double stepSize) {
+    private static void appendSimilarEdgesUsingBarnesHut(QuadNode node, Edge edge, double compatibilityThreshold, double stepSize, FDEBCompatibilityComputator computator) {
         visited++;
         if (node.isLeaf) {
             if (node.storedElement != null) {
                 Edge moveEdge = (Edge) node.storedElement;
                 FDEBLayoutData data = edge.getEdgeData().getLayoutData();
-                double compatibility = FDEBCompatibilityComputator.calculateCompatibility(edge, moveEdge);
+                double compatibility = computator.calculateCompatibility(edge, moveEdge);
                 if (compatibility < compatibilityThreshold) {
                     return;
                 }
@@ -234,10 +239,10 @@ public class FDEBUtilities {
             if ((node.xr - node.xl + node.yr - node.yl) / distanceToCenter < 0.25) {
                 return;
             }
-            appendSimilarEdgesUsingBarnesHut(node.ld, edge, compatibilityThreshold, stepSize);
-            appendSimilarEdgesUsingBarnesHut(node.lu, edge, compatibilityThreshold, stepSize);
-            appendSimilarEdgesUsingBarnesHut(node.rd, edge, compatibilityThreshold, stepSize);
-            appendSimilarEdgesUsingBarnesHut(node.ru, edge, compatibilityThreshold, stepSize);
+            appendSimilarEdgesUsingBarnesHut(node.ld, edge, compatibilityThreshold, stepSize, computator);
+            appendSimilarEdgesUsingBarnesHut(node.lu, edge, compatibilityThreshold, stepSize, computator);
+            appendSimilarEdgesUsingBarnesHut(node.rd, edge, compatibilityThreshold, stepSize, computator);
+            appendSimilarEdgesUsingBarnesHut(node.ru, edge, compatibilityThreshold, stepSize, computator);
         }
     }
 }

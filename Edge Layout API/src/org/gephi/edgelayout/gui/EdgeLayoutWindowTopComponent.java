@@ -6,15 +6,27 @@ package org.gephi.edgelayout.gui;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import javax.swing.DefaultComboBoxModel;
+import org.gephi.desktop.preview.api.PreviewUIController;
 import org.gephi.edgelayout.api.EdgeLayoutController;
 import org.gephi.edgelayout.api.EdgeLayoutModel;
+import org.gephi.edgelayout.api.SubdividedEdgeRenderer;
 import org.gephi.edgelayout.spi.EdgeLayout;
 import org.gephi.edgelayout.spi.EdgeLayoutBuilder;
 import org.gephi.edgelayout.spi.EdgeLayoutProperty;
+import org.gephi.layout.api.LayoutModel;
+import org.gephi.preview.api.ManagedRenderer;
+import org.gephi.preview.api.PreviewController;
+import org.gephi.preview.plugin.renderers.ArrowRenderer;
+import org.gephi.preview.plugin.renderers.EdgeRenderer;
+import org.gephi.preview.spi.Renderer;
+import org.gephi.project.api.ProjectController;
+import org.gephi.project.api.Workspace;
+import org.gephi.project.api.WorkspaceListener;
 import org.netbeans.api.settings.ConvertAsProperties;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
@@ -27,7 +39,6 @@ import org.openide.util.Exceptions;
 import org.openide.util.Lookup;
 import org.openide.util.NbBundle.Messages;
 import org.openide.windows.TopComponent;
-import org.gephi.desktop.preview.api.PreviewUIController;
 
 /**
  * Top component which displays something.
@@ -52,17 +63,46 @@ preferredID = "EdgeLayoutWindowTopComponent")
 public final class EdgeLayoutWindowTopComponent extends TopComponent implements PropertyChangeListener {
 
     private EdgeLayoutController controller;
+    private EdgeLayoutModel model;
 
     public EdgeLayoutWindowTopComponent() {
+        final EdgeLayoutWindowTopComponent thislink = this;
+        
         initComponents();
         setName(Bundle.CTL_EdgeLayoutWindowTopComponent());
         setToolTipText(Bundle.HINT_EdgeLayoutWindowTopComponent());
         putClientProperty(TopComponent.PROP_MAXIMIZATION_DISABLED, Boolean.TRUE);
         putClientProperty(TopComponent.PROP_UNDOCKING_DISABLED, Boolean.TRUE);
         controller = Lookup.getDefault().lookup(EdgeLayoutController.class);
+        Lookup.getDefault().lookup(ProjectController.class).addWorkspaceListener(new WorkspaceListener() {
 
+            public void initialize(Workspace workspace) {
+            }
+
+            public void select(Workspace workspace) {
+                model = workspace.getLookup().lookup(EdgeLayoutModel.class);
+                model.addPropertyChangeListener(thislink);
+                regenerateSettings();
+                regenerateRunButton();
+            }
+
+            public void unselect(Workspace workspace) {
+                model.removePropertyChangeListener(thislink);
+            }
+
+            public void close(Workspace workspace) {
+            }
+
+            public void disable() {
+                model = null;
+                regenerateSettings();
+                regenerateRunButton();
+            }
+        });
         regenerateCombobox();
-        controller.getModel().addPropertyChangeListener(this);
+        if (controller.getModel() != null) {
+            model = controller.getModel();
+        }
         regenerateRunButton();
         regenerateSettings();
     }
@@ -158,9 +198,45 @@ public final class EdgeLayoutWindowTopComponent extends TopComponent implements 
         );
     }// </editor-fold>//GEN-END:initComponents
 
+    private void switchToSubdividedRenderer() {
+        /*
+         * TODO: add an option somewhere to turn this off
+         */
+        ManagedRenderer[] renderers = Lookup.getDefault().lookup(PreviewController.class).getModel().getManagedRenderers();
+        for (int i = 0; i < renderers.length; i++) {
+            if (renderers[i].getRenderer() instanceof EdgeRenderer || renderers[i].getRenderer() instanceof ArrowRenderer) {
+                renderers[i].setEnabled(false);
+            }
+        }
+
+
+        boolean found = false;
+        for (int i = 0; i < renderers.length; i++) {
+            if (renderers[i].getRenderer() instanceof SubdividedEdgeRenderer) {
+                renderers[i].setEnabled(true);
+                found = true;
+            }
+        }
+        renderers = Arrays.copyOf(renderers, renderers.length + 1);
+        renderers[renderers.length - 1] = new ManagedRenderer(new SubdividedEdgeRenderer(), true);
+        Lookup.getDefault().lookup(PreviewController.class).getModel().setManagedRenderers(renderers);
+    }
+
+    private void switchToEdgeRenderer() {
+        ManagedRenderer[] renderers = Lookup.getDefault().lookup(PreviewController.class).getModel().getManagedRenderers();
+        for (int i = 0; i < renderers.length; i++) {
+            if (renderers[i].getRenderer() instanceof EdgeRenderer || renderers[i].getRenderer() instanceof ArrowRenderer) {
+                renderers[i].setEnabled(true);
+            } else if (renderers[i].getRenderer() instanceof SubdividedEdgeRenderer) {
+                renderers[i].setEnabled(false);
+            }
+        }
+    }
+    
     private void deleteButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_deleteButtonActionPerformed
         EdgeLayout layout = (EdgeLayout) controller.getModel().getSelectedLayout();
         layout.removeLayoutData();
+        switchToEdgeRenderer();
         /*
          * Note: had to make Desktop Preview public, to make
          * PreviewUIController.class accessible
@@ -170,6 +246,7 @@ public final class EdgeLayoutWindowTopComponent extends TopComponent implements 
 
     private void run() {
         if (controller.canExecute()) {
+            switchToSubdividedRenderer();
             controller.executeLayout();
         }
     }
@@ -181,7 +258,7 @@ public final class EdgeLayoutWindowTopComponent extends TopComponent implements 
     }
 
     private boolean layoutIsRunning() {
-        return controller.getModel().isRunning();
+        return (controller.getModel() != null && controller.getModel().isRunning());
     }
 
     private void regenerateRunButton() {
@@ -251,9 +328,7 @@ public final class EdgeLayoutWindowTopComponent extends TopComponent implements 
 
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
-        if (evt.getPropertyName().equals(EdgeLayoutModel.RUNNING)) {
-            regenerateRunButton();
-        }
+        regenerateRunButton();
         regenerateSettings();
     }
 
