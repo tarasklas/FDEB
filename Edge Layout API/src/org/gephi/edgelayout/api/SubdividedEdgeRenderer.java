@@ -46,12 +46,38 @@ public class SubdividedEdgeRenderer implements Renderer {
         }
         EdgeLayoutData data = (EdgeLayoutData) item.getSource();
         Point2D.Double[] points = data.getSubdivisonPoints();
-        for (int i = 0; i < points.length - 1; i++) {
+        startStraightEdge(target);
+        for (int i = 0; i < points.length; i++) {
             float x1 = (float) points[i].x;
             float y1 = (float) points[i].y;
-            float x2 = (float) points[i + 1].x;
-            float y2 = (float) points[i + 1].y;
-            renderStraightEdge(x1, y1, x2, y2, target, ((Edge)item.getData("edge")).getWeight());
+            //  float x2 = (float) points[i + 1].x;
+            //  float y2 = (float) points[i + 1].y;
+            PGraphics graphics = ((ProcessingTarget) target).getGraphics();
+            graphics.vertex(x1, -y1);
+           // renderStraightEdge(x1, y1, target, ((Edge) item.getData("edge")).getWeight());
+        }
+        endStraightEdge(target);
+    }
+
+    private void startStraightEdge(RenderTarget renderTarget) {
+        Color color = new Color(0f, 0f, 0.5f, alpha);
+        if (renderTarget instanceof ProcessingTarget) {
+
+            PGraphics graphics = ((ProcessingTarget) renderTarget).getGraphics();
+
+            graphics.noFill();
+            graphics.strokeWeight(thickness);
+            graphics.strokeCap(PGraphics.ROUND);
+            graphics.stroke(color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha());
+
+            graphics.beginShape();
+        }
+    }
+
+    private void endStraightEdge(RenderTarget renderTarget) {
+        if (renderTarget instanceof ProcessingTarget) {
+            PGraphics graphics = ((ProcessingTarget) renderTarget).getGraphics();
+            graphics.endShape();
         }
     }
 

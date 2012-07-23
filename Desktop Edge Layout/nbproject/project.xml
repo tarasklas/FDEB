@@ -3,23 +3,23 @@
     <type>org.netbeans.modules.apisupport.project</type>
     <configuration>
         <data xmlns="http://www.netbeans.org/ns/nb-module-project/3">
-            <code-name-base>org.gephi.edgelayout</code-name-base>
+            <code-name-base>org.gephi.desktop.edgelayout</code-name-base>
             <suite-component/>
             <module-dependencies>
                 <dependency>
-                    <code-name-base>org.gephi.data.attributes.api</code-name-base>
+                    <code-name-base>org.gephi.desktop.preview</code-name-base>
                     <build-prerequisite/>
                     <compile-dependency/>
                     <run-dependency>
-                        <specification-version>0.8.0.6</specification-version>
+                        <specification-version>0.8.1.9</specification-version>
                     </run-dependency>
                 </dependency>
                 <dependency>
-                    <code-name-base>org.gephi.dynamic.api</code-name-base>
+                    <code-name-base>org.gephi.edgelayout</code-name-base>
                     <build-prerequisite/>
                     <compile-dependency/>
                     <run-dependency>
-                        <specification-version>0.8.0.6</specification-version>
+                        <specification-version>1.0</specification-version>
                     </run-dependency>
                 </dependency>
                 <dependency>
@@ -28,38 +28,6 @@
                     <compile-dependency/>
                     <run-dependency>
                         <specification-version>0.8.0.3</specification-version>
-                    </run-dependency>
-                </dependency>
-                <dependency>
-                    <code-name-base>org.gephi.layout.api</code-name-base>
-                    <build-prerequisite/>
-                    <compile-dependency/>
-                    <run-dependency>
-                        <specification-version>0.8.0.1</specification-version>
-                    </run-dependency>
-                </dependency>
-                <dependency>
-                    <code-name-base>org.gephi.lib.itext</code-name-base>
-                    <build-prerequisite/>
-                    <compile-dependency/>
-                    <run-dependency>
-                        <specification-version>5.0.1</specification-version>
-                    </run-dependency>
-                </dependency>
-                <dependency>
-                    <code-name-base>org.gephi.lib.processing</code-name-base>
-                    <build-prerequisite/>
-                    <compile-dependency/>
-                    <run-dependency>
-                        <specification-version>1.5.1</specification-version>
-                    </run-dependency>
-                </dependency>
-                <dependency>
-                    <code-name-base>org.gephi.perspective.api</code-name-base>
-                    <build-prerequisite/>
-                    <compile-dependency/>
-                    <run-dependency>
-                        <specification-version>0.8.2</specification-version>
                     </run-dependency>
                 </dependency>
                 <dependency>
@@ -84,14 +52,6 @@
                     <compile-dependency/>
                     <run-dependency>
                         <specification-version>0.8.1.1</specification-version>
-                    </run-dependency>
-                </dependency>
-                <dependency>
-                    <code-name-base>org.gephi.utils.longtask</code-name-base>
-                    <build-prerequisite/>
-                    <compile-dependency/>
-                    <run-dependency>
-                        <specification-version>0.8.0.2</specification-version>
                     </run-dependency>
                 </dependency>
                 <dependency>
@@ -152,11 +112,7 @@
                     </run-dependency>
                 </dependency>
             </module-dependencies>
-            <public-packages>
-                <package>org.gephi.edgelayout.api</package>
-                <package>org.gephi.edgelayout.gui</package>
-                <package>org.gephi.edgelayout.spi</package>
-            </public-packages>
+            <public-packages/>
         </data>
     </configuration>
 </project>

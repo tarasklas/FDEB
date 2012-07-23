@@ -4,24 +4,30 @@
  */
 package org.gephi.example;
 
-import org.gephi.bundler.FDEBBundlerMultithreading;
 import java.io.File;
 import java.io.IOException;
-import org.gephi.data.attributes.api.*;
+import org.gephi.bundler.FDEBBundlerMultithreading;
+import org.gephi.data.attributes.api.AttributeController;
+import org.gephi.data.attributes.api.AttributeModel;
 import org.gephi.edgelayout.api.SubdividedEdgeRenderer;
-import org.gephi.fdeb.*;
 import org.gephi.filters.api.FilterController;
-import org.gephi.graph.api.*;
+import org.gephi.graph.api.DirectedGraph;
+import org.gephi.graph.api.GraphController;
+import org.gephi.graph.api.GraphModel;
+import org.gephi.graph.api.Node;
 import org.gephi.io.exporter.api.ExportController;
-import org.gephi.io.importer.api.*;
+import org.gephi.io.importer.api.Container;
+import org.gephi.io.importer.api.EdgeDefault;
+import org.gephi.io.importer.api.ImportController;
 import org.gephi.io.processor.plugin.DefaultProcessor;
-import org.gephi.preview.api.*;
-import org.gephi.preview.plugin.renderers.*;
+import org.gephi.preview.api.ManagedRenderer;
+import org.gephi.preview.api.PreviewController;
+import org.gephi.preview.api.PreviewModel;
+import org.gephi.preview.plugin.renderers.EdgeRenderer;
 import org.gephi.preview.plugin.renderers.NodeRenderer;
 import org.gephi.project.api.ProjectController;
 import org.gephi.project.api.Workspace;
 import org.gephi.ranking.api.RankingController;
-import org.gephi.renderer.FDEBSimpleBitmapExport;
 import org.openide.util.Exceptions;
 import org.openide.util.Lookup;
 
@@ -107,11 +113,11 @@ public class MultithreadingRun {
         }
         layout.endAlgo();
         System.err.println("Time spent " + (System.currentTimeMillis() - startMeasure) + " ms.");
-        try {
+        /* try {
             new FDEBSimpleBitmapExport().export(graphModel.getGraph(), "exported");
         } catch (IOException ex) {
             Exceptions.printStackTrace(ex);
-        }
+        } */
 
         /*
          * PrintWriter debug = null; try { debug = new

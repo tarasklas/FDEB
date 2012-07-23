@@ -135,7 +135,11 @@
                     </run-dependency>
                 </dependency>
             </module-dependencies>
-            <public-packages/>
+            <public-packages>
+                <package>org.gephi.barnes_hut</package>
+                <package>org.gephi.builder</package>
+                <package>org.gephi.example</package>
+            </public-packages>
         </data>
     </configuration>
 </project>

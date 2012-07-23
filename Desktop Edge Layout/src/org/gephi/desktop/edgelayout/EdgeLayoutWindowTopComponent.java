@@ -1,29 +1,32 @@
 /*
  * Api package isn't the best place to host gui, probably.
  */
-package org.gephi.edgelayout.gui;
+package org.gephi.desktop.edgelayout;
 
+import java.awt.geom.Point2D;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.*;
 import javax.swing.DefaultComboBoxModel;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import org.gephi.desktop.preview.api.PreviewUIController;
-import org.gephi.edgelayout.api.EdgeLayoutController;
-import org.gephi.edgelayout.api.EdgeLayoutModel;
-import org.gephi.edgelayout.api.SubdividedEdgeRenderer;
+import org.gephi.edgelayout.api.*;
 import org.gephi.edgelayout.spi.EdgeLayout;
 import org.gephi.edgelayout.spi.EdgeLayoutBuilder;
+import org.gephi.edgelayout.spi.EdgeLayoutData;
 import org.gephi.edgelayout.spi.EdgeLayoutProperty;
-import org.gephi.layout.api.LayoutModel;
+import org.gephi.graph.api.Edge;
+import org.gephi.graph.api.Graph;
+import org.gephi.graph.api.GraphController;
+import org.gephi.graph.api.GraphModel;
 import org.gephi.preview.api.ManagedRenderer;
 import org.gephi.preview.api.PreviewController;
 import org.gephi.preview.plugin.renderers.ArrowRenderer;
 import org.gephi.preview.plugin.renderers.EdgeRenderer;
-import org.gephi.preview.spi.Renderer;
 import org.gephi.project.api.ProjectController;
 import org.gephi.project.api.Workspace;
 import org.gephi.project.api.WorkspaceListener;
@@ -43,13 +46,13 @@ import org.openide.windows.TopComponent;
 /**
  * Top component which displays something.
  */
-@ConvertAsProperties(dtd = "-//org.gephi.edgelayout.gui//EdgeLayoutWindow//EN",
+@ConvertAsProperties(dtd = "-//org.gephi.desktop.edgelayout//EdgeLayoutWindow//EN",
 autostore = false)
 @TopComponent.Description(preferredID = "EdgeLayoutWindowTopComponent",
 //iconBase="SET/PATH/TO/ICON/HERE", 
 persistenceType = TopComponent.PERSISTENCE_ALWAYS)
 @TopComponent.Registration(mode = "rankingmode", openAtStartup = true, roles = {"preview"})
-@ActionID(category = "Window", id = "org.gephi.edgelayout.gui.EdgeLayoutWindowTopComponent")
+@ActionID(category = "Window", id = "org.gephi.desktop.edgelayout.EdgeLayoutWindowTopComponent")
 @ActionReference(path = "Menu/Window" /*
  * , position = 333
  */)
@@ -64,10 +67,22 @@ public final class EdgeLayoutWindowTopComponent extends TopComponent implements 
 
     private EdgeLayoutController controller;
     private EdgeLayoutModel model;
+    private PropertyChangeListener listener;
 
     public EdgeLayoutWindowTopComponent() {
-        final EdgeLayoutWindowTopComponent thislink = this;
-        
+        listener = new PropertyChangeListener() {
+
+            @Override
+            public void propertyChange(PropertyChangeEvent evt) {
+                regenerateSettings();
+                regenerateRunButton();
+                if (layoutComboBox.getSelectedItem() instanceof EdgeLayoutWrapper
+                        && !controller.getModel().getSelectedBuilder().getName().equals(((EdgeLayoutWrapper) layoutComboBox.getSelectedItem()).builder.getName())) {
+                    layoutComboBoxItemStateChanged(null);
+                }
+            }
+        };
+
         initComponents();
         setName(Bundle.CTL_EdgeLayoutWindowTopComponent());
         setToolTipText(Bundle.HINT_EdgeLayoutWindowTopComponent());
@@ -77,34 +92,63 @@ public final class EdgeLayoutWindowTopComponent extends TopComponent implements 
         Lookup.getDefault().lookup(ProjectController.class).addWorkspaceListener(new WorkspaceListener() {
 
             public void initialize(Workspace workspace) {
+                regenerateSettings();
+                regenerateRunButton();
             }
 
             public void select(Workspace workspace) {
                 model = workspace.getLookup().lookup(EdgeLayoutModel.class);
-                model.addPropertyChangeListener(thislink);
+                model.addPropertyChangeListener(listener);
+                if (model.getSelectedBuilder() != null) {
+                    System.err.println("select and getselectedBuilder " + model.getSelectedBuilder().getName());
+                } else {
+                    System.err.println("select and null builder");
+                }
+                if (model.getSelectedBuilder() != null) {
+                    for (int i = 0; i < layoutComboBox.getItemCount(); i++) {
+                        if (layoutComboBox.getItemAt(i) instanceof EdgeLayoutWrapper
+                                && ((EdgeLayoutWrapper) layoutComboBox.getItemAt(i)).getBuilder().equals(model.getSelectedBuilder())) {
+                            layoutComboBox.setSelectedIndex(i);
+                            System.err.println("select " + i);
+                            break;
+                        } else if (i + 1 == layoutComboBox.getItemCount()) {
+                            System.err.println("fail :(");
+                        }
+                    }
+                } else {
+                    layoutComboBox.setSelectedIndex(0);
+                }
+                if (layoutComboBox.getSelectedItem() instanceof EdgeLayoutWrapper
+                        && controller.getModel().getSelectedBuilder() != ((EdgeLayoutWrapper) layoutComboBox.getSelectedItem()).builder) {
+                    layoutComboBoxItemStateChanged(null);
+                }
                 regenerateSettings();
                 regenerateRunButton();
             }
 
             public void unselect(Workspace workspace) {
-                model.removePropertyChangeListener(thislink);
+                model = workspace.getLookup().lookup(EdgeLayoutModel.class);
+                model.removePropertyChangeListener(listener);
             }
 
             public void close(Workspace workspace) {
+                layoutComboBox.setSelectedIndex(0);
             }
 
             public void disable() {
                 model = null;
-                regenerateSettings();
-                regenerateRunButton();
             }
         });
-        regenerateCombobox();
-        if (controller.getModel() != null) {
-            model = controller.getModel();
-        }
+        Lookup.getDefault().lookup(EdgeLayoutController.class).addRefreshListener(new ChangeListener() {
+
+            @Override
+            public void stateChanged(ChangeEvent e) {
+                Lookup.getDefault().lookup(PreviewUIController.class).refreshPreview();
+            }
+        });
         regenerateRunButton();
         regenerateSettings();
+        regenerateCombobox();
     }
 
     private void regenerateSettings() {
@@ -130,7 +174,6 @@ public final class EdgeLayoutWindowTopComponent extends TopComponent implements 
         sortedlist.add(0, "--Choose a layout");
         DefaultComboBoxModel model = new DefaultComboBoxModel(sortedlist.toArray());
         layoutComboBox.setModel(model);
-        layoutComboBoxItemStateChanged(null);
     }
 
     /**
@@ -145,6 +188,7 @@ public final class EdgeLayoutWindowTopComponent extends TopComponent implements 
         layoutComboBox = new javax.swing.JComboBox();
         settingsPanel = new PropertySheet();
         deleteButton = new javax.swing.JButton();
+        generateGradientsButton = new javax.swing.JButton();
 
         org.openide.awt.Mnemonics.setLocalizedText(runButton, org.openide.util.NbBundle.getMessage(EdgeLayoutWindowTopComponent.class, "EdgeLayoutWindowTopComponent.runButton.text")); // NOI18N
         runButton.addActionListener(new java.awt.event.ActionListener() {
@@ -168,47 +212,79 @@ public final class EdgeLayoutWindowTopComponent extends TopComponent implements 
             }
         });
 
+        org.openide.awt.Mnemonics.setLocalizedText(generateGradientsButton, org.openide.util.NbBundle.getMessage(EdgeLayoutWindowTopComponent.class, "EdgeLayoutWindowTopComponent.generateGradientsButton.text")); // NOI18N
+        generateGradientsButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                generateGradientsButtonActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(settingsPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(layoutComboBox, 0, 376, Short.MAX_VALUE)
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addGroup(layout.createSequentialGroup()
                         .addGap(0, 0, Short.MAX_VALUE)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(runButton, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 68, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(deleteButton, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 74, javax.swing.GroupLayout.PREFERRED_SIZE))))
-                .addContainerGap())
+                        .addComponent(deleteButton, javax.swing.GroupLayout.PREFERRED_SIZE, 69, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(layoutComboBox, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(generateGradientsButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addGap(18, 18, 18)
+                        .addComponent(runButton, javax.swing.GroupLayout.PREFERRED_SIZE, 130, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(settingsPanel, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addComponent(layoutComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, 38, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(runButton)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(runButton)
+                    .addComponent(generateGradientsButton))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(settingsPanel, javax.swing.GroupLayout.DEFAULT_SIZE, 289, Short.MAX_VALUE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(settingsPanel, javax.swing.GroupLayout.DEFAULT_SIZE, 283, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(deleteButton)
-                .addContainerGap())
+                .addGap(6, 6, 6))
         );
     }// </editor-fold>//GEN-END:initComponents
 
+    private void switchToGradientSubdividedRendererAndRefresh(boolean refresh) {
+        ManagedRenderer[] renderers = Lookup.getDefault().lookup(PreviewController.class).getModel().getManagedRenderers();
+        for (int i = 0; i < renderers.length; i++) {
+            if (renderers[i].getRenderer() instanceof EdgeRenderer || renderers[i].getRenderer() instanceof ArrowRenderer
+                    || renderers[i].getRenderer() instanceof SubdividedEdgeRenderer) {
+                renderers[i].setEnabled(false);
+            }
+        }
+
+        Lookup.getDefault().lookup(PreviewController.class).refreshPreview();
+        boolean found = false;
+        for (int i = 0; i < renderers.length; i++) {
+            if (renderers[i].getRenderer() instanceof SubdividedEdgeGradientRenderer) {
+                renderers[i].setEnabled(true);
+                if (refresh) {
+                    ((SubdividedEdgeGradientRenderer) renderers[i].getRenderer()).forcePreProcess(Lookup.getDefault().lookup(PreviewController.class).getModel());
+                }
+                found = true;
+            }
+        }
+        renderers = Arrays.copyOf(renderers, renderers.length + 1);
+        renderers[renderers.length - 1] = new ManagedRenderer(new SubdividedEdgeRenderer(), true);
+        Lookup.getDefault().lookup(PreviewController.class).getModel().setManagedRenderers(renderers);
+
+    }
+
     private void switchToSubdividedRenderer() {
-        /*
-         * TODO: add an option somewhere to turn this off
-         */
         ManagedRenderer[] renderers = Lookup.getDefault().lookup(PreviewController.class).getModel().getManagedRenderers();
         for (int i = 0; i < renderers.length; i++) {
             if (renderers[i].getRenderer() instanceof EdgeRenderer || renderers[i].getRenderer() instanceof ArrowRenderer) {
                 renderers[i].setEnabled(false);
             }
         }
-
 
         boolean found = false;
         for (int i = 0; i < renderers.length; i++) {
@@ -232,7 +308,7 @@ public final class EdgeLayoutWindowTopComponent extends TopComponent implements 
             }
         }
     }
-    
+
     private void deleteButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_deleteButtonActionPerformed
         EdgeLayout layout = (EdgeLayout) controller.getModel().getSelectedLayout();
         layout.removeLayoutData();
@@ -241,7 +317,7 @@ public final class EdgeLayoutWindowTopComponent extends TopComponent implements 
          * Note: had to make Desktop Preview public, to make
          * PreviewUIController.class accessible
          */
-        Lookup.getDefault().lookup(PreviewUIController.class).refreshPreview();
+        //Lookup.getDefault().lookup(PreviewUIController.class).refreshPreview();
     }//GEN-LAST:event_deleteButtonActionPerformed
 
     private void run() {
@@ -297,8 +373,13 @@ public final class EdgeLayoutWindowTopComponent extends TopComponent implements 
         }
         regenerateSettings();
     }//GEN-LAST:event_layoutComboBoxItemStateChanged
+    private int counter = 0;
+    private void generateGradientsButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_generateGradientsButtonActionPerformed
+        switchToGradientSubdividedRendererAndRefresh(true);
+    }//GEN-LAST:event_generateGradientsButtonActionPerformed
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton deleteButton;
+    private javax.swing.JButton generateGradientsButton;
     private javax.swing.JComboBox layoutComboBox;
     private javax.swing.JButton runButton;
     private javax.swing.JPanel settingsPanel;
@@ -391,7 +472,6 @@ public final class EdgeLayoutWindowTopComponent extends TopComponent implements 
                     return null;
                 }
             }
-            System.err.println("size of result is " + propertySets.length);
             return propertySets;
         }
 

@@ -39,7 +39,9 @@ public class FDEBBundlerMultithreading extends FDEBAbstractBundler implements Ed
         }
         cycle = 1;
         setConverged(false);
-        sprintConstant = FDEBUtilities.calculateSprintConstant(graphModel.getGraph());
+        if (!useUserConstant) {
+            sprintConstant = FDEBUtilities.calculateSprintConstant(graphModel.getGraph());
+        }
         stepSize = stepSizeAtTheBeginning;
         iterationsPerCycle = iterationsPerCycleAtTheBeginning;
         subdivisionPointsPerEdge = 1;//start and end doesnt count

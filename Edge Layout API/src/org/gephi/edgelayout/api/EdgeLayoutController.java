@@ -41,6 +41,8 @@
  */
 package org.gephi.edgelayout.api;
 
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import org.gephi.edgelayout.spi.EdgeLayout;
 import org.gephi.project.api.Workspace;
 
@@ -100,4 +102,11 @@ public interface EdgeLayoutController {
      * <code>true</code> if the layout can be stopped.
      */
     public boolean canStop();
+    
+    /*
+     * EdgeLayoutController sends to listeners request to refresh
+     */
+    public void addRefreshListener(ChangeListener listener);
+    
+    public boolean removeRefreshListener(ChangeListener listener);
 }

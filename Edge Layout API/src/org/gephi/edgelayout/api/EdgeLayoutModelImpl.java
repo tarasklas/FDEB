@@ -94,6 +94,7 @@ public class EdgeLayoutModelImpl implements EdgeLayoutModel {
                 Logger.getLogger("").log(Level.SEVERE, "", t.getCause() != null ? t.getCause() : t);
             }
         });
+        firePropertyChangeEvent(INITIALIZATION, null, null);
     }
 
     public EdgeLayout getSelectedLayout() {

@@ -41,7 +41,9 @@
  */
 package org.gephi.edgelayout.api;
 
-import org.gephi.desktop.preview.api.PreviewUIController;
+import java.util.ArrayList;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import org.gephi.edgelayout.spi.EdgeLayout;
 import org.gephi.graph.api.GraphController;
 import org.gephi.project.api.ProjectController;
@@ -51,7 +53,6 @@ import org.gephi.utils.longtask.spi.LongTask;
 import org.gephi.utils.progress.Progress;
 import org.gephi.utils.progress.ProgressTicket;
 import org.openide.util.Lookup;
-import org.openide.util.NbBundle;
 import org.openide.util.lookup.ServiceProvider;
 
 /**
@@ -63,6 +64,7 @@ public class EdgeLayoutControllerImpl implements EdgeLayoutController {
 
     private EdgeLayoutModelImpl model;
     private EdgeLayoutControllerImpl.EdgeLayoutRun layoutRun;
+    private ArrayList<ChangeListener> listeners;
 
     public EdgeLayoutControllerImpl() {
         Lookup.getDefault().lookup(ProjectController.class).addWorkspaceListener(new WorkspaceListener() {
@@ -96,6 +98,8 @@ public class EdgeLayoutControllerImpl implements EdgeLayoutController {
                 model = null;
             }
         });
+        
+        listeners = new ArrayList<ChangeListener>();
 
         ProjectController projectController = Lookup.getDefault().lookup(ProjectController.class);
         if (projectController.getCurrentWorkspace() != null) {
@@ -118,7 +122,7 @@ public class EdgeLayoutControllerImpl implements EdgeLayoutController {
 
     public void executeLayout() {
         if (model.getSelectedLayout() != null) {
-            layoutRun = new EdgeLayoutControllerImpl.EdgeLayoutRun(model.getSelectedLayout());
+            layoutRun = new EdgeLayoutControllerImpl.EdgeLayoutRun(model.getSelectedLayout(), listeners);
             model.getExecutor().execute(layoutRun, layoutRun);
             model.setRunning(true);
         }
@@ -126,7 +130,7 @@ public class EdgeLayoutControllerImpl implements EdgeLayoutController {
 
     public void executeLayout(int numIterations) {
         if (model.getSelectedLayout() != null) {
-            layoutRun = new EdgeLayoutControllerImpl.EdgeLayoutRun(model.getSelectedLayout(), numIterations);
+            layoutRun = new EdgeLayoutControllerImpl.EdgeLayoutRun(model.getSelectedLayout(), numIterations, listeners);
             model.getExecutor().execute(layoutRun, layoutRun);
             model.setRunning(true);
         }
@@ -151,21 +155,39 @@ public class EdgeLayoutControllerImpl implements EdgeLayoutController {
         model.getExecutor().cancel();
     }
 
+    @Override
+    public void addRefreshListener(ChangeListener listener) {
+        listeners.add(listener);
+    }
+
+    @Override
+    public boolean removeRefreshListener(ChangeListener listener) {
+        return listeners.remove(listener);
+    }
+
     private static class EdgeLayoutRun implements LongTask, Runnable {
 
         private final EdgeLayout layout;
         private boolean stopRun = false;
         private ProgressTicket progressTicket;
         private final Integer iterations;
+        private final ArrayList<ChangeListener> listeners;
 
-        public EdgeLayoutRun(EdgeLayout layout) {
+        public EdgeLayoutRun(EdgeLayout layout, ArrayList<ChangeListener> listeners) {
             this.layout = layout;
             this.iterations = null;
+            this.listeners = listeners;
         }
 
-        public EdgeLayoutRun(EdgeLayout layout, int numIterations) {
+        public EdgeLayoutRun(EdgeLayout layout, int numIterations, ArrayList<ChangeListener> listeners) {
             this.layout = layout;
             this.iterations = numIterations;
+            this.listeners = listeners;
+        }
+
+        public void refreshPreview() {
+            for (ChangeListener listener : listeners)
+                listener.stateChanged(new ChangeEvent(this));
         }
 
         public void run() {
@@ -173,7 +195,7 @@ public class EdgeLayoutControllerImpl implements EdgeLayoutController {
             Progress.start(progressTicket);
             layout.initAlgo();
             if (layout.shouldRefreshPreview()) {
-                Lookup.getDefault().lookup(PreviewUIController.class).refreshPreview();
+                refreshPreview();
             }
 
             long i = 0;
@@ -184,12 +206,11 @@ public class EdgeLayoutControllerImpl implements EdgeLayoutController {
                     break;
                 }
                 if (layout.shouldRefreshPreview()) {
-                    System.err.flush();
-                    Lookup.getDefault().lookup(PreviewUIController.class).refreshPreview();
+                    refreshPreview();
                 }
             }
             layout.endAlgo();
-            Lookup.getDefault().lookup(PreviewUIController.class).refreshPreview();
+            refreshPreview();
             if (i > 1) {
                 // Progress.finish(progressTicket, NbBundle.getMessage(EdgeLayoutControllerImpl.class, "LayoutRun.end", layout.getBuilder().getName(), i));
                 Progress.finish(progressTicket);

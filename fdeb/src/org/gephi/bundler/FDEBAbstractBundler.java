@@ -6,6 +6,7 @@ package org.gephi.bundler;
 
 import java.util.ArrayList;
 import java.util.List;
+import org.gephi.edgelayout.api.EdgeLayoutController;
 import org.gephi.edgelayout.spi.AbstractEdgeLayout;
 import org.gephi.edgelayout.spi.EdgeLayout;
 import org.gephi.edgelayout.spi.EdgeLayoutBuilder;
@@ -42,6 +43,8 @@ public abstract class FDEBAbstractBundler extends AbstractEdgeLayout implements 
     protected FDEBCompatibilityComputator computator;
     protected boolean cancel;
     protected boolean useInverseQuadraticModel;
+    protected double subdividedEdgeAlpha;
+    protected double subdividedEdgeThickness;
 
     public FDEBAbstractBundler(EdgeLayoutBuilder layoutBuilder) {
         super(layoutBuilder);
@@ -50,19 +53,23 @@ public abstract class FDEBAbstractBundler extends AbstractEdgeLayout implements 
 
     @Override
     public void resetPropertiesValues() {
-        numCycles = 10;
-        stepSizeAtTheBeginning = 0.1;
-        iterationsPerCycleAtTheBeginning = 1000;
+        numCycles = 6;
+        stepSizeAtTheBeginning = 0.4;
+        iterationsPerCycleAtTheBeginning = 50;
         //sprintConstant = 0.5;
         stepDampingFactor = 0.5;
-        compatibilityThreshold = 0.1;
-        subdivisionPointIncreaseRate = 1.6;
+        compatibilityThreshold = 0;
+        subdivisionPointIncreaseRate = 2;
         refreshRate = 1;
         useInverseQuadraticModel = false;
         computator = new FDEBCompatibilityComputator();
+        subdividedEdgeAlpha = 0.1;
+        subdividedEdgeThickness = 1.0;
+        if (Lookup.getDefault().lookup(PreviewController.class).getModel() != null) {
+            Lookup.getDefault().lookup(PreviewController.class).getModel().getProperties().putValue("subdividededge.alpha", 0.1);
+            Lookup.getDefault().lookup(PreviewController.class).getModel().getProperties().putValue("subdividededge.thickness", 1.0);
+        }
 
-        Lookup.getDefault().lookup(PreviewController.class).getModel().getProperties().putValue("subdividededge.alpha", 0.1);
-        Lookup.getDefault().lookup(PreviewController.class).getModel().getProperties().putValue("subdividededge.thickness", 1.0);
     }
 
     @Override
@@ -203,7 +210,8 @@ public abstract class FDEBAbstractBundler extends AbstractEdgeLayout implements 
     }
 
     public void setThickness(Double thinkness) {
-        Lookup.getDefault().lookup(PreviewController.class).getModel().getProperties().putValue("subdividededge.thickness", thinkness);
+        subdividedEdgeThickness = thinkness;
+        Lookup.getDefault().lookup(PreviewController.class).getModel().getProperties().putValue("subdividededge.thickness", subdividedEdgeThickness);
     }
 
     public Double getThickness() {
@@ -211,6 +219,7 @@ public abstract class FDEBAbstractBundler extends AbstractEdgeLayout implements 
     }
 
     public void setAlpha(Double alpha) {
+        subdividedEdgeAlpha = alpha;
         Lookup.getDefault().lookup(PreviewController.class).getModel().getProperties().putValue("subdividededge.alpha", alpha);
     }
 

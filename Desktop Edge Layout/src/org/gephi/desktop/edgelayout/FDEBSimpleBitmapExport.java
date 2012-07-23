@@ -2,14 +2,15 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package org.gephi.renderer;
+package org.gephi.desktop.edgelayout;
 
 import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import javax.imageio.ImageIO;
-import org.gephi.fdeb.FDEBLayoutData;
+import org.gephi.edgelayout.api.SubdividedEdgeItem;
+import org.gephi.edgelayout.spi.EdgeLayoutData;
 import org.gephi.graph.api.Edge;
 import org.gephi.graph.api.Graph;
 import org.gephi.graph.api.Node;
@@ -17,7 +18,8 @@ import org.w3c.dom.css.RGBColor;
 
 /**
  *
- * Primitive and slow class to observe described in paper export method, unlikely to be used afterwards
+ * Primitive and slow class to observe described in paper export method,
+ * unlikely to be used afterwards
  */
 public class FDEBSimpleBitmapExport {
 
@@ -59,9 +61,10 @@ public class FDEBSimpleBitmapExport {
     }
 
     public void export(Graph graph, String filename) throws IOException {
-        if (graph.getNodeCount() <= 1)
+        if (graph.getNodeCount() <= 1) {
             return;
-        
+        }
+
         for (Node node : graph.getNodes()) {
             minX = Math.min((int) node.getNodeData().x(), minX);
             minY = Math.min((int) node.getNodeData().y(), minY);
@@ -71,6 +74,7 @@ public class FDEBSimpleBitmapExport {
         }
         //int width = 1024 * 4;
         int width = maxX - minX;
+        width *= 4;
         int height = width * (maxY - minY) / (maxX - minX); //scale
         image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
         points = new float[image.getWidth()][image.getHeight()];
@@ -82,9 +86,9 @@ public class FDEBSimpleBitmapExport {
         }
 
         for (Edge edge : graph.getEdges()) {
-            FDEBLayoutData data = edge.getEdgeData().getLayoutData();
-            for (int i = 0; i < data.subdivisionPoints.length - 1; i++) {
-                makeLine(data.subdivisionPoints[i].x, data.subdivisionPoints[i].y, data.subdivisionPoints[i + 1].x, data.subdivisionPoints[i + 1].y);
+            EdgeLayoutData data = edge.getEdgeData().getLayoutData();
+            for (int i = 0; i < data.getSubdivisonPoints().length - 1; i++) {
+                makeLine(data.getSubdivisonPoints()[i].x, data.getSubdivisonPoints()[i].y, data.getSubdivisonPoints()[i + 1].x, data.getSubdivisonPoints()[i + 1].y);
             }
         }
 
@@ -95,16 +99,13 @@ public class FDEBSimpleBitmapExport {
             }
         }
 
-       // max = 25;
+        // max = 25;
 
-        /* 
-        for (int i = 0; i < image.getWidth(); i++) {
-            for (int j = 0; j < image.getHeight(); j++) {
-                if (points[i][j] < max / 3) {
-                    // points[i][j] = 0;
-                }
-            }
-        } */
+        /*
+         * for (int i = 0; i < image.getWidth(); i++) { for (int j = 0; j <
+         * image.getHeight(); j++) { if (points[i][j] < max / 3) { //
+         * points[i][j] = 0; } } }
+         */
 
         for (int i = 0; i < image.getWidth(); i++) {
             for (int j = 0; j < image.getHeight(); j++) {
@@ -113,8 +114,8 @@ public class FDEBSimpleBitmapExport {
                     image.setRGB(i, j, generateGradient(points[i][j] / max));
                 }
             }
-        } 
-        
+        }
+
         System.err.println("Export to png: " + ImageIO.write(image, "png", new File(filename + ".png")));
     }
 

@@ -116,7 +116,7 @@ public class FDEBUtilities {
             double Fsi_y = (data.subdivisionPoints[i - 1].y - data.subdivisionPoints[i].y)
                     + (data.subdivisionPoints[i + 1].y - data.subdivisionPoints[i].y);
 
-            if (Math.abs(k) <= 1) {
+            {
                 Fsi_x *= k;
                 Fsi_y *= k;
             }

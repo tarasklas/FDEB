@@ -58,6 +58,7 @@ public interface EdgeLayoutModel {
 
     public static final String SELECTED_LAYOUT = "selectedLayout";
     public static final String RUNNING = "running";
+    public static final String INITIALIZATION = "initialization";
 
     /**
      * Returns the currently selected layout or

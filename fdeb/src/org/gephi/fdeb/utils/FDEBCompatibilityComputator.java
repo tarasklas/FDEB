@@ -84,8 +84,12 @@ public class FDEBCompatibilityComputator {
         Point2D.Float bf = new Point2D.Float(bEdge.getTarget().getNodeData().x(), bEdge.getTarget().getNodeData().y());
         double compatibility = Math.min(visibilityCompatibility(as, af, bs, bf), visibilityCompatibility(bs, bf, as, af));
 
-        assert (compatibility >= 0);
-        assert (compatibility <= 1);
+        try {
+            assert (compatibility >= 0);
+            assert (compatibility <= 1);
+        } catch (AssertionError ex) {
+            return 0;
+        }
         return compatibility;
     }
 
