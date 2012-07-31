@@ -14,6 +14,8 @@ import org.gephi.barnes_hut.QuadNode;
 import org.gephi.fdeb.FDEBCompatibilityRecord;
 import org.gephi.fdeb.FDEBLayoutData;
 import org.gephi.graph.api.*;
+import org.gephi.preview.api.PreviewController;
+import org.openide.util.Lookup;
 import processing.core.PVector;
 
 /**
@@ -86,12 +88,13 @@ public class FDEBUtilities {
         if (edge.isSelfLoop()) {
             ((FDEBLayoutData) edge.getEdgeData().getLayoutData()).similarEdges = new FDEBCompatibilityRecord[0];
         }
+        ((FDEBLayoutData) edge.getEdgeData().getLayoutData()).intensity = 0;
         for (Edge probablySimilarEdge : graph.getEdges()) {
             if (probablySimilarEdge.isSelfLoop() || probablySimilarEdge == edge) {
                 continue;
             }
             double compatibility = computator.calculateCompatibility(edge, probablySimilarEdge);
-            //System.err.println(compatibility + " " + compatibilityThreshold);
+            ((FDEBLayoutData) edge.getEdgeData().getLayoutData()).intensity += compatibility * compatibility;
             if (compatibility < compatibilityThreshold) {
                 continue;
             }

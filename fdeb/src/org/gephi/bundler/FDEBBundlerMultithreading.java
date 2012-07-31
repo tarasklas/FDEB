@@ -115,6 +115,7 @@ public class FDEBBundlerMultithreading extends FDEBAbstractBundler implements Ed
 
     @Override
     public void endAlgo() {
+        super.endAlgo();
         executor.shutdown();
     }
 
@@ -148,10 +149,5 @@ public class FDEBBundlerMultithreading extends FDEBAbstractBundler implements Ed
         }
         System.err.println("total: " + totalEdges + " passed " + passedEdges
                 + " fraction " + ((double) passedEdges) / totalEdges);
-    }
-
-    @Override
-    public void modifyAlgo() {
-        throw new UnsupportedOperationException("Not supported yet.");
     }
 }

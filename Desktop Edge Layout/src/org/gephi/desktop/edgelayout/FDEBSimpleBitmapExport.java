@@ -8,12 +8,16 @@ import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
 import javax.imageio.ImageIO;
 import org.gephi.edgelayout.api.SubdividedEdgeItem;
 import org.gephi.edgelayout.spi.EdgeLayoutData;
 import org.gephi.graph.api.Edge;
 import org.gephi.graph.api.Graph;
 import org.gephi.graph.api.Node;
+import org.gephi.preview.api.PreviewController;
+import org.openide.util.Lookup;
 import org.w3c.dom.css.RGBColor;
 
 /**
@@ -92,9 +96,13 @@ public class FDEBSimpleBitmapExport {
             }
         }
 
+        ArrayList<Float> sort = new ArrayList<Float>();
         float max = 0;
         for (int i = 0; i < image.getWidth(); i++) {
             for (int j = 0; j < image.getHeight(); j++) {
+                if (points[i][j] > 1) {
+                    sort.add(points[i][j]);
+                }
                 max = Math.max(max, points[i][j]);
             }
         }
@@ -110,8 +118,9 @@ public class FDEBSimpleBitmapExport {
         for (int i = 0; i < image.getWidth(); i++) {
             for (int j = 0; j < image.getHeight(); j++) {
                 if (points[i][j] > 0) {
+                    float f = (float) Math.abs(Collections.binarySearch(sort, points[i][j])) / sort.size();
                     //image.setRGB(i, j, new Color(0f, 0f, Math.min(1f, 1f * (float) Math.sqrt(points[i][j] / max)), 1.0f).getRGB());
-                    image.setRGB(i, j, generateGradient(points[i][j] / max));
+                    image.setRGB(i, j, generateGradient(f).getRGB());
                 }
             }
         }
@@ -119,8 +128,26 @@ public class FDEBSimpleBitmapExport {
         System.err.println("Export to png: " + ImageIO.write(image, "png", new File(filename + ".png")));
     }
 
-    private int generateGradient(float f) {
-        f = Math.min(f * 2.25f, 1f);// move closer to blue
-        return new Color(1f * (1 - f), 1f * (1 - f), 1f).getRGB(); //white to blue
+    private Color generateGradient(float f) {
+        if (f <= 0.2) {
+            return generateGradient(Color.WHITE, Color.BLUE, f / 0.2);
+        } else if (f <= 0.4) {
+            return generateGradient(Color.BLUE, Color.PINK, (f - 0.2) / 0.2);
+        } else if (f <= 0.6) {
+            return generateGradient(Color.PINK, Color.RED, (f - 0.4) / 0.2);
+        } else {
+            return generateGradient(Color.RED, Color.YELLOW, (f - 0.6) / 0.2);
+        }
+    }
+
+    private Color generateGradient(Color a, Color b, double ratio) {
+        if (ratio > 1) {
+            ratio = 1; // to shift gradient to b
+        }
+        return new Color(
+                (int) (a.getRed() * (1.0 - ratio) + b.getRed() * ratio),
+                (int) (a.getGreen() * (1.0 - ratio) + b.getGreen() * ratio),
+                (int) (a.getBlue() * (1.0 - ratio) + b.getBlue() * ratio),
+                (int) (255 * Lookup.getDefault().lookup(PreviewController.class).getModel().getProperties().getDoubleValue("subdividededge.alpha")));
     }
 }

@@ -5,12 +5,14 @@
 package org.gephi.bundler;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import org.gephi.edgelayout.api.EdgeLayoutController;
 import org.gephi.edgelayout.spi.AbstractEdgeLayout;
 import org.gephi.edgelayout.spi.EdgeLayout;
 import org.gephi.edgelayout.spi.EdgeLayoutBuilder;
 import org.gephi.edgelayout.spi.EdgeLayoutProperty;
+import org.gephi.fdeb.FDEBLayoutData;
 import org.gephi.fdeb.utils.FDEBCompatibilityComputator;
 import org.gephi.graph.api.Edge;
 import org.gephi.preview.api.PreviewController;
@@ -66,8 +68,10 @@ public abstract class FDEBAbstractBundler extends AbstractEdgeLayout implements 
         subdividedEdgeAlpha = 0.1;
         subdividedEdgeThickness = 1.0;
         if (Lookup.getDefault().lookup(PreviewController.class).getModel() != null) {
-            Lookup.getDefault().lookup(PreviewController.class).getModel().getProperties().putValue("subdividededge.alpha", 0.1);
-            Lookup.getDefault().lookup(PreviewController.class).getModel().getProperties().putValue("subdividededge.thickness", 1.0);
+            Lookup.getDefault().lookup(PreviewController.class).getModel().getProperties().putValue("subdividededge.alpha", subdividedEdgeAlpha);
+            Lookup.getDefault().lookup(PreviewController.class).getModel().getProperties().putValue("subdividededge.thickness", subdividedEdgeThickness);
+            Lookup.getDefault().lookup(PreviewController.class).getModel().getProperties().putValue("subdividededge.usestandartrenderer", true);
+            Lookup.getDefault().lookup(PreviewController.class).getModel().getProperties().putValue("subdividededge.decreaseedgescore", false);
         }
 
     }
@@ -227,6 +231,22 @@ public abstract class FDEBAbstractBundler extends AbstractEdgeLayout implements 
         return Lookup.getDefault().lookup(PreviewController.class).getModel().getProperties().getDoubleValue("subdividededge.alpha");
     }
 
+    public Boolean isUseStandartRenderer() {
+        return Lookup.getDefault().lookup(PreviewController.class).getModel().getProperties().getBooleanValue("subdividededge.usestandartrenderer");
+    }
+
+    public void setUseStandartRenderer(Boolean useStandartRenderer) {
+        Lookup.getDefault().lookup(PreviewController.class).getModel().getProperties().putValue("subdividededge.usestandartrenderer", useStandartRenderer);
+    }
+
+    public Boolean isDecreaseEdgeScore() {
+        return Lookup.getDefault().lookup(PreviewController.class).getModel().getProperties().getBooleanValue("subdividededge.decreaseedgescore");
+    }
+
+    public void setDecreaseEdgeScore(Boolean isDecreaseEdgeScore) {
+        Lookup.getDefault().lookup(PreviewController.class).getModel().getProperties().putValue("subdividededge.decreaseedgescore", isDecreaseEdgeScore);
+    }
+
     public Boolean isAngleCompatibilityAffectedByDirection() {
         return computator.isAffectedByDirection();
     }
@@ -247,6 +267,12 @@ public abstract class FDEBAbstractBundler extends AbstractEdgeLayout implements 
     public EdgeLayoutProperty[] getProperties() {
         List<EdgeLayoutProperty> properties = new ArrayList<EdgeLayoutProperty>();
         try {
+
+            properties.add(EdgeLayoutProperty.createProperty(this, Boolean.class,
+                    "UseStandartRenderer",
+                    null, null,
+                    "isUseStandartRenderer", "setUseStandartRenderer"));
+
             properties.add(EdgeLayoutProperty.createProperty(this, Integer.class,
                     "Number of cycles",
                     null,
@@ -352,5 +378,32 @@ public abstract class FDEBAbstractBundler extends AbstractEdgeLayout implements 
         } else {
             return (cycle % refreshRate == 0);
         }
+    }
+
+    @Override
+    public void modifyAlgo() {
+        double maxIntensity = 0;
+        ArrayList<Double> intensity = new ArrayList<Double>();
+        for (Edge edge : graphModel.getGraph().getEdges()) {
+            FDEBLayoutData data = edge.getEdgeData().getLayoutData();
+            intensity.add(data.intensity + 1);
+            maxIntensity = Math.max(maxIntensity, data.intensity + 1);
+        }
+        Collections.sort(intensity);
+        double threshold = intensity.get((int) Math.min(intensity.size() - 1, intensity.size()
+                * Lookup.getDefault().lookup(PreviewController.class).getModel().getProperties().getDoubleValue("subdividededge.threshold")));
+
+        int x = intensity.size();
+        System.err.println("boundaries: " + intensity.get(x / 5) + " " + intensity.get(x * 2 / 5) + " " + intensity.get(x * 3 / 5) + " " + intensity.get(x * 4 / 5));
+        System.err.println("threshold " + threshold);
+        for (Edge edge : graphModel.getGraph().getEdges()) {
+            FDEBLayoutData data = edge.getEdgeData().getLayoutData();
+            data.updateColor(intensity);
+        }
+    }
+
+    @Override
+    public void endAlgo() {
+        System.err.println("end algo");
     }
 }

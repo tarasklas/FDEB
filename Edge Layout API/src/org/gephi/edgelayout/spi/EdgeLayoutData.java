@@ -4,6 +4,7 @@
  */
 package org.gephi.edgelayout.spi;
 
+import java.awt.Color;
 import java.awt.geom.Point2D;
 import org.gephi.graph.spi.LayoutData;
 
@@ -14,7 +15,7 @@ import org.gephi.graph.spi.LayoutData;
 public interface EdgeLayoutData extends LayoutData {
 
     public Point2D.Double[] getSubdivisonPoints();
-    /*
-     * Here will be also getter for the curved-straight edges options
-     */
+    
+    public double getEdgeSortOrder();
+    public Color getEdgeColor();
 }

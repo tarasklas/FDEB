@@ -43,6 +43,14 @@ public class FDEBCompatibilityComputator {
         return compatibility;
     }
 
+    public double angleCompatibility(Edge aEdge, Edge bEdge) {
+        PVector a = new PVector(aEdge.getTarget().getNodeData().x() - aEdge.getSource().getNodeData().x(),
+                aEdge.getTarget().getNodeData().y() - aEdge.getSource().getNodeData().y());
+        PVector b = new PVector(bEdge.getTarget().getNodeData().x() - bEdge.getSource().getNodeData().x(),
+                bEdge.getTarget().getNodeData().y() - bEdge.getSource().getNodeData().y());
+        return angleCompatibility(a, b);
+    }
+
     private double angleCompatibility(PVector a, PVector b) {
         double compatiblity = Math.abs(a.dot(b) / (a.mag() * b.mag()));
 

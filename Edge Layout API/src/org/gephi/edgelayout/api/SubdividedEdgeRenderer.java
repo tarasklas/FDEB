@@ -39,8 +39,7 @@ public class SubdividedEdgeRenderer implements Renderer {
         thickness = (float) previewModel.getProperties().getDoubleValue("subdividededge.thickness");
     }
 
-    @Override
-    public void render(Item item, RenderTarget target, PreviewProperties properties) {
+    private void renderSimpleItem(SubdividedEdgeItem item, RenderTarget target, PreviewProperties properties) {
         if (item.getSource() == null) {
             return;
         }
@@ -54,9 +53,58 @@ public class SubdividedEdgeRenderer implements Renderer {
             //  float y2 = (float) points[i + 1].y;
             PGraphics graphics = ((ProcessingTarget) target).getGraphics();
             graphics.vertex(x1, -y1);
-           // renderStraightEdge(x1, y1, target, ((Edge) item.getData("edge")).getWeight());
+            // renderStraightEdge(x1, y1, target, ((Edge) item.getData("edge")).getWeight());
         }
         endStraightEdge(target);
+    }
+
+    @Override
+    public void render(Item item, RenderTarget target, PreviewProperties properties) {
+        if (item instanceof SubdividedEdgeItem) {
+            renderSimpleItem((SubdividedEdgeItem) item, target, properties);
+        } else if (item instanceof SubdividedEdgeBigItem) {
+            renderBigItem((SubdividedEdgeBigItem) item, target, properties);
+        }
+    }
+
+    public void renderBigItem(SubdividedEdgeBigItem item, RenderTarget target, PreviewProperties properties) {
+        for (SortedEdgeWrapper edgeWrapper : item.edges) {
+            Edge edge = edgeWrapper.edge;
+            EdgeLayoutData data = (EdgeLayoutData) edge.getEdgeData().getLayoutData();
+            Point2D.Double[] points = data.getSubdivisonPoints();
+            startGradientEdge(target, data.getEdgeColor());
+            for (int i = 0; i < points.length; i++) {
+                float x1 = (float) points[i].x;
+                float y1 = (float) points[i].y;
+                //  float x2 = (float) points[i + 1].x;
+                //  float y2 = (float) points[i + 1].y;
+                PGraphics graphics = ((ProcessingTarget) target).getGraphics();
+                graphics.vertex(x1, -y1);
+            }
+            endGradientEdge(target);
+        }
+    }
+
+    public void startGradientEdge(RenderTarget target, Color color) {
+        if (color == null) {
+            return;
+        }
+        if (target instanceof ProcessingTarget) {
+            PGraphics graphics = ((ProcessingTarget) target).getGraphics();
+
+            graphics.noFill();
+            graphics.strokeWeight(thickness);
+            graphics.strokeCap(PGraphics.ROUND);
+            graphics.stroke(color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha());
+            graphics.beginShape();
+        }
+    }
+
+    public void endGradientEdge(RenderTarget target) {
+        if (target instanceof ProcessingTarget) {
+            PGraphics graphics = ((ProcessingTarget) target).getGraphics();
+            graphics.endShape();
+        }
     }
 
     private void startStraightEdge(RenderTarget renderTarget) {
@@ -122,11 +170,12 @@ public class SubdividedEdgeRenderer implements Renderer {
 
     @Override
     public boolean isRendererForitem(Item item, PreviewProperties properties) {
-        return (item instanceof SubdividedEdgeItem);
+        return (item instanceof SubdividedEdgeItem && properties.getBooleanValue("subdividededge.usestandartrenderer")
+                || item instanceof SubdividedEdgeBigItem && !properties.getBooleanValue("subdividededge.usestandartrenderer"));
     }
 
     @Override
     public boolean needsItemBuilder(ItemBuilder itemBuilder, PreviewProperties properties) {
-        return (itemBuilder instanceof SubdividedEdgeItemBuilder);
+        return (itemBuilder instanceof SubdividedEdgeItemBuilder || itemBuilder instanceof SubdividedEdgeBigItemBuilder);
     }
 }

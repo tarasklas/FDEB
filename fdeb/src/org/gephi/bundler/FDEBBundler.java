@@ -52,8 +52,9 @@ public class FDEBBundler extends FDEBAbstractBundler implements EdgeLayout, Long
         System.err.println("Next iteration");
         for (int step = 0; step < iterationsPerCycle; step++) {
             for (Edge edge : graphModel.getGraph().getEdges()) {
-                if (cancel)
+                if (cancel) {
                     return;
+                }
                 ((FDEBLayoutData) edge.getEdgeData().getLayoutData()).newSubdivisionPoints = Arrays.copyOf(((FDEBLayoutData) edge.getEdgeData().getLayoutData()).subdivisionPoints,
                         ((FDEBLayoutData) edge.getEdgeData().getLayoutData()).subdivisionPoints.length);
             }
@@ -96,15 +97,12 @@ public class FDEBBundler extends FDEBAbstractBundler implements EdgeLayout, Long
         }
     }
 
-    @Override
-    public void endAlgo() {
-    }
-
     private void createCompatibilityLists() {
         ArrayList<FDEBCompatibilityRecord> similar = new ArrayList<FDEBCompatibilityRecord>();
         for (Edge edge : graphModel.getGraph().getEdges()) {
-            if (cancel)
+            if (cancel) {
                 return;
+            }
             FDEBUtilities.createCompatibilityRecords(edge, compatibilityThreshold, graphModel.getGraph(), computator);
         }
         int totalEdges = graphModel.getGraph().getEdgeCount() * graphModel.getGraph().getEdgeCount();
@@ -121,10 +119,5 @@ public class FDEBBundler extends FDEBAbstractBundler implements EdgeLayout, Long
         }
         System.err.println("total: " + totalEdges + " passed " + passedEdges + " sum of compatibility " + csum
                 + " fraction " + ((double) passedEdges) / totalEdges);
-    }
-
-    @Override
-    public void modifyAlgo() {
-        throw new UnsupportedOperationException("Not supported yet.");
     }
 }

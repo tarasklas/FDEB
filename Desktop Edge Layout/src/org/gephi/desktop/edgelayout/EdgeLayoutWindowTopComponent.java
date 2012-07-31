@@ -69,13 +69,23 @@ public final class EdgeLayoutWindowTopComponent extends TopComponent implements 
     private EdgeLayoutModel model;
     private PropertyChangeListener listener;
 
+    private void refreshPreview() {
+        regenerateRunButton(false);
+        regenerateSettings();
+        System.err.println("refresh preview " + System.currentTimeMillis());
+        if (controller.getModel() != null && controller.getModel().getSelectedLayout() != null && !controller.getModel().isRunning()) {
+            controller.getModel().getSelectedLayout().modifyAlgo();
+        }
+        Lookup.getDefault().lookup(PreviewUIController.class).refreshPreview();
+    }
+
     public EdgeLayoutWindowTopComponent() {
         listener = new PropertyChangeListener() {
 
             @Override
             public void propertyChange(PropertyChangeEvent evt) {
                 regenerateSettings();
-                regenerateRunButton();
+                regenerateRunButton(true);
                 if (layoutComboBox.getSelectedItem() instanceof EdgeLayoutWrapper
                         && !controller.getModel().getSelectedBuilder().getName().equals(((EdgeLayoutWrapper) layoutComboBox.getSelectedItem()).builder.getName())) {
                     layoutComboBoxItemStateChanged(null);
@@ -93,7 +103,7 @@ public final class EdgeLayoutWindowTopComponent extends TopComponent implements 
 
             public void initialize(Workspace workspace) {
                 regenerateSettings();
-                regenerateRunButton();
+                regenerateRunButton(true);
             }
 
             public void select(Workspace workspace) {
@@ -123,7 +133,7 @@ public final class EdgeLayoutWindowTopComponent extends TopComponent implements 
                     layoutComboBoxItemStateChanged(null);
                 }
                 regenerateSettings();
-                regenerateRunButton();
+                regenerateRunButton(true);
             }
 
             public void unselect(Workspace workspace) {
@@ -143,10 +153,10 @@ public final class EdgeLayoutWindowTopComponent extends TopComponent implements 
 
             @Override
             public void stateChanged(ChangeEvent e) {
-                Lookup.getDefault().lookup(PreviewUIController.class).refreshPreview();
+                refreshPreview();
             }
         });
-        regenerateRunButton();
+        regenerateRunButton(true);
         regenerateSettings();
         regenerateCombobox();
     }
@@ -188,7 +198,8 @@ public final class EdgeLayoutWindowTopComponent extends TopComponent implements 
         layoutComboBox = new javax.swing.JComboBox();
         settingsPanel = new PropertySheet();
         deleteButton = new javax.swing.JButton();
-        generateGradientsButton = new javax.swing.JButton();
+        refreshButton = new javax.swing.JButton();
+        exportToPngButton = new javax.swing.JButton();
 
         org.openide.awt.Mnemonics.setLocalizedText(runButton, org.openide.util.NbBundle.getMessage(EdgeLayoutWindowTopComponent.class, "EdgeLayoutWindowTopComponent.runButton.text")); // NOI18N
         runButton.addActionListener(new java.awt.event.ActionListener() {
@@ -212,10 +223,18 @@ public final class EdgeLayoutWindowTopComponent extends TopComponent implements 
             }
         });
 
-        org.openide.awt.Mnemonics.setLocalizedText(generateGradientsButton, org.openide.util.NbBundle.getMessage(EdgeLayoutWindowTopComponent.class, "EdgeLayoutWindowTopComponent.generateGradientsButton.text")); // NOI18N
-        generateGradientsButton.addActionListener(new java.awt.event.ActionListener() {
+        org.openide.awt.Mnemonics.setLocalizedText(refreshButton, org.openide.util.NbBundle.getMessage(EdgeLayoutWindowTopComponent.class, "EdgeLayoutWindowTopComponent.refreshButton.text")); // NOI18N
+        refreshButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                generateGradientsButtonActionPerformed(evt);
+                refreshButtonActionPerformed(evt);
+            }
+        });
+
+        org.openide.awt.Mnemonics.setLocalizedText(exportToPngButton, org.openide.util.NbBundle.getMessage(EdgeLayoutWindowTopComponent.class, "EdgeLayoutWindowTopComponent.exportToPngButton.text")); // NOI18N
+        exportToPngButton.setToolTipText(org.openide.util.NbBundle.getMessage(EdgeLayoutWindowTopComponent.class, "EdgeLayoutWindowTopComponent.exportToPngButton.toolTipText")); // NOI18N
+        exportToPngButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                exportToPngButtonActionPerformed(evt);
             }
         });
 
@@ -226,15 +245,17 @@ public final class EdgeLayoutWindowTopComponent extends TopComponent implements 
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(layoutComboBox, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(settingsPanel, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addGroup(layout.createSequentialGroup()
                         .addGap(0, 0, Short.MAX_VALUE)
                         .addComponent(deleteButton, javax.swing.GroupLayout.PREFERRED_SIZE, 69, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(layoutComboBox, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(generateGradientsButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addGap(18, 18, 18)
-                        .addComponent(runButton, javax.swing.GroupLayout.PREFERRED_SIZE, 130, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(settingsPanel, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                        .addComponent(exportToPngButton)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(refreshButton)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(runButton, javax.swing.GroupLayout.PREFERRED_SIZE, 130, javax.swing.GroupLayout.PREFERRED_SIZE))))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -243,7 +264,8 @@ public final class EdgeLayoutWindowTopComponent extends TopComponent implements 
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(runButton)
-                    .addComponent(generateGradientsButton))
+                    .addComponent(refreshButton)
+                    .addComponent(exportToPngButton))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(settingsPanel, javax.swing.GroupLayout.DEFAULT_SIZE, 283, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
@@ -251,32 +273,6 @@ public final class EdgeLayoutWindowTopComponent extends TopComponent implements 
                 .addGap(6, 6, 6))
         );
     }// </editor-fold>//GEN-END:initComponents
-
-    private void switchToGradientSubdividedRendererAndRefresh(boolean refresh) {
-        ManagedRenderer[] renderers = Lookup.getDefault().lookup(PreviewController.class).getModel().getManagedRenderers();
-        for (int i = 0; i < renderers.length; i++) {
-            if (renderers[i].getRenderer() instanceof EdgeRenderer || renderers[i].getRenderer() instanceof ArrowRenderer
-                    || renderers[i].getRenderer() instanceof SubdividedEdgeRenderer) {
-                renderers[i].setEnabled(false);
-            }
-        }
-
-        Lookup.getDefault().lookup(PreviewController.class).refreshPreview();
-        boolean found = false;
-        for (int i = 0; i < renderers.length; i++) {
-            if (renderers[i].getRenderer() instanceof SubdividedEdgeGradientRenderer) {
-                renderers[i].setEnabled(true);
-                if (refresh) {
-                    ((SubdividedEdgeGradientRenderer) renderers[i].getRenderer()).forcePreProcess(Lookup.getDefault().lookup(PreviewController.class).getModel());
-                }
-                found = true;
-            }
-        }
-        renderers = Arrays.copyOf(renderers, renderers.length + 1);
-        renderers[renderers.length - 1] = new ManagedRenderer(new SubdividedEdgeRenderer(), true);
-        Lookup.getDefault().lookup(PreviewController.class).getModel().setManagedRenderers(renderers);
-
-    }
 
     private void switchToSubdividedRenderer() {
         ManagedRenderer[] renderers = Lookup.getDefault().lookup(PreviewController.class).getModel().getManagedRenderers();
@@ -293,9 +289,6 @@ public final class EdgeLayoutWindowTopComponent extends TopComponent implements 
                 found = true;
             }
         }
-        renderers = Arrays.copyOf(renderers, renderers.length + 1);
-        renderers[renderers.length - 1] = new ManagedRenderer(new SubdividedEdgeRenderer(), true);
-        Lookup.getDefault().lookup(PreviewController.class).getModel().setManagedRenderers(renderers);
     }
 
     private void switchToEdgeRenderer() {
@@ -313,11 +306,6 @@ public final class EdgeLayoutWindowTopComponent extends TopComponent implements 
         EdgeLayout layout = (EdgeLayout) controller.getModel().getSelectedLayout();
         layout.removeLayoutData();
         switchToEdgeRenderer();
-        /*
-         * Note: had to make Desktop Preview public, to make
-         * PreviewUIController.class accessible
-         */
-        //Lookup.getDefault().lookup(PreviewUIController.class).refreshPreview();
     }//GEN-LAST:event_deleteButtonActionPerformed
 
     private void run() {
@@ -337,10 +325,12 @@ public final class EdgeLayoutWindowTopComponent extends TopComponent implements 
         return (controller.getModel() != null && controller.getModel().isRunning());
     }
 
-    private void regenerateRunButton() {
-        if (layoutIsRunning() != !layoutComboBox.isEnabled()) //i.e., it just changed and we should update preview
+    private void regenerateRunButton(boolean shouldRefresh) {
+        System.err.println("regenerate at " + System.currentTimeMillis());
+        boolean refresh = false;
+        if (layoutIsRunning() != !layoutComboBox.isEnabled() && shouldRefresh) //i.e., it just changed and we should update preview
         {
-            Lookup.getDefault().lookup(PreviewUIController.class).refreshPreview();
+            refresh = true;
         }
         if (layoutIsRunning()) {
             runButton.setText("Stop");
@@ -350,16 +340,19 @@ public final class EdgeLayoutWindowTopComponent extends TopComponent implements 
             runButton.setText("Run");
             layoutComboBox.setEnabled(true);
         }
+        if (refresh) {
+            refreshPreview();
+        }
     }
 
     private void runButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_runButtonActionPerformed
-        regenerateRunButton();
+        regenerateRunButton(true);
         if (layoutIsRunning()) {
             stop();
         } else {
             run();
         }
-        regenerateRunButton();
+        regenerateRunButton(true);
         regenerateSettings();
     }//GEN-LAST:event_runButtonActionPerformed
 
@@ -373,14 +366,24 @@ public final class EdgeLayoutWindowTopComponent extends TopComponent implements 
         }
         regenerateSettings();
     }//GEN-LAST:event_layoutComboBoxItemStateChanged
+
+    private void refreshButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_refreshButtonActionPerformed
+        refreshPreview();
+    }//GEN-LAST:event_refreshButtonActionPerformed
+
+    private void exportToPngButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_exportToPngButtonActionPerformed
+        try {
+            new FDEBSimpleBitmapExport().export(Lookup.getDefault().lookup(GraphController.class).getModel().getGraph(), "exported " + System.currentTimeMillis());
+        } catch (IOException ex) {
+            Exceptions.printStackTrace(ex);
+        }
+    }//GEN-LAST:event_exportToPngButtonActionPerformed
     private int counter = 0;
-    private void generateGradientsButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_generateGradientsButtonActionPerformed
-        switchToGradientSubdividedRendererAndRefresh(true);
-    }//GEN-LAST:event_generateGradientsButtonActionPerformed
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton deleteButton;
-    private javax.swing.JButton generateGradientsButton;
+    private javax.swing.JButton exportToPngButton;
     private javax.swing.JComboBox layoutComboBox;
+    private javax.swing.JButton refreshButton;
     private javax.swing.JButton runButton;
     private javax.swing.JPanel settingsPanel;
     // End of variables declaration//GEN-END:variables
@@ -409,7 +412,7 @@ public final class EdgeLayoutWindowTopComponent extends TopComponent implements 
 
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
-        regenerateRunButton();
+        regenerateRunButton(true);
         regenerateSettings();
     }
 
