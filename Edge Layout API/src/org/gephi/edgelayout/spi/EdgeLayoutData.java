@@ -15,7 +15,10 @@ import org.gephi.graph.spi.LayoutData;
 public interface EdgeLayoutData extends LayoutData {
 
     public Point2D.Double[] getSubdivisonPoints();
-    
+
     public double getEdgeSortOrder();
     public Color getEdgeColor();
+
+    public double[] getSubdivisionEdgeSortOrder();
+    public Color[] getSubdivisionEdgeColor();
 }

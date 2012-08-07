@@ -13,6 +13,8 @@ import java.util.Collections;
 import org.gephi.edgelayout.spi.EdgeLayoutData;
 import org.gephi.graph.spi.LayoutData;
 import org.gephi.preview.api.PreviewController;
+import org.gephi.preview.api.PreviewProperty;
+import org.gephi.ui.components.gradientslider.GradientSlider;
 import org.openide.util.Lookup;
 
 public class FDEBLayoutData implements EdgeLayoutData {
@@ -22,8 +24,10 @@ public class FDEBLayoutData implements EdgeLayoutData {
     public double length;
     public static final double eps = 1e-7;
     public FDEBCompatibilityRecord[] similarEdges;
-    public double intensity;
-    public Color color;
+    public double intensity;//for edge
+    public double[] intensities; //for each subdivision point
+    public Color color; //for edge
+    public Color[] colors; //for each subdivision point
 
     public FDEBLayoutData(double startPointX, double startPointY, double endPointX, double endPointY) {
         length = Point.Double.distance(startPointX, startPointY, endPointX, endPointY);
@@ -45,7 +49,7 @@ public class FDEBLayoutData implements EdgeLayoutData {
                 (int) (a.getRed() * (1.0 - ratio) + b.getRed() * ratio),
                 (int) (a.getGreen() * (1.0 - ratio) + b.getGreen() * ratio),
                 (int) (a.getBlue() * (1.0 - ratio) + b.getBlue() * ratio),
-                 (int) (255 * Lookup.getDefault().lookup(PreviewController.class).getModel().getProperties().getDoubleValue("subdividededge.alpha")));
+                (int) (255 * Lookup.getDefault().lookup(PreviewController.class).getModel().getProperties().getDoubleValue("subdividededge.alpha")));
     }
 
     private Color pickGradient(double f) {
@@ -60,9 +64,52 @@ public class FDEBLayoutData implements EdgeLayoutData {
         }
     }
 
+    private Color pickGradientManually(float f) {
+        return new Color(
+                (int) (Color.WHITE.getRed() * (1f - f) + Color.BLUE.getRed() * f),
+                (int) (Color.WHITE.getGreen() * (1f - f) + Color.BLUE.getGreen() * f),
+                (int) (Color.WHITE.getBlue() * (1f - f) + Color.BLUE.getBlue() * f));
+    }
+
+    private Color pickGradientFromLookup(double f) {
+        /*
+         * That is likely woudn't work with toolkit, since gradientslider is set
+         * in EdgeLayoutWindowTopComponent.
+         */
+        GradientSlider gradientSlider = Lookup.getDefault().lookup(PreviewController.class).getModel().getProperties().getValue(PreviewProperty.EDGE_LAYOUT_GRADIENT_SLIDER_LOCATION);
+        assert (gradientSlider != null);
+        return (Color) gradientSlider.getValue((float) f);
+    }
+
     public void updateColor(ArrayList<Double> find) {
-        double f = (double) Math.abs(Collections.binarySearch(find, intensity + 1)) / find.size();
-        color = pickGradient(f);
+        double f;
+        if (Lookup.getDefault().lookup(PreviewController.class).getModel().getProperties().getBooleanValue(PreviewProperty.EDGE_LAYOUT_USE_PERCENTAGE_INSTEAD_OF_LINEAR_SCALE)) {
+            f = (double) Math.abs(Collections.binarySearch(find, intensity + 1)) / find.size();
+        } else {
+            f = intensity / find.get(find.size() - 1);
+        }
+        if (f > 1) {
+            f = 1;
+        }
+        color = pickGradientFromLookup(f);
+    }
+
+    public void updateColors(ArrayList<Double> find) {
+        if (colors == null || colors.length != subdivisionPoints.length) {
+            colors = new Color[subdivisionPoints.length];
+        }
+        for (int i = 0; i < colors.length; i++) {
+            double f;
+            if (Lookup.getDefault().lookup(PreviewController.class).getModel().getProperties().getBooleanValue(PreviewProperty.EDGE_LAYOUT_USE_PERCENTAGE_INSTEAD_OF_LINEAR_SCALE)) {
+                f = (double) Math.abs(Collections.binarySearch(find, intensities[i])) / find.size();
+            } else {
+                f = (intensities[i]) / find.get(find.size() - 1);
+            }
+            if (f > 1) {
+                f = 1;
+            }
+            colors[i] = pickGradientFromLookup(f);
+        }
     }
 
     @Override
@@ -78,5 +125,15 @@ public class FDEBLayoutData implements EdgeLayoutData {
     @Override
     public Color getEdgeColor() {
         return color;
+    }
+
+    @Override
+    public Color[] getSubdivisionEdgeColor() {
+        return colors;
+    }
+
+    @Override
+    public double[] getSubdivisionEdgeSortOrder() {
+        return intensities;
     }
 }

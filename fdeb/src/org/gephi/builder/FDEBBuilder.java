@@ -10,6 +10,7 @@ import org.gephi.bundler.FDEBBundler;
 import org.gephi.edgelayout.spi.EdgeLayout;
 import org.gephi.edgelayout.spi.EdgeLayoutBuilder;
 import org.gephi.edgelayout.spi.EdgeLayoutUI;
+import org.gephi.ui.FDEBAbstractUI;
 import org.openide.util.lookup.ServiceProvider;
 
 /**
@@ -17,11 +18,12 @@ import org.openide.util.lookup.ServiceProvider;
  * @author megaterik
  */
 @ServiceProvider(service = EdgeLayoutBuilder.class)
-public class FDEBBuilder implements EdgeLayoutBuilder{
-    
+public class FDEBBuilder implements EdgeLayoutBuilder {
+
     private FDEBUI ui = new FDEBUI();
 
     private static class FDEBUI implements EdgeLayoutUI {
+        private FDEBAbstractUI gui = new FDEBAbstractUI();
 
         @Override
         public String getDescription() {
@@ -48,6 +50,7 @@ public class FDEBBuilder implements EdgeLayoutBuilder{
             return 1;
         }
     }
+
     @Override
     public String getName() {
         return "1 Simple FDEB";
@@ -62,5 +65,4 @@ public class FDEBBuilder implements EdgeLayoutBuilder{
     public EdgeLayout buildLayout() {
         return new FDEBBundler(this);
     }
-    
 }

@@ -85,5 +85,5 @@ public interface EdgeLayout{
     /*
      * Called after each goAlgo() or initAlgo() call, so could be used, for example, to refresh after every fifth iteration
      */
-    public boolean shouldRefreshPreview();
+    public boolean shouldRefreshPreview(int refreshRate);
 }

@@ -96,5 +96,13 @@ public class DefaultPreset extends PreviewPreset {
         properties.put(PreviewProperty.SHOW_EDGES, Boolean.TRUE);
         properties.put(PreviewProperty.SHOW_EDGE_LABELS, Boolean.FALSE);
         properties.put(PreviewProperty.SHOW_NODE_LABELS, Boolean.FALSE);
+        
+        properties.put(PreviewProperty.EDGE_LAYOUT_USE_RENDERER, 0);
+        properties.put(PreviewProperty.EDGE_LAYOUT_EDGE_THINKNESS, 0.5);
+        properties.put(PreviewProperty.EDGE_LAYOUT_EDGE_TRANSPARENCY, 0.1);
+        properties.put(PreviewProperty.EDGE_LAYOUT_REFRESH_RATE, 1);
+        properties.put(PreviewProperty.EDGE_LAYOUT_SIMPLE_RENDERER_COLOR, new Color(0f, 0f, 0.5f));
+        properties.put(PreviewProperty.EDGE_LAYOUT_USE_PERCENTAGE_INSTEAD_OF_LINEAR_SCALE, true);
+        properties.put(PreviewProperty.EDGE_LAYOUT_PRECALCULATE_POINTS, false);
     }
 }

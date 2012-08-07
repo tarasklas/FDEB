@@ -46,6 +46,8 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import org.gephi.edgelayout.spi.EdgeLayout;
 import org.gephi.graph.api.GraphController;
+import org.gephi.preview.api.PreviewController;
+import org.gephi.preview.api.PreviewProperty;
 import org.gephi.project.api.ProjectController;
 import org.gephi.project.api.Workspace;
 import org.gephi.project.api.WorkspaceListener;
@@ -191,10 +193,11 @@ public class EdgeLayoutControllerImpl implements EdgeLayoutController {
         }
 
         public void run() {
+            int refreshRate = Lookup.getDefault().lookup(PreviewController.class).getModel().getProperties().getIntValue(PreviewProperty.EDGE_LAYOUT_REFRESH_RATE);
             Progress.setDisplayName(progressTicket, layout.getBuilder().getName());
             Progress.start(progressTicket);
             layout.initAlgo();
-            if (layout.shouldRefreshPreview()) {
+            if (layout.shouldRefreshPreview(refreshRate)) {
                 refreshPreview();
             }
 
@@ -205,7 +208,7 @@ public class EdgeLayoutControllerImpl implements EdgeLayoutController {
                 if (iterations != null && iterations.longValue() == i) {
                     break;
                 }
-                if (layout.shouldRefreshPreview()) {
+                if (layout.shouldRefreshPreview(refreshRate)) {
                     refreshPreview();
                 }
             }

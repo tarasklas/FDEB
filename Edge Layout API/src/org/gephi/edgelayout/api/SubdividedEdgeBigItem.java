@@ -11,7 +11,10 @@ import org.gephi.edgelayout.spi.EdgeLayoutData;
 import org.gephi.graph.api.Edge;
 import org.gephi.graph.api.Graph;
 import org.gephi.preview.api.Item;
+import org.gephi.preview.api.PreviewController;
+import org.gephi.preview.api.PreviewProperty;
 import org.gephi.preview.plugin.items.AbstractItem;
+import org.openide.util.Lookup;
 
 /**
  *
@@ -24,9 +27,28 @@ public class SubdividedEdgeBigItem extends AbstractItem implements Item {
     SubdividedEdgeBigItem(Object source, String type) {
         super(source, type);
         edges = new ArrayList<SortedEdgeWrapper>();
-        for (Edge edge : ((Graph) source).getEdges()) {
-            if (edge.getEdgeData().getLayoutData() instanceof EdgeLayoutData) {
-                edges.add(new SortedEdgeWrapper(edge, ((EdgeLayoutData) edge.getEdgeData().getLayoutData()).getEdgeSortOrder()));
+        if (Lookup.getDefault().lookup(PreviewController.class).getModel().getProperties().getIntValue(PreviewProperty.EDGE_LAYOUT_USE_RENDERER) == 1) {
+            for (Edge edge : ((Graph) source).getEdges()) {
+                if (edge.getEdgeData().getLayoutData() instanceof EdgeLayoutData) {
+                    edges.add(new SortedEdgeWrapper(edge, ((EdgeLayoutData) edge.getEdgeData().getLayoutData()).getEdgeSortOrder()));
+                }
+            }
+        } else {
+            for (Edge edge : ((Graph) source).getEdges()) {
+                if (edge.getEdgeData().getLayoutData() instanceof EdgeLayoutData) {
+                    EdgeLayoutData data = edge.getEdgeData().getLayoutData();
+                    double[] sort = data.getSubdivisionEdgeSortOrder();
+                    if (sort != null) {
+                        for (int i = 0; i < sort.length; i++) {
+                            try{
+                            edges.add(new SortedEdgeWrapper(edge, sort[i], i));
+                            } catch (NullPointerException ex)
+                            {
+                                ex.printStackTrace();;
+                            }
+                        }
+                    }
+                }
             }
         }
         Collections.sort(edges);
@@ -37,10 +59,17 @@ class SortedEdgeWrapper implements Comparable<SortedEdgeWrapper> {
 
     Edge edge;
     double sort;
+    int id;
 
     public SortedEdgeWrapper(Edge edge, double sort) {
         this.edge = edge;
         this.sort = sort;
+    }
+
+    public SortedEdgeWrapper(Edge edge, double sort, int id) {
+        this.edge = edge;
+        this.sort = sort;
+        this.id = id;
     }
 
     @Override
