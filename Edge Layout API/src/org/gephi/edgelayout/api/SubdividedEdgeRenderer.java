@@ -338,21 +338,21 @@ public class SubdividedEdgeRenderer implements Renderer {
                 PreviewProperty.RendererModes.class,
                 "Renderer mode",
                 "standart one-color renderer;gradient renderer; slow gradient renderer that requires precalculation",
-                PreviewProperty.CATEGORY_EDGE_LAYOUT));
+                PreviewProperty.CATEGORY_EDGE_LAYOUT).setValue(PreviewProperty.RendererModes.SimpleRenderer));
 
         properties.add(PreviewProperty.createProperty(this,
                 PreviewProperty.EDGE_LAYOUT_REFRESH_RATE,
                 Integer.class,
                 "Refresh rate",
                 "Refresh every n-th iteration of edge layout",
-                PreviewProperty.CATEGORY_EDGE_LAYOUT));
+                PreviewProperty.CATEGORY_EDGE_LAYOUT).setValue(1));
 
         properties.add(PreviewProperty.createProperty(this,
                 PreviewProperty.EDGE_LAYOUT_EDGE_THICKNESS,
                 Double.class,
                 "Edge thickness",
                 "Thickness of edge",
-                PreviewProperty.CATEGORY_EDGE_LAYOUT));
+                PreviewProperty.CATEGORY_EDGE_LAYOUT).setValue(0.5));
 
         /*
          * I think it's more comfortably to control it in that way, rather than
@@ -363,14 +363,14 @@ public class SubdividedEdgeRenderer implements Renderer {
                 Double.class,
                 "Edge transparency",
                 "Transparency for edge",
-                PreviewProperty.CATEGORY_EDGE_LAYOUT));
+                PreviewProperty.CATEGORY_EDGE_LAYOUT).setValue(0.1));
         
         properties.add(PreviewProperty.createProperty(this,
                 PreviewProperty.EDGE_LAYOUT_EDGE_TRANSPARENCY_FORCE,
                 Boolean.class,
                 "Force edge transparency",
                 "Forces user edge transparency for non simple rendering modes",
-                PreviewProperty.CATEGORY_EDGE_LAYOUT));
+                PreviewProperty.CATEGORY_EDGE_LAYOUT).setValue(false));
 
         PropertyEditorManager.registerEditor(ColorWrapper.class, DependantColorPropertyEditor.class);
         properties.add(PreviewProperty.createProperty(this,
@@ -378,21 +378,21 @@ public class SubdividedEdgeRenderer implements Renderer {
                 ColorWrapper.class,
                 "Simple Renderer Color",
                 "Renderer color for 0th rendererer mode",
-                PreviewProperty.CATEGORY_EDGE_LAYOUT));
+                PreviewProperty.CATEGORY_EDGE_LAYOUT).setValue(new Color(0f, 0f, 0.5f)));
 
         properties.add(PreviewProperty.createProperty(this,
                 PreviewProperty.EDGE_LAYOUT_USE_PERCENTAGE_INSTEAD_OF_LINEAR_SCALE,
                 Boolean.class,
                 "Use relative value",
                 "Use relative value rather then absolute, i.e. edge gets colors in the middle of slider if it is a median",
-                PreviewProperty.CATEGORY_EDGE_LAYOUT));
+                PreviewProperty.CATEGORY_EDGE_LAYOUT).setValue(true));
 
         properties.add(PreviewProperty.createProperty(this,
                 PreviewProperty.EDGE_LAYOUT_PRECALCULATE_POINTS,
                 Boolean.class,
                 "Precalculate points",
                 "Slowly precalculate points for 2nd renderer, needs to be re-runned",
-                PreviewProperty.CATEGORY_EDGE_LAYOUT));
+                PreviewProperty.CATEGORY_EDGE_LAYOUT).setValue(false));
 
         return properties.toArray(new PreviewProperty[0]);
     }
