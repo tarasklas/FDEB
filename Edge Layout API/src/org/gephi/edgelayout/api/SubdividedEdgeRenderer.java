@@ -293,7 +293,7 @@ public class SubdividedEdgeRenderer implements Renderer {
             Element edgeElem = svgTarget.createElement("path");
             edgeElem.setAttribute("class", edge.getSource().getNodeData().getId() + " " + edge.getTarget().getNodeData().getId());
             edgeElem.setAttribute("d", String.format(Locale.ENGLISH, "M %f,%f L %f,%f",
-                    points[edgeWrapper.id].x, points[edgeWrapper.id].y, points[edgeWrapper.id + 1].x, points[edgeWrapper.id + 1].y));
+                    points[edgeWrapper.id].x, -points[edgeWrapper.id].y, points[edgeWrapper.id + 1].x, -points[edgeWrapper.id + 1].y));
             edgeElem.setAttribute("stroke", svgTarget.toHexString(color));
             edgeElem.setAttribute("stroke-width", Float.toString(thickness * svgTarget.getScaleRatio()));
             edgeElem.setAttribute("stroke-opacity", ((forceAlpha ? intAlpha : color.getAlpha()) / 255f) + "");
