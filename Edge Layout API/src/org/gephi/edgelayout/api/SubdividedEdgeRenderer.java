@@ -30,6 +30,8 @@ public class SubdividedEdgeRenderer implements Renderer {
 
     private float thickness;
     private float alpha;
+    private float intAlpha;
+    private boolean forceAlpha;
     private Color originalColor;
     private boolean useSimpleRendererBecauseOtherAreEmpty;
 
@@ -41,7 +43,9 @@ public class SubdividedEdgeRenderer implements Renderer {
     @Override
     public void preProcess(PreviewModel previewModel) {
         alpha = (float) previewModel.getProperties().getDoubleValue(PreviewProperty.EDGE_LAYOUT_EDGE_TRANSPARENCY);
-        thickness = (float) previewModel.getProperties().getDoubleValue(PreviewProperty.EDGE_LAYOUT_EDGE_THINKNESS);
+        intAlpha = (int) (255 * alpha);
+        forceAlpha = (boolean) previewModel.getProperties().getBooleanValue(PreviewProperty.EDGE_LAYOUT_EDGE_TRANSPARENCY_FORCE);
+        thickness = (float) previewModel.getProperties().getDoubleValue(PreviewProperty.EDGE_LAYOUT_EDGE_THICKNESS);
         originalColor = previewModel.getProperties().getColorValue(PreviewProperty.EDGE_LAYOUT_SIMPLE_RENDERER_COLOR);
         useSimpleRendererBecauseOtherAreEmpty = false;
         if (previewModel.getItems("FDEB gradient curve") == null || previewModel.getItems("FDEB gradient curve").length == 0
@@ -178,15 +182,17 @@ public class SubdividedEdgeRenderer implements Renderer {
             }
             cb.setRGBColorStroke(color.getRed(), color.getGreen(), color.getBlue());
             cb.setLineWidth(thickness);
-            if (color.getAlpha() < 255) {
+            
+            float usedAlpha = (forceAlpha ? intAlpha : color.getAlpha());
+            if (usedAlpha < 255) {
                 cb.saveState();
-                float alpha = color.getAlpha() / 255f;
+                float alpha = usedAlpha / 255f;
                 PdfGState gState = new PdfGState();
                 gState.setStrokeOpacity(alpha);
                 cb.setGState(gState);
             }
             cb.stroke();
-            if (color.getAlpha() < 255) {
+            if (usedAlpha < 255) {
                 cb.restoreState();
             }
         }
@@ -198,12 +204,12 @@ public class SubdividedEdgeRenderer implements Renderer {
             EdgeLayoutData data = (EdgeLayoutData) edge.getEdgeData().getLayoutData();
             Point2D.Double[] points = data.getSubdivisonPoints();
 
-            Color color = new Color(data.getEdgeColor().getRed(), data.getEdgeColor().getGreen(), data.getEdgeColor().getBlue(), (int) (255 * alpha));
+            Color color = new Color(data.getEdgeColor().getRed(), data.getEdgeColor().getGreen(), data.getEdgeColor().getBlue());
             SVGTarget svgTarget = (SVGTarget) target;
             Element edgeElem = svgTarget.createElement("polyline");
             edgeElem.setAttribute("stroke", svgTarget.toHexString(color));
             edgeElem.setAttribute("stroke-width", Float.toString(thickness * svgTarget.getScaleRatio()));
-            edgeElem.setAttribute("stroke-opacity", (color.getAlpha() / 255f) + "");
+            edgeElem.setAttribute("stroke-opacity", ((forceAlpha ? intAlpha : color.getAlpha()) / 255f) + "");
             edgeElem.setAttribute("fill", "none");
             edgeElem.setAttribute("class", edge.toString());
             StringBuilder builder = new StringBuilder();
@@ -229,7 +235,7 @@ public class SubdividedEdgeRenderer implements Renderer {
             graphics.noFill();
             graphics.strokeWeight(thickness);
             graphics.strokeCap(PGraphics.ROUND);
-            graphics.stroke(data.getEdgeColor().getRed(), data.getEdgeColor().getGreen(), data.getEdgeColor().getBlue(), data.getEdgeColor().getAlpha());
+            graphics.stroke(data.getEdgeColor().getRed(), data.getEdgeColor().getGreen(), data.getEdgeColor().getBlue(), forceAlpha ? intAlpha : data.getEdgeColor().getAlpha());
             graphics.beginShape();
             for (int i = 0; i < points.length; i++) {
                 float x1 = (float) points[i].x;
@@ -257,15 +263,17 @@ public class SubdividedEdgeRenderer implements Renderer {
             cb.lineTo((float) points[i + 1].x, (float) points[i + 1].y);
             cb.setRGBColorStroke(color.getRed(), color.getGreen(), color.getBlue());
             cb.setLineWidth(thickness);
-            if (color.getAlpha() < 255) {
+            
+            float usedAlpha = (forceAlpha ? intAlpha : color.getAlpha());
+            if (usedAlpha < 255) {
                 cb.saveState();
-                float alpha = color.getAlpha() / 255f;
+                float alpha = usedAlpha / 255f;
                 PdfGState gState = new PdfGState();
                 gState.setStrokeOpacity(alpha);
                 cb.setGState(gState);
             }
             cb.stroke();
-            if (color.getAlpha() < 255) {
+            if (usedAlpha < 255) {
                 cb.restoreState();
             }
         }
@@ -288,7 +296,7 @@ public class SubdividedEdgeRenderer implements Renderer {
                     points[edgeWrapper.id].x, points[edgeWrapper.id].y, points[edgeWrapper.id + 1].x, points[edgeWrapper.id + 1].y));
             edgeElem.setAttribute("stroke", svgTarget.toHexString(color));
             edgeElem.setAttribute("stroke-width", Float.toString(thickness * svgTarget.getScaleRatio()));
-            edgeElem.setAttribute("stroke-opacity", (color.getAlpha() / 255f) + "");
+            edgeElem.setAttribute("stroke-opacity", ((forceAlpha ? intAlpha : color.getAlpha()) / 255f) + "");
             edgeElem.setAttribute("fill", "none");
             svgTarget.getTopElement(SVGTarget.TOP_EDGES).appendChild(edgeElem);
         }
@@ -312,7 +320,7 @@ public class SubdividedEdgeRenderer implements Renderer {
             if (color == null) {
                 continue;
             }
-            graphics.stroke(color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha());
+            graphics.stroke(color.getRed(), color.getGreen(), color.getBlue(), (forceAlpha ? intAlpha : color.getAlpha()));
             graphics.line((float) points[edgeWrapper.id].x, -(float) points[edgeWrapper.id].y, (float) points[edgeWrapper.id + 1].x, -(float) points[edgeWrapper.id + 1].y);
         }
     }
@@ -340,10 +348,10 @@ public class SubdividedEdgeRenderer implements Renderer {
                 PreviewProperty.CATEGORY_EDGE_LAYOUT));
 
         properties.add(PreviewProperty.createProperty(this,
-                PreviewProperty.EDGE_LAYOUT_EDGE_THINKNESS,
+                PreviewProperty.EDGE_LAYOUT_EDGE_THICKNESS,
                 Double.class,
-                "Edge thinkness",
-                "Thinkness of edge",
+                "Edge thickness",
+                "Thickness of edge",
                 PreviewProperty.CATEGORY_EDGE_LAYOUT));
 
         /*
@@ -355,6 +363,13 @@ public class SubdividedEdgeRenderer implements Renderer {
                 Double.class,
                 "Edge transparency",
                 "Transparency for edge",
+                PreviewProperty.CATEGORY_EDGE_LAYOUT));
+        
+        properties.add(PreviewProperty.createProperty(this,
+                PreviewProperty.EDGE_LAYOUT_EDGE_TRANSPARENCY_FORCE,
+                Boolean.class,
+                "Force edge transparency",
+                "Forces user edge transparency for non simple rendering modes",
                 PreviewProperty.CATEGORY_EDGE_LAYOUT));
 
         PropertyEditorManager.registerEditor(ColorWrapper.class, DependantColorPropertyEditor.class);

@@ -6,12 +6,9 @@ package org.gephi.fdeb;
 
 import java.awt.Color;
 import java.awt.Point;
-import java.awt.geom.Point2D;
-import java.awt.geom.Point2D.Float;
 import java.util.ArrayList;
 import java.util.Collections;
 import org.gephi.edgelayout.spi.EdgeLayoutData;
-import org.gephi.graph.spi.LayoutData;
 import org.gephi.preview.api.PreviewController;
 import org.gephi.preview.api.PreviewProperty;
 import org.gephi.ui.components.gradientslider.GradientSlider;

@@ -4,20 +4,14 @@
  */
 package org.gephi.bundler;
 
-import java.awt.Color;
 import java.awt.geom.Point2D;
 import java.util.*;
-import javax.swing.JPanel;
-import org.gephi.edgelayout.api.EdgeLayoutController;
 import org.gephi.edgelayout.spi.*;
 import org.gephi.fdeb.FDEBLayoutData;
 import org.gephi.fdeb.utils.FDEBCompatibilityComputator;
-import org.gephi.fdeb.utils.FDEBUtilities;
 import org.gephi.graph.api.Edge;
-import org.gephi.graph.api.Graph;
 import org.gephi.preview.api.PreviewController;
 import org.gephi.preview.api.PreviewProperty;
-import org.gephi.ui.components.gradientslider.GradientSlider;
 import org.gephi.utils.longtask.spi.LongTask;
 import org.gephi.utils.progress.ProgressTicket;
 import org.openide.util.Exceptions;
@@ -354,6 +348,10 @@ public abstract class FDEBAbstractBundler extends AbstractEdgeLayout implements 
                 }
             }
             maxIntensity = Math.max(maxIntensity, data.intensity + 1);
+
+        }
+        if (Lookup.getDefault().lookup(PreviewController.class).getModel().getProperties().getBooleanValue(PreviewProperty.EDGE_LAYOUT_PRECALCULATE_POINTS)) {
+            Collections.sort(intensities);
         }
         Collections.sort(intensity);
         double threshold = intensity.get((int) Math.min(intensity.size() - 1, intensity.size()

@@ -1,16 +1,13 @@
 package org.gephi.bundler;
 
-import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.Arrays;
 import org.gephi.edgelayout.spi.EdgeLayout;
 import org.gephi.edgelayout.spi.EdgeLayoutBuilder;
 import org.gephi.fdeb.FDEBCompatibilityRecord;
 import org.gephi.fdeb.FDEBLayoutData;
-import org.gephi.fdeb.utils.FDEBCompatibilityComputator;
 import org.gephi.fdeb.utils.FDEBUtilities;
 import org.gephi.graph.api.Edge;
-import org.gephi.graph.api.Graph;
 import org.gephi.utils.longtask.spi.LongTask;
 
 /**

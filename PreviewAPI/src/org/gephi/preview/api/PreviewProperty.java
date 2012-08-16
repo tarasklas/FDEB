@@ -266,8 +266,9 @@ public class PreviewProperty {
     public static final String MOVING = "canvas.moving";
     public static final String EDGE_LAYOUT_USE_RENDERER = "edge.layout.renderer";
     public static final String EDGE_LAYOUT_REFRESH_RATE = "edge.layout.refreshrate";
-    public static final String EDGE_LAYOUT_EDGE_THINKNESS = "edge.layout.thinkness";
+    public static final String EDGE_LAYOUT_EDGE_THICKNESS = "edge.layout.thickness";
     public static final String EDGE_LAYOUT_EDGE_TRANSPARENCY = "edge.layout.transparency";
+    public static final String EDGE_LAYOUT_EDGE_TRANSPARENCY_FORCE = "edge.layout.transparency.force";
     public static final String EDGE_LAYOUT_SIMPLE_RENDERER_COLOR = "edge.layout.simplerenderer.color";
     public static final String EDGE_LAYOUT_GRADIENT = "edge.layout.renderer.gradient";
     public static final String EDGE_LAYOUT_GRADIENT_SLIDER_LOCATION = "edge.layout.renderer.gradient.slider";
