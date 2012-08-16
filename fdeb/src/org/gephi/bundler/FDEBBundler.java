@@ -1,13 +1,16 @@
 package org.gephi.bundler;
 
+import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.Arrays;
 import org.gephi.edgelayout.spi.EdgeLayout;
 import org.gephi.edgelayout.spi.EdgeLayoutBuilder;
 import org.gephi.fdeb.FDEBCompatibilityRecord;
 import org.gephi.fdeb.FDEBLayoutData;
+import org.gephi.fdeb.utils.FDEBCompatibilityComputator;
 import org.gephi.fdeb.utils.FDEBUtilities;
 import org.gephi.graph.api.Edge;
+import org.gephi.graph.api.Graph;
 import org.gephi.utils.longtask.spi.LongTask;
 
 /**
@@ -19,12 +22,15 @@ public class FDEBBundler extends FDEBAbstractBundler implements EdgeLayout, Long
     public FDEBBundler(EdgeLayoutBuilder layoutBuilder) {
         super(layoutBuilder);
     }
-
+    long startTime;
+    long endTime;
     /*
      * Get parameters and init structures
      */
+
     @Override
     public void initAlgo() {
+        startTime = System.currentTimeMillis();
         for (Edge edge : graphModel.getGraph().getEdges()) {
             edge.getEdgeData().setLayoutData(
                     new FDEBLayoutData(edge.getSource().getNodeData().x(), edge.getSource().getNodeData().y(),
@@ -63,7 +69,12 @@ public class FDEBBundler extends FDEBAbstractBundler implements EdgeLayout, Long
                 if (cancel) {
                     return;
                 }
-                FDEBUtilities.updateNewSubdivisionPoints(edge, sprintConstant, stepSize, useInverseQuadraticModel);
+                if (!useLowMemoryMode) {
+                    FDEBUtilities.updateNewSubdivisionPoints(edge, sprintConstant, stepSize, useInverseQuadraticModel);
+                } else {
+                    FDEBUtilities.updateNewSubdivisionPointsInLowMemoryMode(edge, sprintConstant, stepSize, useInverseQuadraticModel,
+                            graphModel.getGraph(), computator, compatibilityThreshold);
+                }
             }
 
             for (Edge edge : graphModel.getGraph().getEdges()) {
@@ -78,6 +89,8 @@ public class FDEBBundler extends FDEBAbstractBundler implements EdgeLayout, Long
 
         if (cycle == numCycles) {
             setConverged(true);
+            endTime = System.currentTimeMillis();
+            System.err.println(endTime - startTime + " execution time");
         } else {
             prepareForTheNextStep();
         }
@@ -86,7 +99,7 @@ public class FDEBBundler extends FDEBAbstractBundler implements EdgeLayout, Long
     void prepareForTheNextStep() {
         cycle++;
         stepSize *= (1.0 - stepDampingFactor);
-        iterationsPerCycle = (iterationsPerCycle * 2) / 3;
+        iterationsPerCycle = (iterationsPerCycle * iterationIncreaseRate);
         divideEdges();
     }
 
@@ -98,6 +111,9 @@ public class FDEBBundler extends FDEBAbstractBundler implements EdgeLayout, Long
     }
 
     private void createCompatibilityLists() {
+        if (useLowMemoryMode) {
+            return;
+        }
         ArrayList<FDEBCompatibilityRecord> similar = new ArrayList<FDEBCompatibilityRecord>();
         for (Edge edge : graphModel.getGraph().getEdges()) {
             if (cancel) {

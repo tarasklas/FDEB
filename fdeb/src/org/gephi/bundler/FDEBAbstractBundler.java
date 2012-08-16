@@ -6,16 +6,15 @@ package org.gephi.bundler;
 
 import java.awt.Color;
 import java.awt.geom.Point2D;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import javax.swing.JPanel;
 import org.gephi.edgelayout.api.EdgeLayoutController;
 import org.gephi.edgelayout.spi.*;
 import org.gephi.fdeb.FDEBLayoutData;
 import org.gephi.fdeb.utils.FDEBCompatibilityComputator;
+import org.gephi.fdeb.utils.FDEBUtilities;
 import org.gephi.graph.api.Edge;
+import org.gephi.graph.api.Graph;
 import org.gephi.preview.api.PreviewController;
 import org.gephi.preview.api.PreviewProperty;
 import org.gephi.ui.components.gradientslider.GradientSlider;
@@ -35,7 +34,7 @@ public abstract class FDEBAbstractBundler extends AbstractEdgeLayout implements 
     public static final String SPRINT_CONSTANT_OPTIONS = "Sprint constant options";
     //settable variables
     protected double stepSize, stepSizeAtTheBeginning; //S
-    protected int iterationsPerCycle, iterationsPerCycleAtTheBeginning;//I
+    protected double iterationsPerCycle, iterationsPerCycleAtTheBeginning;//I
     protected double sprintConstant;//K
     protected double compatibilityThreshold;
     protected int numCycles;
@@ -50,6 +49,8 @@ public abstract class FDEBAbstractBundler extends AbstractEdgeLayout implements 
     protected FDEBCompatibilityComputator computator;
     protected boolean cancel;
     protected boolean useInverseQuadraticModel;
+    protected boolean useLowMemoryMode;
+    protected double iterationIncreaseRate;
 
     public FDEBAbstractBundler(EdgeLayoutBuilder layoutBuilder) {
         super(layoutBuilder);
@@ -63,11 +64,12 @@ public abstract class FDEBAbstractBundler extends AbstractEdgeLayout implements 
         iterationsPerCycleAtTheBeginning = 50;
         //sprintConstant = 0.5;
         stepDampingFactor = 0.5;
-        compatibilityThreshold = 0;
+        compatibilityThreshold = 0.1;
         subdivisionPointIncreaseRate = 2;
         useInverseQuadraticModel = false;
+        useLowMemoryMode = false;
         computator = new FDEBCompatibilityComputator();
-
+        iterationIncreaseRate = 0.667;
     }
 
     @Override
@@ -125,11 +127,11 @@ public abstract class FDEBAbstractBundler extends AbstractEdgeLayout implements 
         computator.setVisibilityCompatibility(visibilityCompatibility);
     }
 
-    public Integer getIterationsPerCycle() {
+    public Double getIterationsPerCycle() {
         return iterationsPerCycleAtTheBeginning;
     }
 
-    public void setIterationsPerCycle(Integer iterationsPerCycle) {
+    public void setIterationsPerCycle(Double iterationsPerCycle) {
         this.iterationsPerCycle = iterationsPerCycle;
         this.iterationsPerCycleAtTheBeginning = iterationsPerCycle;
     }
@@ -215,6 +217,22 @@ public abstract class FDEBAbstractBundler extends AbstractEdgeLayout implements 
         return useInverseQuadraticModel;
     }
 
+    public Boolean isUseLowMemoryMode() {
+        return useLowMemoryMode;
+    }
+
+    public void setUseLowMemoryMode(Boolean useLowMemoryMode) {
+        this.useLowMemoryMode = useLowMemoryMode;
+    }
+
+    public Double getIterationIncreaseRate() {
+        return iterationIncreaseRate;
+    }
+
+    public void setIterationIncreaseRate(Double iterationIncreaseRate) {
+        this.iterationIncreaseRate = iterationIncreaseRate;
+    }
+
     @Override
     public EdgeLayoutProperty[] getProperties() {
         List<EdgeLayoutProperty> properties = new ArrayList<EdgeLayoutProperty>();
@@ -224,7 +242,7 @@ public abstract class FDEBAbstractBundler extends AbstractEdgeLayout implements 
                     GENERAL_OPTIONS, "",
                     "getNumCycles", "setNumCycles"));
 
-            properties.add(EdgeLayoutProperty.createProperty(this, Integer.class,
+            properties.add(EdgeLayoutProperty.createProperty(this, Double.class,
                     "Iterations per cycle",
                     GENERAL_OPTIONS, "Iterations in the first cycle",
                     "getIterationsPerCycle", "setIterationsPerCycle"));
@@ -275,13 +293,13 @@ public abstract class FDEBAbstractBundler extends AbstractEdgeLayout implements 
                     "isVisibilityApply", "setVisibilityApply"));
 
             properties.add(EdgeLayoutProperty.createProperty(this, Double.class,
-                    "Sprint constant",
-                    SPRINT_CONSTANT_OPTIONS, "Check \"Use user contant\" to change it",
+                    "Spring constant",
+                    SPRINT_CONSTANT_OPTIONS, "Check \"Use user constant\" to change it",
                     "getSprintConstant", "setSprintConstant"));
 
             properties.add(EdgeLayoutProperty.createProperty(this, Boolean.class,
-                    "Use user contant",
-                    SPRINT_CONSTANT_OPTIONS, "Use user value for sprint constant",
+                    "Use user constant",
+                    SPRINT_CONSTANT_OPTIONS, "Use user value for spring constant",
                     "isUseUserConstant", "setUseUserConstant"));
 
             properties.add(EdgeLayoutProperty.createProperty(this, Boolean.class,
@@ -293,6 +311,16 @@ public abstract class FDEBAbstractBundler extends AbstractEdgeLayout implements 
                     "Use inverse quadratic model",
                     GENERAL_OPTIONS, "",
                     "isUseInverseQuadraticModel", "setUseInverseQuadraticModel"));
+
+            properties.add(EdgeLayoutProperty.createProperty(this, Boolean.class,
+                    "Low memory mode",
+                    GENERAL_OPTIONS, "Do not store compatibility lists. Gives huge time increase, use only when gephi crashes without it.",
+                    "isUseLowMemoryMode", "setUseLowMemoryMode"));
+
+            properties.add(EdgeLayoutProperty.createProperty(this, Double.class,
+                    "Iteration increase rate",
+                    GENERAL_OPTIONS, "Recommened <= 1",
+                    "getIterationIncreaseRate", "setIterationIncreaseRate"));
 
         } catch (NoSuchMethodException ex) {
             Exceptions.printStackTrace(ex);
@@ -315,6 +343,9 @@ public abstract class FDEBAbstractBundler extends AbstractEdgeLayout implements 
         ArrayList<Double> intensity = new ArrayList<Double>();
         ArrayList intensities = new ArrayList();
         for (Edge edge : graphModel.getGraph().getEdges()) {
+            if (cancel) {
+                break;
+            }
             FDEBLayoutData data = edge.getEdgeData().getLayoutData();
             intensity.add(data.intensity + 1);
             if (Lookup.getDefault().lookup(PreviewController.class).getModel().getProperties().getBooleanValue(PreviewProperty.EDGE_LAYOUT_PRECALCULATE_POINTS)) {
@@ -332,6 +363,9 @@ public abstract class FDEBAbstractBundler extends AbstractEdgeLayout implements 
         System.err.println("boundaries: " + intensity.get(x / 5) + " " + intensity.get(x * 2 / 5) + " " + intensity.get(x * 3 / 5) + " " + intensity.get(x * 4 / 5));
         System.err.println("threshold " + threshold);
         for (Edge edge : graphModel.getGraph().getEdges()) {
+            if (cancel) {
+                break;
+            }
             FDEBLayoutData data = edge.getEdgeData().getLayoutData();
             data.updateColor(intensity);
             if (Lookup.getDefault().lookup(PreviewController.class).getModel().getProperties().getBooleanValue(PreviewProperty.EDGE_LAYOUT_PRECALCULATE_POINTS)) {
@@ -346,6 +380,9 @@ public abstract class FDEBAbstractBundler extends AbstractEdgeLayout implements 
         if (Lookup.getDefault().lookup(PreviewController.class).getModel().getProperties().getBooleanValue(PreviewProperty.EDGE_LAYOUT_PRECALCULATE_POINTS)) {
             System.err.println("end algo!1 " + System.currentTimeMillis());
             for (Edge edge1 : graphModel.getGraph().getEdges()) {
+                if (cancel) {
+                    break;
+                }
                 FDEBLayoutData data1 = edge1.getEdgeData().getLayoutData();
                 if (data1.intensities == null || data1.intensities.length != data1.getSubdivisonPoints().length) {
                     data1.intensities = new double[data1.getSubdivisonPoints().length];
@@ -353,32 +390,72 @@ public abstract class FDEBAbstractBundler extends AbstractEdgeLayout implements 
                     Arrays.fill(data1.intensities, 0.0);
                 }
             }
-            for (Edge edge1 : graphModel.getGraph().getEdges()) {
-                for (Edge edge2 : graphModel.getGraph().getEdges()) {
-                    if (edge1.getEdgeData().getLayoutData() != null && edge2.getEdgeData().getLayoutData() != null && edge1 != edge2) {
-                        FDEBLayoutData data1 = edge1.getEdgeData().getLayoutData();
-                        FDEBLayoutData data2 = edge2.getEdgeData().getLayoutData();
-                        Point2D.Double[] points1 = data1.getSubdivisonPoints();
-                        Point2D.Double[] points2 = data2.getSubdivisonPoints();
-                        for (int i = 0; i < points1.length; i++) {
-                            for (int j = 0; j < points2.length; j++) {
-                                double distance = Point2D.Double.distance(points1[i].x, points1[i].y, points2[j].x, points2[j].y);
-                                double radius1 = getRadius(points1, i);
-                                double radius2 = getRadius(points2, j);
-                                if (distance <= radius1 + radius2) {
-                                    data1.intensities[i]++;
-                                }
+            fastIntensityCalculation();
+            System.err.println("end algo!2 " + System.currentTimeMillis());
+        }
+        modifyAlgo();
+        System.err.println("I AM DONE " + System.currentTimeMillis());
+    }
+
+    private void slowIntensityCalculation() {
+        for (Edge edge1 : graphModel.getGraph().getEdges()) {
+            if (cancel) {
+                break;
+            }
+            for (Edge edge2 : graphModel.getGraph().getEdges()) {
+                if (cancel) {
+                    break;
+                }
+                if (edge1.getEdgeData().getLayoutData() != null && edge2.getEdgeData().getLayoutData() != null && edge1 != edge2) {
+                    FDEBLayoutData data1 = edge1.getEdgeData().getLayoutData();
+                    FDEBLayoutData data2 = edge2.getEdgeData().getLayoutData();
+                    Point2D.Double[] points1 = data1.getSubdivisonPoints();
+                    Point2D.Double[] points2 = data2.getSubdivisonPoints();
+                    for (int i = 0; i < points1.length; i++) {
+                        for (int j = 0; j < points2.length; j++) {
+                            double distance = Point2D.Double.distance(points1[i].x, points1[i].y, points2[j].x, points2[j].y);
+                            double radius1 = getRadius(points1, i);
+                            double radius2 = getRadius(points2, j);
+                            if (distance <= radius1 * 2) {
+                                data1.intensities[i]++;
                             }
                         }
                     }
                 }
             }
-            System.err.println("end algo!2 " + System.currentTimeMillis());
         }
-        modifyAlgo();
     }
 
-    private double getRadius(Point2D.Double[] points, int i) {
+    private void fastIntensityCalculation() {
+        ArrayList<Point2D.Double> points = new ArrayList<Point2D.Double>();
+        for (Edge edge : graphModel.getGraph().getEdges()) {
+            points.addAll(Arrays.asList(((EdgeLayoutData) edge.getEdgeData().getLayoutData()).getSubdivisonPoints()));
+        }
+        double minX = Integer.MAX_VALUE;
+        double minY = Integer.MAX_VALUE;
+        double maxX = Integer.MIN_VALUE;
+        double maxY = Integer.MIN_VALUE;
+        for (Point2D.Double point : points) {
+            minX = Math.min(minX, point.x);
+            maxX = Math.max(maxX, point.x);
+
+            minY = Math.min(minY, point.y);
+            maxY = Math.max(maxY, point.y);
+        }
+        QuadNode root = new QuadNode(points.toArray(new Point2D.Double[0]));
+        for (Edge edge1 : graphModel.getGraph().getEdges()) {
+            FDEBLayoutData data1 = edge1.getEdgeData().getLayoutData();
+            Point2D.Double[] points1 = data1.getSubdivisonPoints();
+            for (int i = 0; i < points1.length - 1; i++) {
+                double xm = (points1[i].x + points1[i + 1].x) / 2;
+                double ym = (points1[i].y + points1[i + 1].y) / 2;
+                double radius = Point2D.Double.distance(points1[i].x, points1[i].y, points1[i + 1].x, points1[i + 1].y);
+                data1.intensities[i] = root.getNumberOfPointsInRange(points1[i], 2 * getRadius(points1, i)) - 4;
+            }
+        }
+    }
+
+    protected double getRadius(Point2D.Double[] points, int i) {
         if (i == 0) {
             return Point2D.Double.distance(points[i].x, points[i].y, points[i + 1].x, points[i + 1].y);
         } else if (i == points.length - 1) {

@@ -23,11 +23,12 @@ import org.openide.util.Lookup;
 public class SubdividedEdgeBigItem extends AbstractItem implements Item {
 
     ArrayList<SortedEdgeWrapper> edges;
+    boolean ready = false;
 
     SubdividedEdgeBigItem(Object source, String type) {
         super(source, type);
         edges = new ArrayList<SortedEdgeWrapper>();
-        if (Lookup.getDefault().lookup(PreviewController.class).getModel().getProperties().getIntValue(PreviewProperty.EDGE_LAYOUT_USE_RENDERER) == 1) {
+        if (Lookup.getDefault().lookup(PreviewController.class).getModel().getProperties().getValue(PreviewProperty.EDGE_LAYOUT_USE_RENDERER) == PreviewProperty.RendererModes.GradientRenderer) {
             for (Edge edge : ((Graph) source).getEdges()) {
                 if (edge.getEdgeData().getLayoutData() instanceof EdgeLayoutData) {
                     edges.add(new SortedEdgeWrapper(edge, ((EdgeLayoutData) edge.getEdgeData().getLayoutData()).getEdgeSortOrder()));
@@ -40,10 +41,9 @@ public class SubdividedEdgeBigItem extends AbstractItem implements Item {
                     double[] sort = data.getSubdivisionEdgeSortOrder();
                     if (sort != null) {
                         for (int i = 0; i < sort.length; i++) {
-                            try{
-                            edges.add(new SortedEdgeWrapper(edge, sort[i], i));
-                            } catch (NullPointerException ex)
-                            {
+                            try {
+                                edges.add(new SortedEdgeWrapper(edge, sort[i], i));
+                            } catch (NullPointerException ex) {
                                 ex.printStackTrace();;
                             }
                         }
@@ -52,6 +52,31 @@ public class SubdividedEdgeBigItem extends AbstractItem implements Item {
             }
         }
         Collections.sort(edges);
+    }
+
+    public boolean isReady() {
+        if (edges == null || edges.size() == 0) {
+            return false;
+        }
+        if ((Lookup.getDefault().lookup(PreviewController.class).getModel().getProperties().getValue(PreviewProperty.EDGE_LAYOUT_USE_RENDERER)
+                == PreviewProperty.RendererModes.GradientRenderer)) {
+            for (SortedEdgeWrapper wrapper : edges) {
+                if (wrapper.edge.getEdgeData().getLayoutData() != null
+                        && ((EdgeLayoutData) wrapper.edge.getEdgeData().getLayoutData()).getEdgeColor() == null) {
+                    return false;
+                }
+            }
+        }
+        if ((Lookup.getDefault().lookup(PreviewController.class).getModel().getProperties().getValue(PreviewProperty.EDGE_LAYOUT_USE_RENDERER)
+                == PreviewProperty.RendererModes.GradientComplexRenderer)) {
+            for (SortedEdgeWrapper wrapper : edges) {
+                if (wrapper.edge.getEdgeData().getLayoutData() != null
+                        && ((EdgeLayoutData) wrapper.edge.getEdgeData().getLayoutData()).getSubdivisionEdgeColor() == null) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 }
 

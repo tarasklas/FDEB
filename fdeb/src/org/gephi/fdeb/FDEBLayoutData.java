@@ -38,7 +38,7 @@ public class FDEBLayoutData implements EdgeLayoutData {
         subdivisionPoints[0] = new Point.Double(startPointX, startPointY);
         subdivisionPoints[1] = new Point.Double((startPointX + endPointX) / 2, (startPointY + endPointY) / 2);
         subdivisionPoints[2] = new Point.Double(endPointX, endPointY);
-        color = Color.BLACK;
+        color = null;
     }
 
     private Color generateGradient(Color a, Color b, double ratio) {

@@ -68,8 +68,13 @@ public class FDEBBundlerMultithreading extends FDEBAbstractBundler implements Ed
             int cedges = graphModel.getGraph().getEdgeCount();
             Edge[] edges = graphModel.getGraph().getEdges().toArray();
             for (int i = 0; i < numberOfTasks; i++) {
-                calculationTasks[i] = executor.submit(new FDEBForceCalculationTask(edges, cedges * i / numberOfTasks,
-                        Math.min(cedges, cedges * (i + 1) / numberOfTasks), sprintConstant, stepSize, useInverseQuadraticModel), computator);
+                if (!useLowMemoryMode) {
+                    calculationTasks[i] = executor.submit(new FDEBForceCalculationTask(edges, cedges * i / numberOfTasks,
+                            Math.min(cedges, cedges * (i + 1) / numberOfTasks), sprintConstant, stepSize, useInverseQuadraticModel), computator);
+                } else {
+                    calculationTasks[i] = executor.submit(new FDEBForceCalculationTask(edges, cedges * i / numberOfTasks,
+                            Math.min(cedges, cedges * (i + 1) / numberOfTasks), sprintConstant, stepSize, useInverseQuadraticModel, computator, compatibilityThreshold, graphModel.getGraph()));
+                }
             }
 
             for (int i = 0; i < calculationTasks.length; i++) {
@@ -102,7 +107,7 @@ public class FDEBBundlerMultithreading extends FDEBAbstractBundler implements Ed
     void prepareForTheNextStep() {
         cycle++;
         stepSize *= (1.0 - stepDampingFactor);
-        iterationsPerCycle = (iterationsPerCycle * 2) / 3;
+        iterationsPerCycle = (iterationsPerCycle * iterationIncreaseRate);
         divideEdges();
     }
 
@@ -120,6 +125,9 @@ public class FDEBBundlerMultithreading extends FDEBAbstractBundler implements Ed
     }
 
     private void createCompatibilityLists() {
+        if (useLowMemoryMode) {
+            return;
+        }
         ArrayList<FDEBCompatibilityRecord> similar = new ArrayList<FDEBCompatibilityRecord>();
         Future[] tasks = new Future[numberOfTasks];
         int cedges = graphModel.getGraph().getEdgeCount();

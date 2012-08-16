@@ -31,6 +31,7 @@ public class SubdividedEdgeRenderer implements Renderer {
     private float thickness;
     private float alpha;
     private Color originalColor;
+    private boolean useSimpleRendererBecauseOtherAreEmpty;
 
     @Override
     public String getDisplayName() {
@@ -42,6 +43,11 @@ public class SubdividedEdgeRenderer implements Renderer {
         alpha = (float) previewModel.getProperties().getDoubleValue(PreviewProperty.EDGE_LAYOUT_EDGE_TRANSPARENCY);
         thickness = (float) previewModel.getProperties().getDoubleValue(PreviewProperty.EDGE_LAYOUT_EDGE_THINKNESS);
         originalColor = previewModel.getProperties().getColorValue(PreviewProperty.EDGE_LAYOUT_SIMPLE_RENDERER_COLOR);
+        useSimpleRendererBecauseOtherAreEmpty = false;
+        if (previewModel.getItems("FDEB gradient curve") == null || previewModel.getItems("FDEB gradient curve").length == 0
+                || !((SubdividedEdgeBigItem) previewModel.getItems("FDEB gradient curve")[0]).isReady()) {
+            useSimpleRendererBecauseOtherAreEmpty = true;
+        }
     }
 
     private void renderSimpleItem(SubdividedEdgeItem item, RenderTarget target, PreviewProperties properties) {
@@ -123,17 +129,21 @@ public class SubdividedEdgeRenderer implements Renderer {
 
     @Override
     public void render(Item item, RenderTarget target, PreviewProperties properties) {
-        if (item instanceof SubdividedEdgeItem) {
-            assert (properties.getIntValue(PreviewProperty.EDGE_LAYOUT_USE_RENDERER) == 0);
+        if (item instanceof SubdividedEdgeItem && (properties.getValue(PreviewProperty.EDGE_LAYOUT_USE_RENDERER).equals(PreviewProperty.RendererModes.SimpleRenderer) || useSimpleRendererBecauseOtherAreEmpty)) {
+            assert (properties.getValue(PreviewProperty.EDGE_LAYOUT_USE_RENDERER).equals(PreviewProperty.RendererModes.SimpleRenderer)
+                    || useSimpleRendererBecauseOtherAreEmpty);
             renderSimpleItem((SubdividedEdgeItem) item, target, properties);
-        } else if (item instanceof SubdividedEdgeBigItem && properties.getIntValue(PreviewProperty.EDGE_LAYOUT_USE_RENDERER) == 1) {
+        } else if (!useSimpleRendererBecauseOtherAreEmpty
+                && item instanceof SubdividedEdgeBigItem && properties.getValue(PreviewProperty.EDGE_LAYOUT_USE_RENDERER).equals(PreviewProperty.RendererModes.GradientRenderer)) {
             renderBigItem((SubdividedEdgeBigItem) item, target, properties);
-        } else if (item instanceof SubdividedEdgeBigItem && properties.getIntValue(PreviewProperty.EDGE_LAYOUT_USE_RENDERER) == 2) {
+        } else if (!useSimpleRendererBecauseOtherAreEmpty
+                && item instanceof SubdividedEdgeBigItem && properties.getValue(PreviewProperty.EDGE_LAYOUT_USE_RENDERER).equals(PreviewProperty.RendererModes.GradientComplexRenderer)) {
             renderBigAndComplexItem((SubdividedEdgeBigItem) item, target, properties);
         }
     }
 
     private void renderBigItem(SubdividedEdgeBigItem item, RenderTarget target, PreviewProperties properties) {
+        System.err.println("render big item! " + System.currentTimeMillis());
         if (target instanceof ProcessingTarget) {
             renderBigProcessingItem(item, target, properties);
         } else if (target instanceof PDFTarget) {
@@ -317,9 +327,9 @@ public class SubdividedEdgeRenderer implements Renderer {
          */
         properties.add(PreviewProperty.createProperty(this,
                 PreviewProperty.EDGE_LAYOUT_USE_RENDERER,
-                Integer.class,
-                "Use renderer #{0,1,2}",
-                "0 -- standart one-color renderer, 1 -- gradient renderer, 2 -- slow gradient renderer that requires precalculation",
+                PreviewProperty.RendererModes.class,
+                "Renderer mode",
+                "standart one-color renderer;gradient renderer; slow gradient renderer that requires precalculation",
                 PreviewProperty.CATEGORY_EDGE_LAYOUT));
 
         properties.add(PreviewProperty.createProperty(this,
@@ -374,8 +384,8 @@ public class SubdividedEdgeRenderer implements Renderer {
 
     @Override
     public boolean isRendererForitem(Item item, PreviewProperties properties) {
-        return (item instanceof SubdividedEdgeItem && properties.getIntValue(PreviewProperty.EDGE_LAYOUT_USE_RENDERER) == 0
-                || item instanceof SubdividedEdgeBigItem && properties.getIntValue(PreviewProperty.EDGE_LAYOUT_USE_RENDERER) > 0);
+        return (item instanceof SubdividedEdgeItem
+                || item instanceof SubdividedEdgeBigItem && !properties.getValue(PreviewProperty.EDGE_LAYOUT_USE_RENDERER).equals(PreviewProperty.RendererModes.SimpleRenderer));
     }
 
     @Override

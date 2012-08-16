@@ -97,7 +97,7 @@ public class DefaultPreset extends PreviewPreset {
         properties.put(PreviewProperty.SHOW_EDGE_LABELS, Boolean.FALSE);
         properties.put(PreviewProperty.SHOW_NODE_LABELS, Boolean.FALSE);
         
-        properties.put(PreviewProperty.EDGE_LAYOUT_USE_RENDERER, 0);
+        properties.put(PreviewProperty.EDGE_LAYOUT_USE_RENDERER, PreviewProperty.RendererModes.SimpleRenderer);
         properties.put(PreviewProperty.EDGE_LAYOUT_EDGE_THINKNESS, 0.5);
         properties.put(PreviewProperty.EDGE_LAYOUT_EDGE_TRANSPARENCY, 0.1);
         properties.put(PreviewProperty.EDGE_LAYOUT_REFRESH_RATE, 1);

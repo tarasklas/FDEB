@@ -174,6 +174,9 @@ public class EdgeLayoutControllerImpl implements EdgeLayoutController {
         private ProgressTicket progressTicket;
         private final Integer iterations;
         private final ArrayList<ChangeListener> listeners;
+        
+        public static final String REFRESH = "refresh";
+        public static final String END_ALGO = "end";
 
         public EdgeLayoutRun(EdgeLayout layout, ArrayList<ChangeListener> listeners) {
             this.layout = layout;
@@ -187,9 +190,9 @@ public class EdgeLayoutControllerImpl implements EdgeLayoutController {
             this.listeners = listeners;
         }
 
-        public void refreshPreview() {
+        public void refreshPreview(String event) {
             for (ChangeListener listener : listeners)
-                listener.stateChanged(new ChangeEvent(this));
+                listener.stateChanged(new ChangeEvent(event));
         }
 
         public void run() {
@@ -198,7 +201,7 @@ public class EdgeLayoutControllerImpl implements EdgeLayoutController {
             Progress.start(progressTicket);
             layout.initAlgo();
             if (layout.shouldRefreshPreview(refreshRate)) {
-                refreshPreview();
+                refreshPreview(REFRESH);
             }
 
             long i = 0;
@@ -209,21 +212,23 @@ public class EdgeLayoutControllerImpl implements EdgeLayoutController {
                     break;
                 }
                 if (layout.shouldRefreshPreview(refreshRate)) {
-                    refreshPreview();
+                    refreshPreview(REFRESH);
                 }
             }
             layout.endAlgo();
-            refreshPreview();
             if (i > 1) {
                 // Progress.finish(progressTicket, NbBundle.getMessage(EdgeLayoutControllerImpl.class, "LayoutRun.end", layout.getBuilder().getName(), i));
                 Progress.finish(progressTicket);
             } else {
                 Progress.finish(progressTicket);
             }
+            refreshPreview(END_ALGO);
         }
 
         public boolean cancel() {
             stopRun = true;
+            Progress.finish(progressTicket);
+            refreshPreview("Stop");
             return true;
         }
 
