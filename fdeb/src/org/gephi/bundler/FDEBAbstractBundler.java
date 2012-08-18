@@ -61,9 +61,9 @@ import org.openide.util.Lookup;
  */
 public abstract class FDEBAbstractBundler extends AbstractEdgeLayout implements EdgeLayout, LongTask {
 
-    public static final String GENERAL_OPTIONS = "General options";
-    public static final String COMPATIBLITY_OPTIONS = "Compatibility options";
-    public static final String SPRING_CONSTANT_OPTIONS = "Spring constant options";
+    public static final String GENERAL_OPTIONS = org.openide.util.NbBundle.getMessage(FDEBAbstractBundler.class, "general_options");
+    public static final String COMPATIBLITY_OPTIONS = org.openide.util.NbBundle.getMessage(FDEBAbstractBundler.class, "compatibility_options");
+    public static final String SPRING_CONSTANT_OPTIONS = org.openide.util.NbBundle.getMessage(FDEBAbstractBundler.class, "spring_constant_options");
     //settable variables
     protected double stepSize, stepSizeAtTheBeginning; //S
     protected double iterationsPerCycle, iterationsPerCycleAtTheBeginning;//I
@@ -280,63 +280,63 @@ public abstract class FDEBAbstractBundler extends AbstractEdgeLayout implements 
         List<EdgeLayoutProperty> properties = new ArrayList<EdgeLayoutProperty>();
         try {
             properties.add(EdgeLayoutProperty.createProperty(this, Integer.class,
-                    "Number of cycles",
-                    GENERAL_OPTIONS, "",
+                    org.openide.util.NbBundle.getMessage(FDEBAbstractBundler.class, "number_of_cycles.name"),
+                    GENERAL_OPTIONS, org.openide.util.NbBundle.getMessage(FDEBAbstractBundler.class, "number_of_cycles.desc"),
                     "getNumCycles", "setNumCycles"));
 
             properties.add(EdgeLayoutProperty.createProperty(this, Double.class,
-                    "Iterations per cycle",
-                    GENERAL_OPTIONS, "Iterations in the first cycle",
+                    org.openide.util.NbBundle.getMessage(FDEBAbstractBundler.class, "iterations_per_cycle.name"),
+                    GENERAL_OPTIONS, org.openide.util.NbBundle.getMessage(FDEBAbstractBundler.class, "iterations_per_cycle.desc"),
                     "getIterationsPerCycle", "setIterationsPerCycle"));
 
             properties.add(EdgeLayoutProperty.createProperty(this, Double.class,
-                    "Step damping factor",
-                    GENERAL_OPTIONS, "Step damping factor every cycle iteration",
+                    org.openide.util.NbBundle.getMessage(FDEBAbstractBundler.class, "step_damping_factor.name"),
+                    GENERAL_OPTIONS, org.openide.util.NbBundle.getMessage(FDEBAbstractBundler.class, "step_damping_factor.desc"),
                     "getStepDampingFactor", "setStepDampingFactor"));
 
             properties.add(EdgeLayoutProperty.createProperty(this, Double.class,
-                    "Step size",
-                    GENERAL_OPTIONS, "Step size at the beginning",
+                    org.openide.util.NbBundle.getMessage(FDEBAbstractBundler.class, "step_size.name"),
+                    GENERAL_OPTIONS, org.openide.util.NbBundle.getMessage(FDEBAbstractBundler.class, "step_size.desc"),
                     "getStepSize", "setStepSize"));
 
             properties.add(EdgeLayoutProperty.createProperty(this, Double.class,
-                    "Compatibility threshold",
-                    GENERAL_OPTIONS, "Ignore edges with compatibility <= threshold",
+                    org.openide.util.NbBundle.getMessage(FDEBAbstractBundler.class, "compatibility_threshold.name"),
+                    GENERAL_OPTIONS, org.openide.util.NbBundle.getMessage(FDEBAbstractBundler.class, "compatibility_threshold.desc"),
                     "getCompatibilityThreshold", "setCompatibilityThreshold"));
 
             properties.add(EdgeLayoutProperty.createProperty(this, Double.class,
-                    "Subdivision point increase rate",
-                    GENERAL_OPTIONS, "Subdivision points increase rate every cycle iteration",
+                    org.openide.util.NbBundle.getMessage(FDEBAbstractBundler.class, "subdivision_points_increase_rate.name"),
+                    GENERAL_OPTIONS, org.openide.util.NbBundle.getMessage(FDEBAbstractBundler.class, "subdivision_points_increase_rate.desc"),
                     "getSubdivisionPointIncreaseRate", "setSubdivisionPointIncreaseRate"));
 
             properties.add(EdgeLayoutProperty.createProperty(this, Boolean.class,
-                    "Angle compatibility",
-                    COMPATIBLITY_OPTIONS, "",
+                    org.openide.util.NbBundle.getMessage(FDEBAbstractBundler.class, "angle_compatibility.name"),
+                    COMPATIBLITY_OPTIONS, org.openide.util.NbBundle.getMessage(FDEBAbstractBundler.class, "angle_compatibility.desc"),
                     "isAngleCompatibility", "setAngleCompatibility"));
 
             properties.add(EdgeLayoutProperty.createProperty(this, Boolean.class,
-                    "Scale compatibility",
-                    COMPATIBLITY_OPTIONS, "",
+                    org.openide.util.NbBundle.getMessage(FDEBAbstractBundler.class, "scale_compatibility.name"),
+                    COMPATIBLITY_OPTIONS, org.openide.util.NbBundle.getMessage(FDEBAbstractBundler.class, "scale.compatibility.desc"),
                     "isScaleCompatibility", "setScaleCompatibility"));
 
             properties.add(EdgeLayoutProperty.createProperty(this, Boolean.class,
-                    "Position compatibility",
-                    COMPATIBLITY_OPTIONS, "",
+                    org.openide.util.NbBundle.getMessage(FDEBAbstractBundler.class, "position_compatibility.name"),
+                    COMPATIBLITY_OPTIONS, org.openide.util.NbBundle.getMessage(FDEBAbstractBundler.class, "position_compatibility.desc"),
                     "isPositionCompatibility", "setPositionCompatibility"));
 
             properties.add(EdgeLayoutProperty.createProperty(this, Boolean.class,
-                    "Visibility compatibility",
-                    COMPATIBLITY_OPTIONS, "",
+                    org.openide.util.NbBundle.getMessage(FDEBAbstractBundler.class, "visibility_compatibility.name"),
+                    COMPATIBLITY_OPTIONS, org.openide.util.NbBundle.getMessage(FDEBAbstractBundler.class, "visibility_compatibility.desc"),
                     "isVisibilityCompatibility", "setVisibilityCompatibility"));
 
             properties.add(EdgeLayoutProperty.createProperty(this, Boolean.class,
-                    "Apply visibility for similar edges",
-                    COMPATIBLITY_OPTIONS, "Apply visibility compatibility only when compatibility >= 0.9",
+                    org.openide.util.NbBundle.getMessage(FDEBAbstractBundler.class, "apply_visibility_for_similar_edges.name"),
+                    COMPATIBLITY_OPTIONS, org.openide.util.NbBundle.getMessage(FDEBAbstractBundler.class, "apply_visibility_for_similar_edges.desc"),
                     "isVisibilityApply", "setVisibilityApply"));
 
             properties.add(EdgeLayoutProperty.createProperty(this, Double.class,
-                    "Spring constant",
-                    SPRING_CONSTANT_OPTIONS, "Check \"Use user constant\" to change it",
+                    org.openide.util.NbBundle.getMessage(FDEBAbstractBundler.class, "spring_constant.name"),
+                    SPRING_CONSTANT_OPTIONS, org.openide.util.NbBundle.getMessage(FDEBAbstractBundler.class, "spring_constant.desc"),
                     "getSpringConstant", "setSpringConstant"));
 
 //            properties.add(EdgeLayoutProperty.createProperty(this, Boolean.class,
@@ -345,23 +345,23 @@ public abstract class FDEBAbstractBundler extends AbstractEdgeLayout implements 
 //                    "isUseUserConstant", "setUseUserConstant"));
 
             properties.add(EdgeLayoutProperty.createProperty(this, Boolean.class,
-                    "Angle compatibility affected by direction",
-                    COMPATIBLITY_OPTIONS, "",
+                    org.openide.util.NbBundle.getMessage(FDEBAbstractBundler.class, "angle_compatibility_affected.name"),
+                    COMPATIBLITY_OPTIONS, org.openide.util.NbBundle.getMessage(FDEBAbstractBundler.class, "angle_compatibility_affected.desc"),
                     "isAngleCompatibilityAffectedByDirection", "setAngleCompatibilityAffectedByDirection"));
 
             properties.add(EdgeLayoutProperty.createProperty(this, Boolean.class,
-                    "Use inverse quadratic model",
-                    GENERAL_OPTIONS, "",
+                    org.openide.util.NbBundle.getMessage(FDEBAbstractBundler.class, "inverse_quadratic_model.name"),
+                    GENERAL_OPTIONS, org.openide.util.NbBundle.getMessage(FDEBAbstractBundler.class, "inverse_quadratic_model.desc"),
                     "isUseInverseQuadraticModel", "setUseInverseQuadraticModel"));
 
             properties.add(EdgeLayoutProperty.createProperty(this, Boolean.class,
-                    "Low memory mode",
-                    GENERAL_OPTIONS, "Do not store compatibility lists. Gives huge time increase, use only when gephi crashes without it.",
+                    org.openide.util.NbBundle.getMessage(FDEBAbstractBundler.class, "low_memory_mode.name"),
+                    GENERAL_OPTIONS, org.openide.util.NbBundle.getMessage(FDEBAbstractBundler.class, "low_memory_mode.desc"),
                     "isUseLowMemoryMode", "setUseLowMemoryMode"));
 
             properties.add(EdgeLayoutProperty.createProperty(this, Double.class,
-                    "Iteration increase rate",
-                    GENERAL_OPTIONS, "Recommened <= 1",
+                    org.openide.util.NbBundle.getMessage(FDEBAbstractBundler.class, "iteration_increase_rate.name"),
+                    GENERAL_OPTIONS, org.openide.util.NbBundle.getMessage(FDEBAbstractBundler.class, "iteration_increase_rate.desc"),
                     "getIterationIncreaseRate", "setIterationIncreaseRate"));
 
         } catch (NoSuchMethodException ex) {

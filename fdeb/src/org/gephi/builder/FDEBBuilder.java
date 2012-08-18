@@ -64,7 +64,7 @@ public class FDEBBuilder implements EdgeLayoutBuilder {
 
         @Override
         public String getDescription() {
-            return "Force Directed Edge Bundling";
+            return org.openide.util.NbBundle.getMessage(FDEBBuilder.class, "fdeb.description");
         }
 
         @Override
@@ -90,7 +90,7 @@ public class FDEBBuilder implements EdgeLayoutBuilder {
 
     @Override
     public String getName() {
-        return "Simple FDEB";
+        return org.openide.util.NbBundle.getMessage(FDEBBuilder.class, "fdeb.name");
     }
 
     @Override

@@ -75,7 +75,7 @@ public class SubdividedEdgeRenderer implements Renderer {
 
     @Override
     public String getDisplayName() {
-        return "Edge Layout Renderer";
+        return org.openide.util.NbBundle.getMessage(SubdividedEdgeRenderer.class, "edge_layout_renderer.name");
     }
 
     @Override
@@ -370,57 +370,57 @@ public class SubdividedEdgeRenderer implements Renderer {
         properties.add(PreviewProperty.createProperty(this,
                 PreviewProperty.EDGE_LAYOUT_USE_RENDERER,
                 RendererModes.class,
-                "Renderer mode",
-                "standart one-color renderer;gradient renderer; slow gradient renderer that requires precalculation",
+                org.openide.util.NbBundle.getMessage(SubdividedEdgeRenderer.class, "renderer_mode.name"),
+                org.openide.util.NbBundle.getMessage(SubdividedEdgeRenderer.class, "renderer_mode.desc"),
                 PreviewProperty.CATEGORY_EDGE_LAYOUT).setValue(RendererModes.SIMPLE));
 
         properties.add(PreviewProperty.createProperty(this,
                 PreviewProperty.EDGE_LAYOUT_REFRESH_RATE,
                 Integer.class,
-                "Refresh rate",
-                "Refresh every n-th iteration of edge layout",
+                org.openide.util.NbBundle.getMessage(SubdividedEdgeRenderer.class, "refresh_rate.name"),
+                org.openide.util.NbBundle.getMessage(SubdividedEdgeRenderer.class, "refresh_rate.desc"),
                 PreviewProperty.CATEGORY_EDGE_LAYOUT).setValue(1));
 
         properties.add(PreviewProperty.createProperty(this,
                 PreviewProperty.EDGE_LAYOUT_EDGE_THICKNESS,
                 Double.class,
-                "Edge thickness",
-                "Thickness of edge",
+                org.openide.util.NbBundle.getMessage(SubdividedEdgeRenderer.class, "edge_thickness.name"),
+                org.openide.util.NbBundle.getMessage(SubdividedEdgeRenderer.class, "edge_thickness.desc"),
                 PreviewProperty.CATEGORY_EDGE_LAYOUT).setValue(0.5));
 
         properties.add(PreviewProperty.createProperty(this,
                 PreviewProperty.EDGE_LAYOUT_EDGE_TRANSPARENCY,
                 Double.class,
-                "Edge transparency",
-                "Transparency for edge",
+                org.openide.util.NbBundle.getMessage(SubdividedEdgeRenderer.class, "edge_transparency.name"),
+                org.openide.util.NbBundle.getMessage(SubdividedEdgeRenderer.class, "edge_transparency.desc"),
                 PreviewProperty.CATEGORY_EDGE_LAYOUT).setValue(0.1));
         
         properties.add(PreviewProperty.createProperty(this,
                 PreviewProperty.EDGE_LAYOUT_EDGE_TRANSPARENCY_FORCE,
                 Boolean.class,
-                "Force edge transparency",
-                "Forces user edge transparency for non simple rendering modes",
+                org.openide.util.NbBundle.getMessage(SubdividedEdgeRenderer.class, "force_edge_transparency.name"),
+                org.openide.util.NbBundle.getMessage(SubdividedEdgeRenderer.class, "force_edge_transparency.desc"),
                 PreviewProperty.CATEGORY_EDGE_LAYOUT).setValue(false));
 
         properties.add(PreviewProperty.createProperty(this,
                 PreviewProperty.EDGE_LAYOUT_SIMPLE_RENDERER_COLOR,
                 Color.class,
-                "Simple Renderer Color",
-                "Renderer color for simple rendererer mode",
+                org.openide.util.NbBundle.getMessage(SubdividedEdgeRenderer.class, "simple_renderer_color.name"),
+                org.openide.util.NbBundle.getMessage(SubdividedEdgeRenderer.class, "simple_renderer_color.desc"),
                 PreviewProperty.CATEGORY_EDGE_LAYOUT).setValue(new Color(0f, 0f, 0.5f)));
 
         properties.add(PreviewProperty.createProperty(this,
                 PreviewProperty.EDGE_LAYOUT_USE_PERCENTAGE_INSTEAD_OF_LINEAR_SCALE,
                 Boolean.class,
-                "Use relative value",
-                "Use relative value rather then absolute, i.e. edge gets colors in the middle of slider if it is a median",
+                org.openide.util.NbBundle.getMessage(SubdividedEdgeRenderer.class, "use_relative_value.name"),
+                org.openide.util.NbBundle.getMessage(SubdividedEdgeRenderer.class, "use_relative_name.desc"),
                 PreviewProperty.CATEGORY_EDGE_LAYOUT).setValue(true));
 
         properties.add(PreviewProperty.createProperty(this,
                 PreviewProperty.EDGE_LAYOUT_PRECALCULATE_POINTS,
                 Boolean.class,
-                "Precalculate points",
-                "Precalculate points for gradient complex renderer, needs to be re-runned",
+                org.openide.util.NbBundle.getMessage(SubdividedEdgeRenderer.class, "precalculate_points.name"),
+                org.openide.util.NbBundle.getMessage(SubdividedEdgeRenderer.class, "precalculate_points.desc"),
                 PreviewProperty.CATEGORY_EDGE_LAYOUT).setValue(false));
 
         return properties.toArray(new PreviewProperty[0]);

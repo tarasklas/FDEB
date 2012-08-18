@@ -183,8 +183,8 @@ public final class EdgeLayoutWindowTopComponent extends TopComponent implements 
         layoutPresetPersistence = new LayoutPresetPersistence();
         gradientPresetPersistence = new GradientPresetPersistence();
 
-        gradientPresetPersistence.savePreset("White-Blue", new GradientSlider(GradientSlider.HORIZONTAL, new float[]{0f, 1f}, new Color[]{Color.WHITE, Color.BLUE}));
-        gradientPresetPersistence.savePreset("White-Blue-Pink-Red-Yellow", new GradientSlider(GradientSlider.HORIZONTAL, new float[]{0f, 0.2f, 0.4f, 0.6f, 1f},
+        gradientPresetPersistence.savePreset(org.openide.util.NbBundle.getMessage(EdgeLayoutWindowTopComponent.class, "gradients.white_blue"), new GradientSlider(GradientSlider.HORIZONTAL, new float[]{0f, 1f}, new Color[]{Color.WHITE, Color.BLUE}));
+        gradientPresetPersistence.savePreset(org.openide.util.NbBundle.getMessage(EdgeLayoutWindowTopComponent.class, "gradients.white_blue_pink_red_yellow"), new GradientSlider(GradientSlider.HORIZONTAL, new float[]{0f, 0.2f, 0.4f, 0.6f, 1f},
                 new Color[]{Color.WHITE, Color.BLUE, Color.PINK, Color.RED, Color.YELLOW}));
     }
 
@@ -225,7 +225,7 @@ public final class EdgeLayoutWindowTopComponent extends TopComponent implements 
             sortedlist.add(new EdgeLayoutWrapper(list.get(i)));
         }
         Collections.sort(sortedlist);
-        sortedlist.add(0, "--Choose a layout");
+        sortedlist.add(0, org.openide.util.NbBundle.getMessage(EdgeLayoutWindowTopComponent.class, "choose_layout"));
         DefaultComboBoxModel model = new DefaultComboBoxModel(sortedlist.toArray());
         layoutComboBox.setModel(model);
     }
@@ -402,7 +402,7 @@ public final class EdgeLayoutWindowTopComponent extends TopComponent implements 
     }
 
     private void regenerateRunButtonWhenLayoutStops() {
-        runButton.setText("Run");
+        runButton.setText(org.openide.util.NbBundle.getMessage(EdgeLayoutWindowTopComponent.class, "run"));
         layoutComboBox.setEnabled(true);
     }
 
@@ -413,10 +413,10 @@ public final class EdgeLayoutWindowTopComponent extends TopComponent implements 
             refresh = true;
         }
         if (layoutIsRunning()) {
-            runButton.setText("Stop");
+            runButton.setText(org.openide.util.NbBundle.getMessage(EdgeLayoutWindowTopComponent.class, "stop"));
             layoutComboBox.setEnabled(false);
         } else {
-            runButton.setText("Run");
+            runButton.setText(org.openide.util.NbBundle.getMessage(EdgeLayoutWindowTopComponent.class, "run"));
             layoutComboBox.setEnabled(true);
         }
         if (refresh) {
@@ -473,11 +473,11 @@ public final class EdgeLayoutWindowTopComponent extends TopComponent implements 
             }
         } else {
             //menu.add("<html><i>" + NbBundle.getMessage(LayoutPanel.class, "LayoutPanel.presetsButton.nopreset") + "</i></html>");
-            menu.add("<html><i>No presets yet </i></html>");
+            menu.add(org.openide.util.NbBundle.getMessage(EdgeLayoutWindowTopComponent.class, "no_presets"));
         }
 
         //JMenuItem saveItem = new JMenuItem(NbBundle.getMessage(LayoutPanel.class, "LayoutPanel.presetsButton.savePreset"));
-        JMenuItem saveItem = new JMenuItem("Save?");
+        JMenuItem saveItem = new JMenuItem(org.openide.util.NbBundle.getMessage(EdgeLayoutWindowTopComponent.class, "save"));
         saveItem.addActionListener(new ActionListener() {
 
             public void actionPerformed(ActionEvent e) {
@@ -525,11 +525,11 @@ public final class EdgeLayoutWindowTopComponent extends TopComponent implements 
             }
         } else {
             //menu.add("<html><i>" + NbBundle.getMessage(LayoutPanel.class, "LayoutPanel.presetsButton.nopreset") + "</i></html>");
-            menu.add("<html><i>No presets yet :(</i></html>");
+            menu.add(org.openide.util.NbBundle.getMessage(EdgeLayoutWindowTopComponent.class, "no_presets"));
         }
 
         //JMenuItem saveItem = new JMenuItem(NbBundle.getMessage(LayoutPanel.class, "LayoutPanel.presetsButton.savePreset"));
-        JMenuItem saveItem = new JMenuItem("Save?");
+        JMenuItem saveItem = new JMenuItem(org.openide.util.NbBundle.getMessage(EdgeLayoutWindowTopComponent.class, "save"));
         saveItem.addActionListener(new ActionListener() {
 
             public void actionPerformed(ActionEvent e) {

@@ -60,7 +60,7 @@ public class FDEBMultithreadingBuilder implements EdgeLayoutBuilder{
         
         @Override
         public String getDescription() {
-            return "Force Directed Edge Bundling With Multithreading";
+            return org.openide.util.NbBundle.getMessage(FDEBMultithreadingBuilder.class, "fdeb_mutithreading.description");
         }
 
         @Override
@@ -87,7 +87,7 @@ public class FDEBMultithreadingBuilder implements EdgeLayoutBuilder{
     private FDEBMultithreadingUI ui =  new FDEBMultithreadingUI();
     @Override
     public String getName() {
-        return "Multithreaded FDEB";
+        return org.openide.util.NbBundle.getMessage(FDEBMultithreadingBuilder.class, "fdeb_multithreading.name");
     }
 
     @Override
