@@ -52,7 +52,9 @@ import org.gephi.fdeb.FDEBLayoutData;
 import org.gephi.fdeb.demo.multithreading.FDEBForceCalculationTask;
 import org.gephi.fdeb.utils.FDEBUtilities;
 import org.gephi.graph.api.Edge;
+import org.openide.awt.StatusDisplayer;
 import org.openide.util.Exceptions;
+import org.openide.util.NbBundle;
 
 /**
  *
@@ -63,9 +65,9 @@ public class FDEBBundlerMultithreading extends FDEBAbstractBundler implements Ed
     public FDEBBundlerMultithreading(EdgeLayoutBuilder layoutBuilder) {
         super(layoutBuilder);
     }
-    int numberOfTasks = 8;
-    ExecutorService executor;
-
+    private int numberOfTasks = 8;
+    private ExecutorService executor;
+    private int progress;
     @Override
     public void initAlgo() {
         executor = Executors.newCachedThreadPool();
@@ -78,10 +80,10 @@ public class FDEBBundlerMultithreading extends FDEBAbstractBundler implements Ed
         cycle = 1;
         setConverged(false);
         stepSize = stepSizeAtTheBeginning;
+        progress = 0;
         iterationsPerCycle = iterationsPerCycleAtTheBeginning;
         subdivisionPointsPerEdge = 1;//start and end doesnt count
-        System.out.println("K " + springConstant);
-
+        progressTicket.switchToDeterminate(calculateSumOfIterations(iterationsPerCycle, numCycles, iterationIncreaseRate, subdivisionPointsPerEdge, subdivisionPointIncreaseRate));
         createCompatibilityLists();
     }
 
@@ -90,14 +92,13 @@ public class FDEBBundlerMultithreading extends FDEBAbstractBundler implements Ed
      */
     @Override
     public void goAlgo() {
-
         for (Edge edge : graphModel.getGraph().getEdges().toArray()) {
             ((FDEBLayoutData) edge.getEdgeData().getLayoutData()).newSubdivisionPoints = Arrays.copyOf(((FDEBLayoutData) edge.getEdgeData().getLayoutData()).subdivisionPoints,
                     ((FDEBLayoutData) edge.getEdgeData().getLayoutData()).subdivisionPoints.length);
         }
-
         for (int step = 0; step < iterationsPerCycle; step++) {
-
+            progress += (int)subdivisionPointsPerEdge;
+            progressTicket.progress(progress);
             Future[] calculationTasks = new Future[numberOfTasks];
             int cedges = graphModel.getGraph().getEdgeCount();
             Edge[] edges = graphModel.getGraph().getEdges().toArray();
@@ -127,7 +128,7 @@ public class FDEBBundlerMultithreading extends FDEBAbstractBundler implements Ed
             }
         }
 
-
+        StatusDisplayer.getDefault().setStatusText(NbBundle.getMessage(FDEBBundlerMultithreading.class, "after_iteration_message", cycle, numCycles));
         if (cycle == numCycles) {
             setConverged(true);
         } else {

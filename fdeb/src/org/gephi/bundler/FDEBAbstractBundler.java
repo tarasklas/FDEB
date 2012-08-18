@@ -402,7 +402,7 @@ public abstract class FDEBAbstractBundler extends AbstractEdgeLayout implements 
             Collections.sort(intensities);
         }
         Collections.sort(intensity);
-        
+
         for (Edge edge : graphModel.getGraph().getEdges().toArray()) {
             if (cancel) {
                 break;
@@ -433,11 +433,11 @@ public abstract class FDEBAbstractBundler extends AbstractEdgeLayout implements 
         }
         modifyAlgo();
     }
-    
+
     protected void createCompatibilityLists() {
         if (useLowMemoryMode) {
             return;
-        }        
+        }
         FDEBUtilities.createCompatibilityRecords(compatibilityThreshold, graphModel.getGraph(), computator);
     }
 
@@ -478,5 +478,16 @@ public abstract class FDEBAbstractBundler extends AbstractEdgeLayout implements 
             return (Point2D.Double.distance(points[i].x, points[i].y, points[i + 1].x, points[i + 1].y)
                     + Point2D.Double.distance(points[i].x, points[i].y, points[i - 1].x, points[i - 1].y)) / 2;
         }
+    }
+
+    protected int calculateSumOfIterations(double iterationsPerCycle, int numCycles, double iterationsIncreaseRate, double subdivisionPoints, double subdivisionPointsIncreaseRate) {
+        int res = 0;
+        while (numCycles-- > 0) {
+            res += ((int) iterationsPerCycle) * ((int) subdivisionPoints);
+            iterationsPerCycle *= iterationsIncreaseRate;
+            subdivisionPoints *= subdivisionPointsIncreaseRate;
+        }
+        System.err.println(res + " points");
+        return res;
     }
 }

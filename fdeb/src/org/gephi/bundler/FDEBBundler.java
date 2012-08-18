@@ -48,6 +48,8 @@ import org.gephi.fdeb.FDEBLayoutData;
 import org.gephi.fdeb.utils.FDEBUtilities;
 import org.gephi.graph.api.Edge;
 import org.gephi.utils.longtask.spi.LongTask;
+import org.openide.awt.StatusDisplayer;
+import org.openide.util.NbBundle;
 
 /**
  *
@@ -58,8 +60,8 @@ public class FDEBBundler extends FDEBAbstractBundler implements EdgeLayout, Long
     public FDEBBundler(EdgeLayoutBuilder layoutBuilder) {
         super(layoutBuilder);
     }
-    long startTime;
-    long endTime;
+    private long startTime;
+    private long endTime;
     /*
      * Get parameters and init structures
      */
@@ -77,10 +79,11 @@ public class FDEBBundler extends FDEBAbstractBundler implements EdgeLayout, Long
         subdivisionPointsPerEdge = 1;//start and end doesnt count
         stepSize = stepSizeAtTheBeginning;
         iterationsPerCycle = iterationsPerCycleAtTheBeginning;
-        System.out.println("K " + springConstant);
-
+        progress = 0;
+        progressTicket.switchToDeterminate(calculateSumOfIterations(iterationsPerCycle, numCycles, iterationIncreaseRate, subdivisionPointsPerEdge, subdivisionPointIncreaseRate));
         createCompatibilityLists();
     }
+    private int progress;
 
     @Override
     public void goAlgo() {
@@ -89,6 +92,8 @@ public class FDEBBundler extends FDEBAbstractBundler implements EdgeLayout, Long
         }
 
         for (int step = 0; step < iterationsPerCycle; step++) {
+            progress+=(int)subdivisionPointsPerEdge;
+            progressTicket.progress(progress);
             for (Edge edge : graphModel.getGraph().getEdges().toArray()) {
                 if (cancel) {
                     return;
@@ -119,6 +124,7 @@ public class FDEBBundler extends FDEBAbstractBundler implements EdgeLayout, Long
             }
         }
 
+        StatusDisplayer.getDefault().setStatusText(NbBundle.getMessage(FDEBBundler.class, "after_iteration_message", cycle, numCycles));
         if (cycle == numCycles) {
             setConverged(true);
             endTime = System.currentTimeMillis();

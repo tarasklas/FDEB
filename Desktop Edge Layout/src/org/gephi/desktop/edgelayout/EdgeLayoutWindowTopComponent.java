@@ -176,16 +176,16 @@ public final class EdgeLayoutWindowTopComponent extends TopComponent implements 
         regenerateCombobox();
 
         gradientSliderPanel.setLayout(new BorderLayout());
-        gradientSlider = new GradientSlider(GradientSlider.HORIZONTAL, new float[]{0f, 0.2f, 0.4f, 0.6f, 1f},
-                new Color[]{Color.WHITE, Color.BLUE, Color.PINK, Color.RED, Color.YELLOW});
+        gradientSlider = new GradientSlider(GradientSlider.HORIZONTAL, new float[]{0f, 0.4f, 0.6f, 1f},
+                new Color[]{Color.BLUE, Color.PINK, Color.RED, Color.YELLOW});
         gradientSliderPanel.add(gradientSlider, BorderLayout.CENTER);
 
         layoutPresetPersistence = new LayoutPresetPersistence();
         gradientPresetPersistence = new GradientPresetPersistence();
 
         gradientPresetPersistence.savePreset(org.openide.util.NbBundle.getMessage(EdgeLayoutWindowTopComponent.class, "gradients.white_blue"), new GradientSlider(GradientSlider.HORIZONTAL, new float[]{0f, 1f}, new Color[]{Color.WHITE, Color.BLUE}));
-        gradientPresetPersistence.savePreset(org.openide.util.NbBundle.getMessage(EdgeLayoutWindowTopComponent.class, "gradients.white_blue_pink_red_yellow"), new GradientSlider(GradientSlider.HORIZONTAL, new float[]{0f, 0.2f, 0.4f, 0.6f, 1f},
-                new Color[]{Color.WHITE, Color.BLUE, Color.PINK, Color.RED, Color.YELLOW}));
+        gradientPresetPersistence.savePreset(org.openide.util.NbBundle.getMessage(EdgeLayoutWindowTopComponent.class, "gradients.blue_pink_red_yellow"), new GradientSlider(GradientSlider.HORIZONTAL, new float[]{0f, 0.4f, 0.6f, 1f},
+                new Color[]{Color.BLUE, Color.PINK, Color.RED, Color.YELLOW}));
     }
 
     private void regenerateSettings() {
@@ -466,7 +466,7 @@ public final class EdgeLayoutWindowTopComponent extends TopComponent implements 
                     public void actionPerformed(ActionEvent e) {
                         layoutPresetPersistence.loadPreset(p, model.getSelectedLayout());
                         repaint();
-                        //StatusDisplayer.getDefault().setStatusText(NbBundle.getMessage(LayoutPanel.class, "LayoutPanel.status.loadPreset", model.getSelectedBuilder().getName(), p.toString()));
+                        StatusDisplayer.getDefault().setStatusText(NbBundle.getMessage(EdgeLayoutWindowTopComponent.class, "EdgeLayoutWindowTopComponent.status.loadPreset", model.getSelectedBuilder().getName(), p.toString()));
                     }
                 });
                 menu.add(item);
@@ -491,7 +491,7 @@ public final class EdgeLayoutWindowTopComponent extends TopComponent implements 
                     String input = question.getInputText();
                     if (input != null && !input.isEmpty()) {
                         layoutPresetPersistence.savePreset(input, model.getSelectedLayout());
-                        //StatusDisplayer.getDefault().setStatusText(NbBundle.getMessage(LayoutPanel.class, "LayoutPanel.status.savePreset", model.getSelectedBuilder().getName(), input));
+                        StatusDisplayer.getDefault().setStatusText(NbBundle.getMessage(EdgeLayoutWindowTopComponent.class, "EdgeLayoutWindowTopComponent.savePreset",layoutComboBox.getSelectedItem().toString(), input));
                         NbPreferences.forModule(EdgeLayoutWindowTopComponent.class).put("EdgeLayoutWindowPanel.lastPresetName", input);
                     }
                 }
@@ -518,7 +518,7 @@ public final class EdgeLayoutWindowTopComponent extends TopComponent implements 
 
                     public void actionPerformed(ActionEvent e) {
                         gradientPresetPersistence.loadPreset(p, gradientSlider);
-                        //StatusDisplayer.getDefault().setStatusText(NbBundle.getMessage(LayoutPanel.class, "LayoutPanel.status.loadPreset", model.getSelectedBuilder().getName(), p.toString()));
+                        StatusDisplayer.getDefault().setStatusText(NbBundle.getMessage(EdgeLayoutWindowTopComponent.class, "EdgeLayoutWindowTopComponent.status.loadGradientPreset", p.toString()));
                     }
                 });
                 menu.add(item);
@@ -544,7 +544,7 @@ public final class EdgeLayoutWindowTopComponent extends TopComponent implements 
                     String input = question.getInputText();
                     if (input != null && !input.isEmpty()) {
                         gradientPresetPersistence.savePreset(input, gradientSlider);
-                        //StatusDisplayer.getDefault().setStatusText(NbBundle.getMessage(LayoutPanel.class, "LayoutPanel.status.savePreset", model.getSelectedBuilder().getName(), input));
+                        StatusDisplayer.getDefault().setStatusText(NbBundle.getMessage(EdgeLayoutWindowTopComponent.class, "EdgeLayoutWindowTopComponent.saveGradientPreset", input));
                         NbPreferences.forModule(EdgeLayoutWindowTopComponent.class).put("EdgeLayoutWindowTopComponent.lastGradientPesetName", input);
                     }
                 }
