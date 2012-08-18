@@ -1,6 +1,6 @@
 /*
  Copyright 2008-2010 Gephi
- Authors : Mathieu Bastian <mathieu.bastian@gephi.org>
+ Authors : Mathieu Bastian <mathieu.bastian@gephi.org>, Taras Klaskovsky <megaterik@gmail.com>
  Website : http://www.gephi.org
 
  This file is part of Gephi.
@@ -59,7 +59,7 @@ import org.openide.util.lookup.ServiceProvider;
 
 /**
  *
- * @author Mathieu Bastian
+ * @author Mathieu Bastian, Taras Klaskovsky <megaterik@gmail.com>
  */
 @ServiceProvider(service = EdgeLayoutController.class)
 public class EdgeLayoutControllerImpl implements EdgeLayoutController {

@@ -1,6 +1,6 @@
 /*
  Copyright 2008-2010 Gephi
- Authors : Mathieu Bastian <mathieu.bastian@gephi.org>
+ Authors : Mathieu Bastian <mathieu.bastian@gephi.org>, Taras Klaskovsky <megaterik@gmail.com>
  Website : http://www.gephi.org
 
  This file is part of Gephi.
@@ -51,7 +51,7 @@ import org.gephi.project.api.Workspace;
  * singleton and can therefore be found in Lookup:
  * <pre>LayoutController lc = Lookup.getDefault().lookup(LayoutController.class);</pre>
  *
- * @author Mathieu Bastian
+ * @author Mathieu Bastian, Taras Klaskovsky <megaterik@gmail.com>
  */
 public interface EdgeLayoutController {
 

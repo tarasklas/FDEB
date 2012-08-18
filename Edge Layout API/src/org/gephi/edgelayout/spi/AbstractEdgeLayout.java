@@ -1,6 +1,6 @@
 /*
  Copyright 2008-2010 Gephi
- Authors : Helder Suzuki <heldersuzuki@gephi.org>
+ Authors : Helder Suzuki <heldersuzuki@gephi.org>, Taras Klaskovsky <megaterik@gmail.com>
  Website : http://www.gephi.org
 
  This file is part of Gephi.
@@ -48,9 +48,9 @@ import org.gephi.project.api.Workspace;
 import org.openide.util.Lookup;
 
 /**
- * Base class for layout algorithms.
+ * Base class for edge layout algorithms.
  *
- * @author Helder Suzuki <heldersuzuki@gephi.org>
+ * @author Helder Suzuki <heldersuzuki@gephi.org>, Taras Klaskovsky <megaterik@gmail.com>
  */
 public abstract class AbstractEdgeLayout implements EdgeLayout {
 

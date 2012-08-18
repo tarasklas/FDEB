@@ -1,6 +1,6 @@
 /*
 Copyright 2008-2010 Gephi
-Authors : Mathieu Bastian <mathieu.bastian@gephi.org>
+Authors : Mathieu Bastian <mathieu.bastian@gephi.org>, Taras Klaskovsky <megaterik@gmail.com>
 Website : http://www.gephi.org
 
 This file is part of Gephi.
@@ -49,7 +49,7 @@ import org.openide.nodes.PropertySupport;
  * Properties for layout algorithms that are used by the UI to fill the property
  * sheet and thus allow user edit.
  *
- * @author Mathieu Bastian
+ * @author Mathieu Bastian, Taras Klaskovsky <megaterik@gmail.com>
  */
 public final class EdgeLayoutProperty {
 
