@@ -41,7 +41,6 @@
  */
 package org.gephi.bundler;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -49,9 +48,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import org.gephi.edgelayout.spi.EdgeLayout;
 import org.gephi.edgelayout.spi.EdgeLayoutBuilder;
-import org.gephi.fdeb.FDEBCompatibilityRecord;
 import org.gephi.fdeb.FDEBLayoutData;
-import org.gephi.fdeb.demo.multithreading.FDEBCompatibilityRecordsTask;
 import org.gephi.fdeb.demo.multithreading.FDEBForceCalculationTask;
 import org.gephi.fdeb.utils.FDEBUtilities;
 import org.gephi.graph.api.Edge;
@@ -99,7 +96,6 @@ public class FDEBBundlerMultithreading extends FDEBAbstractBundler implements Ed
                     ((FDEBLayoutData) edge.getEdgeData().getLayoutData()).subdivisionPoints.length);
         }
 
-        System.err.println("Next iteration");
         for (int step = 0; step < iterationsPerCycle; step++) {
 
             Future[] calculationTasks = new Future[numberOfTasks];
@@ -117,9 +113,6 @@ public class FDEBBundlerMultithreading extends FDEBAbstractBundler implements Ed
 
             for (int i = 0; i < calculationTasks.length; i++) {
                 try {
-                    if (calculationTasks[i] == null) {
-                        System.err.println("o_O");
-                    }
                     calculationTasks[i].get();
                 } catch (InterruptedException ex) {
                     Exceptions.printStackTrace(ex);

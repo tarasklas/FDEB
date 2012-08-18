@@ -178,6 +178,7 @@ public class EdgeLayoutControllerImpl implements EdgeLayoutController {
         
         public static final String REFRESH = "refresh";
         public static final String END_ALGO = "end";
+        public static final String STOP_ALGO = "stop";
 
         public EdgeLayoutRun(EdgeLayout layout, ArrayList<ChangeListener> listeners) {
             this.layout = layout;
@@ -229,7 +230,7 @@ public class EdgeLayoutControllerImpl implements EdgeLayoutController {
         public boolean cancel() {
             stopRun = true;
             Progress.finish(progressTicket);
-            refreshPreview("Stop");
+            refreshPreview(STOP_ALGO);
             return true;
         }
 

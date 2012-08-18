@@ -57,29 +57,6 @@ import org.gephi.utils.StatisticsUtils;
 public class FDEBUtilities {
 
     static final double EPS = 1e-6;
-    /*
-     * Dynamical calculing of K, in jflowmap K =
-     * AxisMarks.ordAlpha(Math.min(xStats.getMax() - xStats.getMin(),
-     * yStats.getMax() - yStats.getMin()) / 1000);
-     */
-
-    /**
-     * Not used for now, it does not work well on big graphs.
-     */
-    static public double calculateSpringConstant(Graph graph) {
-        double minX = Integer.MAX_VALUE;
-        double maxX = Integer.MIN_VALUE;
-        double minY = Integer.MAX_VALUE;
-        double maxY = Integer.MIN_VALUE;
-        for (Node node : graph.getNodes()) {
-            minX = Math.min(minX, node.getNodeData().x());
-            minY = Math.min(minY, node.getNodeData().y());
-
-            maxX = Math.max(maxX, node.getNodeData().x());
-            maxY = Math.max(maxY, node.getNodeData().y());
-        }
-        return (maxX - minX + maxY - minY) / 1000.0;
-    }
 
     /*
      * Gives fair estimations for good results in small and medium graphs. Big graphs might need greater values.

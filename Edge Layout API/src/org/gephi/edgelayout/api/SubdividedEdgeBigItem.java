@@ -60,7 +60,6 @@ import org.openide.util.Lookup;
 public class SubdividedEdgeBigItem extends AbstractItem implements Item {
 
     ArrayList<SortedEdgeWrapper> edges;
-    boolean ready = false;
 
     SubdividedEdgeBigItem(Object source, String type) {
         super(source, type);

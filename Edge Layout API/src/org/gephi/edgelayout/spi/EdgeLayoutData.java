@@ -52,7 +52,7 @@ import org.gephi.graph.spi.LayoutData;
 public interface EdgeLayoutData extends LayoutData {
 
     /**
-     * Returns result of edge layout algorithm, polyline that are being used in all renderer modes. 
+     * Returns result of edge layout algorithm, polyline that is being used in all renderer modes. 
      * 
      */
     public Point2D.Double[] getSubdivisonPoints();

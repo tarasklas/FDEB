@@ -44,22 +44,12 @@ package org.gephi.desktop.edgelayout;
 import java.awt.Color;
 import java.io.InputStream;
 import java.io.PrintWriter;
-import java.util.*;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.transform.*;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
-import org.gephi.edgelayout.spi.EdgeLayout;
-import org.gephi.edgelayout.spi.EdgeLayoutProperty;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Scanner;
 import org.gephi.ui.components.gradientslider.GradientSlider;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
-import org.openide.util.Exceptions;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
 public class GradientPresetPersistence {
 
@@ -108,7 +98,6 @@ public class GradientPresetPersistence {
                     try {
                         InputStream stream = child.getInputStream();
                         Scanner scanner = new Scanner(stream);
-                        System.err.println("scannerhasnext " + scanner.hasNext());
                         if (scanner.hasNext()) {
                             GradientPresetPersistence.GradientPreset preset = new GradientPresetPersistence.GradientPreset(scanner);
                             addPreset(preset);

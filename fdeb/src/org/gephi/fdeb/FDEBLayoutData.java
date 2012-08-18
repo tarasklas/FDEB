@@ -79,16 +79,6 @@ public class FDEBLayoutData implements EdgeLayoutData {
         color = null;
     }
 
-    private Color generateGradient(Color a, Color b, double ratio) {
-        if (ratio > 1) {
-            ratio = 1; // to shift gradient to b
-        }
-        return new Color(
-                (int) (a.getRed() * (1.0 - ratio) + b.getRed() * ratio),
-                (int) (a.getGreen() * (1.0 - ratio) + b.getGreen() * ratio),
-                (int) (a.getBlue() * (1.0 - ratio) + b.getBlue() * ratio),
-                (int) (255 * Lookup.getDefault().lookup(PreviewController.class).getModel().getProperties().getDoubleValue("subdividededge.alpha")));
-    }
 
     private Color pickGradientFromLookup(double f) {
         /*

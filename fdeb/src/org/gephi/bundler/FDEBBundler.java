@@ -88,7 +88,6 @@ public class FDEBBundler extends FDEBAbstractBundler implements EdgeLayout, Long
             return;
         }
 
-        System.err.println("Next iteration");
         for (int step = 0; step < iterationsPerCycle; step++) {
             for (Edge edge : graphModel.getGraph().getEdges().toArray()) {
                 if (cancel) {

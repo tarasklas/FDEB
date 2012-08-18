@@ -402,12 +402,7 @@ public abstract class FDEBAbstractBundler extends AbstractEdgeLayout implements 
             Collections.sort(intensities);
         }
         Collections.sort(intensity);
-        double threshold = intensity.get((int) Math.min(intensity.size() - 1, intensity.size()
-                * Lookup.getDefault().lookup(PreviewController.class).getModel().getProperties().getDoubleValue("subdividededge.threshold")));
-
-        int x = intensity.size();
-        System.err.println("boundaries: " + intensity.get(x / 5) + " " + intensity.get(x * 2 / 5) + " " + intensity.get(x * 3 / 5) + " " + intensity.get(x * 4 / 5));
-        System.err.println("threshold " + threshold);
+        
         for (Edge edge : graphModel.getGraph().getEdges().toArray()) {
             if (cancel) {
                 break;
@@ -418,13 +413,11 @@ public abstract class FDEBAbstractBundler extends AbstractEdgeLayout implements 
                 data.updateColors(intensities);
             }
         }
-        System.err.println("modifycomplete");
     }
 
     @Override
     public void endAlgo() {
         if (Lookup.getDefault().lookup(PreviewController.class).getModel().getProperties().getBooleanValue(PreviewProperty.EDGE_LAYOUT_PRECALCULATE_POINTS)) {
-            System.err.println("end algo!1 " + System.currentTimeMillis());
             for (Edge edge1 : graphModel.getGraph().getEdges().toArray()) {
                 if (cancel) {
                     break;
@@ -437,68 +430,15 @@ public abstract class FDEBAbstractBundler extends AbstractEdgeLayout implements 
                 }
             }
             fastIntensityCalculation();
-            System.err.println("end algo!2 " + System.currentTimeMillis());
         }
         modifyAlgo();
-        System.err.println("I AM DONE " + System.currentTimeMillis());
     }
     
     protected void createCompatibilityLists() {
         if (useLowMemoryMode) {
             return;
-        }
-//        for (Edge edge : graphModel.getGraph().getEdges().toArray()) {
-//            if (cancel) {
-//                return;
-//            }
-//            FDEBUtilities.createCompatibilityRecords(edge, compatibilityThreshold, graphModel.getGraph(), computator);
-//        }
-        
+        }        
         FDEBUtilities.createCompatibilityRecords(compatibilityThreshold, graphModel.getGraph(), computator);
-//        
-//        int totalEdges = graphModel.getGraph().getEdgeCount() * graphModel.getGraph().getEdgeCount();
-//        int passedEdges = 0;
-//        double csum = 0;
-//        for (Edge edge : graphModel.getGraph().getEdges().toArray()) {
-//            if (cancel) {
-//                return;
-//            }
-//            passedEdges += ((FDEBLayoutData) edge.getEdgeData().getLayoutData()).similarEdges.length;
-//            for (FDEBCompatibilityRecord record : ((FDEBLayoutData) edge.getEdgeData().getLayoutData()).similarEdges) {
-//                csum += record.compatibility;
-//            }
-//        }
-//        System.err.println("total: " + totalEdges + " passed " + passedEdges + " sum of compatibility " + csum
-//                + " fraction " + ((double) passedEdges) / totalEdges);
-    }
-
-    private void slowIntensityCalculation() {
-        for (Edge edge1 : graphModel.getGraph().getEdges().toArray()) {
-            if (cancel) {
-                break;
-            }
-            for (Edge edge2 : graphModel.getGraph().getEdges().toArray()) {
-                if (cancel) {
-                    break;
-                }
-                if (edge1.getEdgeData().getLayoutData() != null && edge2.getEdgeData().getLayoutData() != null && edge1 != edge2) {
-                    FDEBLayoutData data1 = edge1.getEdgeData().getLayoutData();
-                    FDEBLayoutData data2 = edge2.getEdgeData().getLayoutData();
-                    Point2D.Double[] points1 = data1.getSubdivisonPoints();
-                    Point2D.Double[] points2 = data2.getSubdivisonPoints();
-                    for (int i = 0; i < points1.length; i++) {
-                        for (int j = 0; j < points2.length; j++) {
-                            double distance = Point2D.Double.distance(points1[i].x, points1[i].y, points2[j].x, points2[j].y);
-                            double radius1 = getRadius(points1, i);
-                            double radius2 = getRadius(points2, j);
-                            if (distance <= radius1 * 2) {
-                                data1.intensities[i]++;
-                            }
-                        }
-                    }
-                }
-            }
-        }
     }
 
     private void fastIntensityCalculation() {
@@ -524,7 +464,6 @@ public abstract class FDEBAbstractBundler extends AbstractEdgeLayout implements 
             for (int i = 0; i < points1.length - 1; i++) {
                 double xm = (points1[i].x + points1[i + 1].x) / 2;
                 double ym = (points1[i].y + points1[i + 1].y) / 2;
-                double radius = Point2D.Double.distance(points1[i].x, points1[i].y, points1[i + 1].x, points1[i + 1].y);
                 data1.intensities[i] = root.getNumberOfPointsInRange(points1[i], 2 * getRadius(points1, i)) - 4;
             }
         }

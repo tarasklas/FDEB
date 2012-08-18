@@ -165,7 +165,6 @@ public final class EdgeLayoutWindowTopComponent extends TopComponent implements 
 
             @Override
             public void stateChanged(ChangeEvent e) {
-                System.err.println(e.toString() + " event");
                 if (e.getSource().equals("end") || e.getSource().equals("stop")) {
                     regenerateRunButtonWhenLayoutStops();
                 }
@@ -403,9 +402,6 @@ public final class EdgeLayoutWindowTopComponent extends TopComponent implements 
     }
 
     private void regenerateRunButtonWhenLayoutStops() {
-        if (layoutIsRunning()) {
-            System.err.println("still running!");
-        }
         runButton.setText("Run");
         layoutComboBox.setEnabled(true);
     }
@@ -522,7 +518,6 @@ public final class EdgeLayoutWindowTopComponent extends TopComponent implements 
 
                     public void actionPerformed(ActionEvent e) {
                         gradientPresetPersistence.loadPreset(p, gradientSlider);
-                        //regenerateSettings();
                         //StatusDisplayer.getDefault().setStatusText(NbBundle.getMessage(LayoutPanel.class, "LayoutPanel.status.loadPreset", model.getSelectedBuilder().getName(), p.toString()));
                     }
                 });
@@ -574,30 +569,24 @@ public final class EdgeLayoutWindowTopComponent extends TopComponent implements 
 
     @Override
     public void componentOpened() {
-        // TODO add custom code on component opening
     }
 
     @Override
     public void componentClosed() {
-        // TODO add custom code on component closing
     }
 
     void writeProperties(java.util.Properties p) {
         // better to version settings since initial version as advocated at
         // http://wiki.apidesign.org/wiki/PropertyFiles
         p.setProperty("version", "1.0");
-        // TODO store your settings
     }
 
     void readProperties(java.util.Properties p) {
         String version = p.getProperty("version");
-        // TODO read your settings according to their version
     }
 
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
-        //regenerateRunButton(true);
-        //regenerateSettings();
     }
 
     private class EdgeLayoutWrapper implements Comparable<EdgeLayoutWrapper> {
@@ -643,7 +632,6 @@ public final class EdgeLayoutWindowTopComponent extends TopComponent implements 
             if (propertySets == null) {
                 try {
                     Map<String, Sheet.Set> sheetMap = new HashMap<String, Sheet.Set>();
-                    System.err.println("layout has " + layout.getProperties().length + " properties");
                     for (EdgeLayoutProperty layoutProperty : layout.getProperties()) {
                         Sheet.Set set = sheetMap.get(layoutProperty.getCategory());
                         if (set == null) {
