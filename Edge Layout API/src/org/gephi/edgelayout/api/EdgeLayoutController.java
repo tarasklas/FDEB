@@ -102,10 +102,13 @@ public interface EdgeLayoutController {
      */
     public boolean canStop();
     
-    /*
-     * EdgeLayoutController sends to listeners request to refresh
+    /**
+     * Adds listener, to which EdgeLayoutController sends requests to refresh.
      */
     public void addRefreshListener(ChangeListener listener);
     
+    /**
+     * Removes listener, to which EdgeLayoutController sends requests to refresh.
+     */
     public boolean removeRefreshListener(ChangeListener listener);
 }

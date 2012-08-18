@@ -293,8 +293,4 @@ public class FDEBUtilities {
 
         }
     }
-    public static int passed = 0;
-    public static double passedValue = 0;
-    public static int total = 0;
-    public static int visited = 0;
 }

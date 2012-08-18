@@ -53,7 +53,7 @@ public class FDEBBuilder implements EdgeLayoutBuilder {
 
     @Override
     public String getName() {
-        return "1 Simple FDEB";
+        return "Simple FDEB";
     }
 
     @Override

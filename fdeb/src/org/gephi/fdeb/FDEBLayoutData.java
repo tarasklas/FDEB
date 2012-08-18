@@ -49,25 +49,6 @@ public class FDEBLayoutData implements EdgeLayoutData {
                 (int) (255 * Lookup.getDefault().lookup(PreviewController.class).getModel().getProperties().getDoubleValue("subdividededge.alpha")));
     }
 
-    private Color pickGradient(double f) {
-        if (f <= 0.2) {
-            return generateGradient(Color.WHITE, Color.BLUE, f / 0.2);
-        } else if (f <= 0.4) {
-            return generateGradient(Color.BLUE, Color.PINK, (f - 0.2) / 0.2);
-        } else if (f <= 0.6) {
-            return generateGradient(Color.PINK, Color.RED, (f - 0.4) / 0.2);
-        } else {
-            return generateGradient(Color.RED, Color.YELLOW, (f - 0.6) / 0.2);
-        }
-    }
-
-    private Color pickGradientManually(float f) {
-        return new Color(
-                (int) (Color.WHITE.getRed() * (1f - f) + Color.BLUE.getRed() * f),
-                (int) (Color.WHITE.getGreen() * (1f - f) + Color.BLUE.getGreen() * f),
-                (int) (Color.WHITE.getBlue() * (1f - f) + Color.BLUE.getBlue() * f));
-    }
-
     private Color pickGradientFromLookup(double f) {
         /*
          * That is likely woudn't work with toolkit, since gradientslider is set

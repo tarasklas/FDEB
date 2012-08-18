@@ -50,7 +50,7 @@ public class FDEBMultithreadingBuilder implements EdgeLayoutBuilder{
     private FDEBMultithreadingUI ui =  new FDEBMultithreadingUI();
     @Override
     public String getName() {
-        return "2 Multithreaded FDEB";
+        return "Multithreaded FDEB";
     }
 
     @Override

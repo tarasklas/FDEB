@@ -3,41 +3,27 @@
  */
 package org.gephi.desktop.edgelayout;
 
-import com.sun.java_cup.internal.runtime.Symbol;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.ComponentEvent;
-import java.awt.event.ComponentListener;
-import org.gephi.edgelayout.api.SubdividedEdgeRenderer;
-import java.awt.geom.Point2D;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.*;
-import java.util.List;
 import javax.swing.*;
-import javax.swing.border.Border;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import javax.swing.plaf.SliderUI;
 import org.gephi.desktop.edgelayout.GradientPresetPersistence.GradientPreset;
 import org.gephi.desktop.edgelayout.LayoutPresetPersistence.Preset;
 import org.gephi.desktop.preview.api.PreviewUIController;
-import org.gephi.edgelayout.api.*;
+import org.gephi.edgelayout.api.EdgeLayoutController;
+import org.gephi.edgelayout.api.EdgeLayoutModel;
+import org.gephi.edgelayout.api.SubdividedEdgeRenderer;
 import org.gephi.edgelayout.spi.EdgeLayout;
 import org.gephi.edgelayout.spi.EdgeLayoutBuilder;
-import org.gephi.edgelayout.spi.EdgeLayoutData;
 import org.gephi.edgelayout.spi.EdgeLayoutProperty;
-import org.gephi.graph.api.Edge;
-import org.gephi.graph.api.Graph;
-import org.gephi.graph.api.GraphController;
-import org.gephi.graph.api.GraphModel;
 import org.gephi.preview.api.ManagedRenderer;
 import org.gephi.preview.api.PreviewController;
-import org.gephi.preview.api.PreviewProperties;
 import org.gephi.preview.api.PreviewProperty;
 import org.gephi.preview.plugin.renderers.ArrowRenderer;
 import org.gephi.preview.plugin.renderers.EdgeRenderer;
@@ -50,7 +36,6 @@ import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
-import org.openide.awt.HtmlBrowser;
 import org.openide.awt.StatusDisplayer;
 import org.openide.explorer.propertysheet.PropertySheet;
 import org.openide.nodes.AbstractNode;
@@ -88,7 +73,6 @@ public final class EdgeLayoutWindowTopComponent extends TopComponent implements 
 
     private EdgeLayoutController controller;
     private EdgeLayoutModel model;
-    private PropertyChangeListener listener;
     private LayoutPresetPersistence layoutPresetPersistence;
     private GradientSlider gradientSlider;
     private GradientPresetPersistence gradientPresetPersistence;
@@ -102,14 +86,6 @@ public final class EdgeLayoutWindowTopComponent extends TopComponent implements 
     }
 
     public EdgeLayoutWindowTopComponent() {
-        listener = new PropertyChangeListener() {
-
-            @Override
-            public void propertyChange(PropertyChangeEvent evt) {
-                System.err.println("it's changed " + System.currentTimeMillis());
-            }
-        };
-
         initComponents();
         setName(Bundle.CTL_EdgeLayoutWindowTopComponent());
         setToolTipText(Bundle.HINT_EdgeLayoutWindowTopComponent());
@@ -123,35 +99,20 @@ public final class EdgeLayoutWindowTopComponent extends TopComponent implements 
 
             public void select(Workspace workspace) {
                 model = workspace.getLookup().lookup(EdgeLayoutModel.class);
-                model.addPropertyChangeListener(listener);
-                if (model.getSelectedBuilder() != null) {
-                    System.err.println("select and getselectedBuilder " + model.getSelectedBuilder().getName());
-                } else {
-                    System.err.println("select and null builder");
-                }
                 if (model.getSelectedBuilder() != null) {
                     for (int i = 0; i < layoutComboBox.getItemCount(); i++) {
                         if (layoutComboBox.getItemAt(i) instanceof EdgeLayoutWrapper
                                 && ((EdgeLayoutWrapper) layoutComboBox.getItemAt(i)).getBuilder().equals(model.getSelectedBuilder())) {
                             layoutComboBox.setSelectedIndex(i);
-                            System.err.println("select " + i);
                             break;
-                        } else if (i + 1 == layoutComboBox.getItemCount()) {
-                            System.err.println("fail :(");
                         }
                     }
                 } else {
                     layoutComboBox.setSelectedIndex(0);
                 }
-                if (layoutComboBox.getSelectedItem() instanceof EdgeLayoutWrapper
-                        && controller.getModel().getSelectedBuilder() != ((EdgeLayoutWrapper) layoutComboBox.getSelectedItem()).builder) {
-                    layoutComboBoxItemStateChanged(null);
-                }
             }
 
             public void unselect(Workspace workspace) {
-                model = workspace.getLookup().lookup(EdgeLayoutModel.class);
-                model.removePropertyChangeListener(listener);
             }
 
             public void close(Workspace workspace) {
@@ -163,6 +124,7 @@ public final class EdgeLayoutWindowTopComponent extends TopComponent implements 
             }
         });
         Lookup.getDefault().lookup(EdgeLayoutController.class).addRefreshListener(new ChangeListener() {
+
             @Override
             public void stateChanged(ChangeEvent e) {
                 System.err.println(e.toString() + " event");
@@ -244,7 +206,6 @@ public final class EdgeLayoutWindowTopComponent extends TopComponent implements 
         gradientSliderPanel = new javax.swing.JPanel();
         layoutComboBox = new javax.swing.JComboBox();
         refreshButton = new javax.swing.JButton();
-        exportToPngButton = new javax.swing.JButton();
         layoutToolbar = new javax.swing.JToolBar();
         presetsButton = new javax.swing.JButton();
         gradientsButton = new javax.swing.JButton();
@@ -285,14 +246,6 @@ public final class EdgeLayoutWindowTopComponent extends TopComponent implements 
             }
         });
 
-        org.openide.awt.Mnemonics.setLocalizedText(exportToPngButton, org.openide.util.NbBundle.getMessage(EdgeLayoutWindowTopComponent.class, "EdgeLayoutWindowTopComponent.exportToPngButton.text")); // NOI18N
-        exportToPngButton.setToolTipText(org.openide.util.NbBundle.getMessage(EdgeLayoutWindowTopComponent.class, "EdgeLayoutWindowTopComponent.exportToPngButton.toolTipText")); // NOI18N
-        exportToPngButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                exportToPngButtonActionPerformed(evt);
-            }
-        });
-
         layoutToolbar.setRollover(true);
 
         org.openide.awt.Mnemonics.setLocalizedText(presetsButton, org.openide.util.NbBundle.getMessage(EdgeLayoutWindowTopComponent.class, "EdgeLayoutWindowTopComponent.presetsButton.text")); // NOI18N
@@ -330,15 +283,13 @@ public final class EdgeLayoutWindowTopComponent extends TopComponent implements 
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addComponent(exportToPngButton)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addComponent(refreshButton)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 594, Short.MAX_VALUE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addComponent(runButton, javax.swing.GroupLayout.PREFERRED_SIZE, 130, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addComponent(gradientSliderPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                         .addComponent(layoutToolbar, javax.swing.GroupLayout.PREFERRED_SIZE, 167, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 625, Short.MAX_VALUE)
                         .addComponent(deleteButton))
                     .addComponent(layoutComboBox, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(settingsPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
@@ -352,7 +303,6 @@ public final class EdgeLayoutWindowTopComponent extends TopComponent implements 
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(refreshButton)
-                    .addComponent(exportToPngButton)
                     .addComponent(runButton))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(gradientSliderPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -373,11 +323,9 @@ public final class EdgeLayoutWindowTopComponent extends TopComponent implements 
             }
         }
 
-        boolean found = false;
         for (int i = 0; i < renderers.length; i++) {
             if (renderers[i].getRenderer() instanceof SubdividedEdgeRenderer) {
                 renderers[i].setEnabled(true);
-                found = true;
             }
         }
     }
@@ -415,16 +363,16 @@ public final class EdgeLayoutWindowTopComponent extends TopComponent implements 
     private boolean layoutIsRunning() {
         return (controller.getModel() != null && controller.getModel().isRunning());
     }
-    private int counter = 0;
 
     private void regenerateRunButtonWhenLayoutStops() {
-        System.err.println("end algo " + runButton.getText());
+        if (layoutIsRunning()) {
+            System.err.println("still running!");
+        }
         runButton.setText("Run");
         layoutComboBox.setEnabled(true);
     }
 
     private void regenerateRunButton(boolean shouldRefresh) {
-        System.err.println("regenerate at " + System.currentTimeMillis());
         boolean refresh = false;
         if (layoutIsRunning() != !layoutComboBox.isEnabled() && shouldRefresh) //i.e., it just changed and we should update preview
         {
@@ -433,7 +381,6 @@ public final class EdgeLayoutWindowTopComponent extends TopComponent implements 
         if (layoutIsRunning()) {
             runButton.setText("Stop");
             layoutComboBox.setEnabled(false);
-            //Lookup.getDefault().lookup(PreviewController.class).render(Lookup.getDefault().lookup(PreviewController.class).getRenderTarget(RenderTarget.PROCESSING_TARGET)); TODO: find how to update preview
         } else {
             runButton.setText("Run");
             layoutComboBox.setEnabled(true);
@@ -468,10 +415,6 @@ public final class EdgeLayoutWindowTopComponent extends TopComponent implements 
         refreshPreview();
     }//GEN-LAST:event_refreshButtonActionPerformed
 
-    private void exportToPngButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_exportToPngButtonActionPerformed
-        controller.getModel().getSelectedLayout().modifyAlgo();
-    }//GEN-LAST:event_exportToPngButtonActionPerformed
-
     private void presetsButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_presetsButtonActionPerformed
         JPopupMenu menu = new JPopupMenu();
         List<Preset> presets = null;
@@ -488,7 +431,7 @@ public final class EdgeLayoutWindowTopComponent extends TopComponent implements 
 
                     public void actionPerformed(ActionEvent e) {
                         layoutPresetPersistence.loadPreset(p, model.getSelectedLayout());
-                        //regenerateSettings();
+                        repaint();
                         //StatusDisplayer.getDefault().setStatusText(NbBundle.getMessage(LayoutPanel.class, "LayoutPanel.status.loadPreset", model.getSelectedBuilder().getName(), p.toString()));
                     }
                 });
@@ -496,7 +439,7 @@ public final class EdgeLayoutWindowTopComponent extends TopComponent implements 
             }
         } else {
             //menu.add("<html><i>" + NbBundle.getMessage(LayoutPanel.class, "LayoutPanel.presetsButton.nopreset") + "</i></html>");
-            menu.add("<html><i>No presets yet :(</i></html>");
+            menu.add("<html><i>No presets yet </i></html>");
         }
 
         //JMenuItem saveItem = new JMenuItem(NbBundle.getMessage(LayoutPanel.class, "LayoutPanel.presetsButton.savePreset"));
@@ -504,19 +447,18 @@ public final class EdgeLayoutWindowTopComponent extends TopComponent implements 
         saveItem.addActionListener(new ActionListener() {
 
             public void actionPerformed(ActionEvent e) {
-                //String lastPresetName = NbPreferences.forModule(LayoutPanel.class).get("LayoutPanel.lastPresetName", "");
+                String lastPresetName = NbPreferences.forModule(EdgeLayoutWindowTopComponent.class).get("EdgeLayoutWindowPanel.lastPresetName", "");
                 // NotifyDescriptor.InputLine question = new NotifyDescriptor.InputLine(
                 //        NbBundle.getMessage(LayoutPanel.class, "LayoutPanel.presetsButton.savePreset.input"),
                 //        NbBundle.getMessage(LayoutPanel.class, "LayoutPanel.presetsButton.savePreset.input.name"));
-                // question.setInputText(lastPresetName);
                 NotifyDescriptor.InputLine question = new NotifyDescriptor.InputLine("text", "title");
-                question.setInputText("somepresetname");
+                question.setInputText(lastPresetName);
                 if (DialogDisplayer.getDefault().notify(question) == NotifyDescriptor.OK_OPTION) {
                     String input = question.getInputText();
                     if (input != null && !input.isEmpty()) {
                         layoutPresetPersistence.savePreset(input, model.getSelectedLayout());
                         //StatusDisplayer.getDefault().setStatusText(NbBundle.getMessage(LayoutPanel.class, "LayoutPanel.status.savePreset", model.getSelectedBuilder().getName(), input));
-                        //NbPreferences.forModule(LayoutPanel.class).put("LayoutPanel.lastPresetName", input);
+                        NbPreferences.forModule(EdgeLayoutWindowTopComponent.class).put("EdgeLayoutWindowPanel.lastPresetName", input);
                     }
                 }
             }
@@ -558,19 +500,19 @@ public final class EdgeLayoutWindowTopComponent extends TopComponent implements 
         saveItem.addActionListener(new ActionListener() {
 
             public void actionPerformed(ActionEvent e) {
-                //String lastPresetName = NbPreferences.forModule(LayoutPanel.class).get("LayoutPanel.lastPresetName", "");
+                String lastPresetName = NbPreferences.forModule(EdgeLayoutWindowTopComponent.class).get("EdgeLayoutWindowTopComponent.lastGradientPesetName", "");
                 // NotifyDescriptor.InputLine question = new NotifyDescriptor.InputLine(
                 //        NbBundle.getMessage(LayoutPanel.class, "LayoutPanel.presetsButton.savePreset.input"),
                 //        NbBundle.getMessage(LayoutPanel.class, "LayoutPanel.presetsButton.savePreset.input.name"));
                 // question.setInputText(lastPresetName);
                 NotifyDescriptor.InputLine question = new NotifyDescriptor.InputLine("text", "title");
-                question.setInputText("somepresetname");
+                question.setInputText(lastPresetName);
                 if (DialogDisplayer.getDefault().notify(question) == NotifyDescriptor.OK_OPTION) {
                     String input = question.getInputText();
                     if (input != null && !input.isEmpty()) {
                         gradientPresetPersistence.savePreset(input, gradientSlider);
                         //StatusDisplayer.getDefault().setStatusText(NbBundle.getMessage(LayoutPanel.class, "LayoutPanel.status.savePreset", model.getSelectedBuilder().getName(), input));
-                        //NbPreferences.forModule(LayoutPanel.class).put("LayoutPanel.lastPresetName", input);
+                        NbPreferences.forModule(EdgeLayoutWindowTopComponent.class).put("EdgeLayoutWindowTopComponent.lastGradientPesetName", input);
                     }
                 }
             }
@@ -582,7 +524,6 @@ public final class EdgeLayoutWindowTopComponent extends TopComponent implements 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel customSettingsPanel;
     private javax.swing.JButton deleteButton;
-    private javax.swing.JButton exportToPngButton;
     private javax.swing.JPanel gradientSliderPanel;
     private javax.swing.JButton gradientsButton;
     private javax.swing.JComboBox layoutComboBox;

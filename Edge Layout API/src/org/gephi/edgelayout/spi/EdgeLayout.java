@@ -75,15 +75,20 @@ public interface EdgeLayout{
      */
     public EdgeLayoutBuilder getBuilder();
 
-    /*
-     * Called when it's possible to change something without full recalculation
+    /**
+     * Called every preview refresh after end of the layout to apply parameters changes. 
+     * Can be used to recalculate colors of edges.
      */
     public void modifyAlgo();
 
+    /**
+     * Removes all results from current workspace. 
+     */
     public void removeLayoutData();
     
-    /*
+    /**
      * Called after each goAlgo() or initAlgo() call, so could be used, for example, to refresh after every fifth iteration
+     * @return <code> True </code>, if preview should be refreshed.
      */
     public boolean shouldRefreshPreview(int refreshRate);
 }

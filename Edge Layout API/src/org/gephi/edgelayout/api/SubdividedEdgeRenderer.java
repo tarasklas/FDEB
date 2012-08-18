@@ -38,7 +38,7 @@ public class SubdividedEdgeRenderer implements Renderer {
 
     @Override
     public String getDisplayName() {
-        return "FDEB renderer";
+        return "Edge Layout Renderer";
     }
 
     @Override
@@ -351,10 +351,6 @@ public class SubdividedEdgeRenderer implements Renderer {
                 "Thickness of edge",
                 PreviewProperty.CATEGORY_EDGE_LAYOUT).setValue(0.5));
 
-        /*
-         * I think it's more comfortably to control it in that way, rather than
-         * with gradient slider, though probably option woud be nice
-         */
         properties.add(PreviewProperty.createProperty(this,
                 PreviewProperty.EDGE_LAYOUT_EDGE_TRANSPARENCY,
                 Double.class,
@@ -373,7 +369,7 @@ public class SubdividedEdgeRenderer implements Renderer {
                 PreviewProperty.EDGE_LAYOUT_SIMPLE_RENDERER_COLOR,
                 Color.class,
                 "Simple Renderer Color",
-                "Renderer color for 0th rendererer mode",
+                "Renderer color for simple rendererer mode",
                 PreviewProperty.CATEGORY_EDGE_LAYOUT).setValue(new Color(0f, 0f, 0.5f)));
 
         properties.add(PreviewProperty.createProperty(this,
@@ -387,7 +383,7 @@ public class SubdividedEdgeRenderer implements Renderer {
                 PreviewProperty.EDGE_LAYOUT_PRECALCULATE_POINTS,
                 Boolean.class,
                 "Precalculate points",
-                "Slowly precalculate points for 2nd renderer, needs to be re-runned",
+                "Precalculate points for gradient complex renderer, needs to be re-runned",
                 PreviewProperty.CATEGORY_EDGE_LAYOUT).setValue(false));
 
         return properties.toArray(new PreviewProperty[0]);

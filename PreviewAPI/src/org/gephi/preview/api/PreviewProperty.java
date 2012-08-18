@@ -264,16 +264,51 @@ public class PreviewProperty {
      * conditionally hide elements while moving to speed things up.
      */
     public static final String MOVING = "canvas.moving";
+    
     public static final String EDGE_LAYOUT_USE_RENDERER = "edge.layout.renderer";
-    public static final String EDGE_LAYOUT_REFRESH_RATE = "edge.layout.refreshrate";
+    /**
+     * Edge Layout
+     * <code>Double</code> property defining edge thickness.
+     */
     public static final String EDGE_LAYOUT_EDGE_THICKNESS = "edge.layout.thickness";
+    /**
+     * Edge Layout
+     * <code>Double</code> property in range [0..1] defining transparency. See also EDGE_LAYOUT_EDGE_TRANSPARENCY_FORCE
+     */
     public static final String EDGE_LAYOUT_EDGE_TRANSPARENCY = "edge.layout.transparency";
+    /**
+     * Edge Layout
+     * <code>Boolean</code> property defining whether to use EDGE_LAYOUT_EDGE_TRANSPARENCY transparency for non-simple renderers.
+     */
     public static final String EDGE_LAYOUT_EDGE_TRANSPARENCY_FORCE = "edge.layout.transparency.force";
+    /**
+     * Edge Layout
+     * <code>Color</color> property defining edge color for simple gradient renderer mode.
+     */
     public static final String EDGE_LAYOUT_SIMPLE_RENDERER_COLOR = "edge.layout.simplerenderer.color";
-    public static final String EDGE_LAYOUT_GRADIENT = "edge.layout.renderer.gradient";
+    /**
+     * Edge Layout
+     * <code>GradientSlider</code> property defining gradient slider with currently used gradient.
+     */
     public static final String EDGE_LAYOUT_GRADIENT_SLIDER_LOCATION = "edge.layout.renderer.gradient.slider";
+    
+    //These 3 are actually fdeb options, but it would be unintuitive to move away, 
+    /**
+     * Edge Layout
+     * <code>Integer</code> property defining number of layout iterations before preview refresh. Helps to observe the progress of bundling.
+     */
+    public static final String EDGE_LAYOUT_REFRESH_RATE = "edge.layout.refreshrate";
+    /**
+     * Edge Layout
+     * <code>Boolean</code> property defining whether to use relative coloring instead of absolute.
+     */
+    public static final String EDGE_LAYOUT_USE_PERCENTAGE_INSTEAD_OF_LINEAR_SCALE = "edge.layout.percentage";  
+    /**
+     * Edge Layout
+     * <code>Boolean</code> property defining whether to precalculate colors for complex gradient renderer mode.
+     */
     public static final String EDGE_LAYOUT_PRECALCULATE_POINTS = "edge.layout.renderer.gradient.precalculate";
-    public static final String EDGE_LAYOUT_USE_PERCENTAGE_INSTEAD_OF_LINEAR_SCALE = "edge.layout.percentage";
+
 
     //Constants categories
     /**
