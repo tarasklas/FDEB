@@ -48,6 +48,7 @@ import org.gephi.preview.api.PreviewProperty;
 import org.gephi.preview.types.DependantColor;
 import org.gephi.preview.types.DependantOriginalColor;
 import org.gephi.preview.types.EdgeColor;
+import org.gephi.preview.types.RendererModes;
 import org.openide.util.NbBundle;
 
 /**
@@ -97,7 +98,7 @@ public class DefaultPreset extends PreviewPreset {
         properties.put(PreviewProperty.SHOW_EDGE_LABELS, Boolean.FALSE);
         properties.put(PreviewProperty.SHOW_NODE_LABELS, Boolean.FALSE);
         
-        properties.put(PreviewProperty.EDGE_LAYOUT_USE_RENDERER, PreviewProperty.RendererModes.SimpleRenderer);
+        properties.put(PreviewProperty.EDGE_LAYOUT_USE_RENDERER, RendererModes.SIMPLE);
         properties.put(PreviewProperty.EDGE_LAYOUT_EDGE_THICKNESS, 0.5);
         properties.put(PreviewProperty.EDGE_LAYOUT_EDGE_TRANSPARENCY, 0.1);
         properties.put(PreviewProperty.EDGE_LAYOUT_EDGE_TRANSPARENCY_FORCE, false);

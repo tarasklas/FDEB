@@ -7,16 +7,11 @@ package org.gephi.fdeb.utils;
 import java.awt.Point;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import org.gephi.bundler.QuadNode;
+import java.util.List;
 import org.gephi.fdeb.FDEBCompatibilityRecord;
 import org.gephi.fdeb.FDEBLayoutData;
 import org.gephi.graph.api.*;
-import org.gephi.preview.api.PreviewController;
-import org.openide.util.Lookup;
-import processing.core.PVector;
+import org.gephi.utils.StatisticsUtils;
 
 /**
  *
@@ -31,7 +26,10 @@ public class FDEBUtilities {
      * yStats.getMax() - yStats.getMin()) / 1000);
      */
 
-    static public double calculateSprintConstant(Graph graph) {
+    /**
+     * Not used for now, it does not work well on big graphs.
+     */
+    static public double calculateSpringConstant(Graph graph) {
         double minX = Integer.MAX_VALUE;
         double maxX = Integer.MIN_VALUE;
         double minY = Integer.MAX_VALUE;
@@ -43,7 +41,27 @@ public class FDEBUtilities {
             maxX = Math.max(maxX, node.getNodeData().x());
             maxY = Math.max(maxY, node.getNodeData().y());
         }
-        return Math.min(maxX - minX, maxY - minY) / 1000;
+        return (maxX - minX + maxY - minY) / 1000.0;
+    }
+
+    /*
+     * Gives fair estimations for good results in small and medium graphs. Big graphs might need greater values.
+     */
+    static public double calculateInitialStepSize(Graph graph) {
+        double higherDistances2;
+        double xDiff, yDiff;
+        
+        Edge edges[] = graph.getEdges().toArray();
+        Number distances2[] = new Number[edges.length];
+        for (int i = 0; i < edges.length; i++) {
+            Edge edge = edges[i];
+            xDiff = edge.getSource().getNodeData().x() - edge.getTarget().getNodeData().x();
+            yDiff = edge.getSource().getNodeData().y() - edge.getTarget().getNodeData().y();
+            distances2[i] = (xDiff * xDiff + yDiff * yDiff);
+        }
+        higherDistances2 = StatisticsUtils.quartile3(distances2).doubleValue();
+
+        return Math.sqrt(higherDistances2) / 50;
     }
 
     static public void divideEdge(Edge edge, double subdivisionPointsPerEdge) {
@@ -83,13 +101,44 @@ public class FDEBUtilities {
         data.subdivisionPoints = subdivisionPoints;
     }
 
+    static public void createCompatibilityRecords(double compatibilityThreshold, Graph graph, FDEBCompatibilityComputator computator) {
+        Edge[] edges = graph.getEdges().toArray();
+        List<FDEBCompatibilityRecord> compatibleEdgeLists[] = new List[edges.length];
+        for (int i = 0; i < compatibleEdgeLists.length; i++) {
+            compatibleEdgeLists[i] = new ArrayList<FDEBCompatibilityRecord>();
+        }
+
+        int numEdges = edges.length;
+
+        for (int i = 0; i < edges.length; i++) {
+            ((FDEBLayoutData) edges[i].getEdgeData().getLayoutData()).intensity = 0;
+        }
+
+        for (int i = 0; i < numEdges; i++) {
+            for (int j = 0; j < i; j++) {
+
+                double compatibility = computator.calculateCompatibility(edges[i], edges[j]);
+                ((FDEBLayoutData) edges[i].getEdgeData().getLayoutData()).intensity += compatibility * compatibility;
+                ((FDEBLayoutData) edges[j].getEdgeData().getLayoutData()).intensity += compatibility * compatibility;
+                if (Math.abs(compatibility) >= compatibilityThreshold) {
+                    compatibleEdgeLists[i].add(new FDEBCompatibilityRecord(compatibility, edges[j]));
+                    compatibleEdgeLists[j].add(new FDEBCompatibilityRecord(compatibility, edges[i]));
+                }
+            }
+        }
+
+        for (int i = 0; i < edges.length; i++) {
+            ((FDEBLayoutData) edges[i].getEdgeData().getLayoutData()).similarEdges = compatibleEdgeLists[i].toArray(new FDEBCompatibilityRecord[0]);
+        }
+    }
+    
     static public void createCompatibilityRecords(Edge edge, double compatibilityThreshold, Graph graph, FDEBCompatibilityComputator computator) {
         ArrayList<FDEBCompatibilityRecord> similar = new ArrayList<FDEBCompatibilityRecord>();
         if (edge.isSelfLoop()) {
             ((FDEBLayoutData) edge.getEdgeData().getLayoutData()).similarEdges = new FDEBCompatibilityRecord[0];
         }
         ((FDEBLayoutData) edge.getEdgeData().getLayoutData()).intensity = 0;
-        for (Edge probablySimilarEdge : graph.getEdges()) {
+        for (Edge probablySimilarEdge : graph.getEdges().toArray()) {
             if (probablySimilarEdge.isSelfLoop() || probablySimilarEdge == edge) {
                 continue;
             }
@@ -106,23 +155,21 @@ public class FDEBUtilities {
         }
     }
 
-    static public void updateNewSubdivisionPoints(Edge edge, double sprintConstant, double stepSize, boolean useInverseQuadraticModel) {
+    static public void updateNewSubdivisionPoints(Edge edge, double springConstant, double stepSize, boolean useInverseQuadraticModel) {
         if (edge.isSelfLoop()) {
             return;
         }
         FDEBLayoutData data = edge.getEdgeData().getLayoutData();
-        double k = sprintConstant / (data.length * (data.subdivisionPoints.length - 1));
-        for (int i = 1; i < data.subdivisionPoints.length - 1; i++)//first and last are fixed
-        {
+        double k = springConstant / (data.length * (data.subdivisionPoints.length - 1));
+        for (int i = 1; i < data.subdivisionPoints.length - 1; i++) {//first and last are fixed
             double Fsi_x = (data.subdivisionPoints[i - 1].x - data.subdivisionPoints[i].x)
                     + (data.subdivisionPoints[i + 1].x - data.subdivisionPoints[i].x);
             double Fsi_y = (data.subdivisionPoints[i - 1].y - data.subdivisionPoints[i].y)
                     + (data.subdivisionPoints[i + 1].y - data.subdivisionPoints[i].y);
 
-            {
-                Fsi_x *= k;
-                Fsi_y *= k;
-            }
+            Fsi_x *= k;
+            Fsi_y *= k;
+
             double Fei_x = 0;
             double Fei_y = 0;
 
@@ -139,11 +186,23 @@ public class FDEBUtilities {
 
                 if (Math.abs(v_x) > EPS || Math.abs(v_y) > EPS) {
                     double len_sq = v_x * v_x + v_y * v_y;
+                    double len = Math.sqrt(len_sq);
+
                     double m;
-                    if (!useInverseQuadraticModel) {
-                        m = (record.compatibility / Math.sqrt(len_sq));
+                    if (useInverseQuadraticModel) {
+                        m = (record.compatibility / len / len_sq);
                     } else {
                         m = (record.compatibility / len_sq);
+                    }
+
+                    if (Math.abs(m * stepSize) > 1.0) {  // this condition is to reduce the "hairy" effect:
+                        // a point shouldn't be moved farther than to the
+                        // point which attracts it
+                        m = Math.signum(m) / stepSize;
+                        // TODO: this force difference shouldn't be neglected
+                        // instead it should make it more difficult to move the
+                        // point from it's current position: this should reduce
+                        // the effect even more
                     }
 
                     v_x *= m;
@@ -162,13 +221,13 @@ public class FDEBUtilities {
         }
     }
 
-    static public void updateNewSubdivisionPointsInLowMemoryMode(Edge edge, double sprintConstant, double stepSize, boolean useInverseQuadraticModel,
+    static public void updateNewSubdivisionPointsInLowMemoryMode(Edge edge, double springConstant, double stepSize, boolean useInverseQuadraticModel,
             Graph graph, FDEBCompatibilityComputator comp, double threshold) {
         if (edge.isSelfLoop()) {
             return;
         }
         FDEBLayoutData data = edge.getEdgeData().getLayoutData();
-        double k = sprintConstant / (data.length * (data.subdivisionPoints.length - 1));
+        double k = springConstant / (data.length * (data.subdivisionPoints.length - 1));
         for (int i = 1; i < data.subdivisionPoints.length - 1; i++)//first and last are fixed
         {
             double Fsi_x = (data.subdivisionPoints[i - 1].x - data.subdivisionPoints[i].x)
@@ -185,7 +244,7 @@ public class FDEBUtilities {
 
 
 
-            for (Edge moveEdge : graph.getEdges()) {
+            for (Edge moveEdge : graph.getEdges().toArray()) {
                 if (moveEdge.isSelfLoop() || edge == moveEdge) {
                     continue;
                 }
@@ -200,11 +259,23 @@ public class FDEBUtilities {
 
                 if (Math.abs(v_x) > EPS || Math.abs(v_y) > EPS) {
                     double len_sq = v_x * v_x + v_y * v_y;
+                    double len = Math.sqrt(len_sq);
+
                     double m;
-                    if (!useInverseQuadraticModel) {
-                        m = (compatibility / Math.sqrt(len_sq));
+                    if (useInverseQuadraticModel) {
+                        m = (compatibility / len / len_sq);
                     } else {
                         m = (compatibility / len_sq);
+                    }
+
+                    if (Math.abs(m * stepSize) > 1.0) {  // this condition is to reduce the "hairy" effect:
+                        // a point shouldn't be moved farther than to the
+                        // point which attracts it
+                        m = Math.signum(m) / stepSize;
+                        // TODO: this force difference shouldn't be neglected
+                        // instead it should make it more difficult to move the
+                        // point from it's current position: this should reduce
+                        // the effect even more
                     }
 
                     v_x *= m;
@@ -226,6 +297,4 @@ public class FDEBUtilities {
     public static double passedValue = 0;
     public static int total = 0;
     public static int visited = 0;
-
- 
 }

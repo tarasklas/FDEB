@@ -275,21 +275,6 @@ public class PreviewProperty {
     public static final String EDGE_LAYOUT_PRECALCULATE_POINTS = "edge.layout.renderer.gradient.precalculate";
     public static final String EDGE_LAYOUT_USE_PERCENTAGE_INSTEAD_OF_LINEAR_SCALE = "edge.layout.percentage";
 
-    public static enum RendererModes {
-
-        SimpleRenderer, GradientRenderer, GradientComplexRenderer;
-
-        @Override
-        public String toString() {
-            if (SimpleRenderer.equals(this)) {
-                return "Simple renderer";
-            } else if (GradientRenderer.equals(this)) {
-                return "Gradient renderer";
-            } else {
-                return "Gradient complex renderer";
-            }
-        }
-    }
     //Constants categories
     /**
      * Node category

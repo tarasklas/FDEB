@@ -32,20 +32,17 @@ public class FDEBBundlerMultithreading extends FDEBAbstractBundler implements Ed
     public void initAlgo() {
         executor = Executors.newCachedThreadPool();
 
-        for (Edge edge : graphModel.getGraph().getEdges()) {
+        for (Edge edge : graphModel.getGraph().getEdges().toArray()) {
             edge.getEdgeData().setLayoutData(
                     new FDEBLayoutData(edge.getSource().getNodeData().x(), edge.getSource().getNodeData().y(),
                     edge.getTarget().getNodeData().x(), edge.getTarget().getNodeData().y()));
         }
         cycle = 1;
         setConverged(false);
-        if (!useUserConstant) {
-            sprintConstant = FDEBUtilities.calculateSprintConstant(graphModel.getGraph());
-        }
         stepSize = stepSizeAtTheBeginning;
         iterationsPerCycle = iterationsPerCycleAtTheBeginning;
         subdivisionPointsPerEdge = 1;//start and end doesnt count
-        System.out.println("K " + sprintConstant);
+        System.out.println("K " + springConstant);
 
         createCompatibilityLists();
     }
@@ -56,7 +53,7 @@ public class FDEBBundlerMultithreading extends FDEBAbstractBundler implements Ed
     @Override
     public void goAlgo() {
 
-        for (Edge edge : graphModel.getGraph().getEdges()) {
+        for (Edge edge : graphModel.getGraph().getEdges().toArray()) {
             ((FDEBLayoutData) edge.getEdgeData().getLayoutData()).newSubdivisionPoints = Arrays.copyOf(((FDEBLayoutData) edge.getEdgeData().getLayoutData()).subdivisionPoints,
                     ((FDEBLayoutData) edge.getEdgeData().getLayoutData()).subdivisionPoints.length);
         }
@@ -70,10 +67,10 @@ public class FDEBBundlerMultithreading extends FDEBAbstractBundler implements Ed
             for (int i = 0; i < numberOfTasks; i++) {
                 if (!useLowMemoryMode) {
                     calculationTasks[i] = executor.submit(new FDEBForceCalculationTask(edges, cedges * i / numberOfTasks,
-                            Math.min(cedges, cedges * (i + 1) / numberOfTasks), sprintConstant, stepSize, useInverseQuadraticModel), computator);
+                            Math.min(cedges, cedges * (i + 1) / numberOfTasks), springConstant, stepSize, useInverseQuadraticModel), computator);
                 } else {
                     calculationTasks[i] = executor.submit(new FDEBForceCalculationTask(edges, cedges * i / numberOfTasks,
-                            Math.min(cedges, cedges * (i + 1) / numberOfTasks), sprintConstant, stepSize, useInverseQuadraticModel, computator, compatibilityThreshold, graphModel.getGraph()));
+                            Math.min(cedges, cedges * (i + 1) / numberOfTasks), springConstant, stepSize, useInverseQuadraticModel, computator, compatibilityThreshold, graphModel.getGraph()));
                 }
             }
 
@@ -113,7 +110,7 @@ public class FDEBBundlerMultithreading extends FDEBAbstractBundler implements Ed
 
     void divideEdges() {
         subdivisionPointsPerEdge *= subdivisionPointIncreaseRate;
-        for (Edge edge : graphModel.getGraph().getEdges()) {
+        for (Edge edge : graphModel.getGraph().getEdges().toArray()) {
             FDEBUtilities.divideEdge(edge, subdivisionPointsPerEdge);
         }
     }
@@ -122,40 +119,5 @@ public class FDEBBundlerMultithreading extends FDEBAbstractBundler implements Ed
     public void endAlgo() {
         super.endAlgo();
         executor.shutdown();
-    }
-
-    private void createCompatibilityLists() {
-        if (useLowMemoryMode) {
-            return;
-        }
-        ArrayList<FDEBCompatibilityRecord> similar = new ArrayList<FDEBCompatibilityRecord>();
-        Future[] tasks = new Future[numberOfTasks];
-        int cedges = graphModel.getGraph().getEdgeCount();
-        Edge[] edges = graphModel.getGraph().getEdges().toArray();
-        for (int i = 0; i < numberOfTasks; i++) {
-            tasks[i] = executor.submit(new FDEBCompatibilityRecordsTask(edges, cedges * i / numberOfTasks,
-                    Math.min(cedges, cedges * (i + 1) / numberOfTasks), compatibilityThreshold, graphModel.getGraph(), computator));
-        }
-
-        for (int i = 0; i < numberOfTasks; i++) {
-            try {
-                tasks[i].get();
-            } catch (InterruptedException ex) {
-                Exceptions.printStackTrace(ex);
-            } catch (ExecutionException ex) {
-                Exceptions.printStackTrace(ex);
-            }
-        }
-
-
-        int totalEdges = graphModel.getGraph().getEdgeCount() * graphModel.getGraph().getEdgeCount();
-        int passedEdges = 0;
-        for (Edge edge : graphModel.getGraph().getEdges()) {
-            if (((FDEBLayoutData) edge.getEdgeData().getLayoutData()).similarEdges != null) {
-                passedEdges += ((FDEBLayoutData) edge.getEdgeData().getLayoutData()).similarEdges.length;
-            }
-        }
-        System.err.println("total: " + totalEdges + " passed " + passedEdges
-                + " fraction " + ((double) passedEdges) / totalEdges);
     }
 }

@@ -18,7 +18,7 @@ public class FDEBForceCalculationTask implements Runnable {
     Edge[] edge;
     int from;
     int to;
-    double sprintConstant;
+    double springConstant;
     double stepSize;
     boolean useInverseQuadratic;
     boolean lowMemoryMode;
@@ -26,11 +26,11 @@ public class FDEBForceCalculationTask implements Runnable {
     double compatibilityThreshold;
     Graph graph;
 
-    public FDEBForceCalculationTask(Edge[] edge, int from, int to, double sprintConstant, double stepSize, boolean useInverseQuadratic) {
+    public FDEBForceCalculationTask(Edge[] edge, int from, int to, double springConstant, double stepSize, boolean useInverseQuadratic) {
         this.edge = edge;
         this.from = from;
         this.to = to;
-        this.sprintConstant = sprintConstant;
+        this.springConstant = springConstant;
         this.stepSize = stepSize;
         this.useInverseQuadratic = useInverseQuadratic;
         this.lowMemoryMode = false;
@@ -39,12 +39,12 @@ public class FDEBForceCalculationTask implements Runnable {
     /*
      * Low memory mode
      */
-    public FDEBForceCalculationTask(Edge[] edge, int from, int to, double sprintConstant, double stepSize, boolean useInverseQuadratic,
+    public FDEBForceCalculationTask(Edge[] edge, int from, int to, double springConstant, double stepSize, boolean useInverseQuadratic,
             FDEBCompatibilityComputator computator, double compatibilityThreshold, Graph graph) {
         this.edge = edge;
         this.from = from;
         this.to = to;
-        this.sprintConstant = sprintConstant;
+        this.springConstant = springConstant;
         this.stepSize = stepSize;
         this.useInverseQuadratic = useInverseQuadratic;
         this.lowMemoryMode = true;
@@ -57,9 +57,9 @@ public class FDEBForceCalculationTask implements Runnable {
     public void run() {
         for (int i = from; i < to; i++) {
             if (!lowMemoryMode) {
-                FDEBUtilities.updateNewSubdivisionPoints(edge[i], sprintConstant, stepSize, useInverseQuadratic);
+                FDEBUtilities.updateNewSubdivisionPoints(edge[i], springConstant, stepSize, useInverseQuadratic);
             } else {
-                FDEBUtilities.updateNewSubdivisionPointsInLowMemoryMode(edge[i], sprintConstant, stepSize, useInverseQuadratic, graph, computator, compatibilityThreshold);
+                FDEBUtilities.updateNewSubdivisionPointsInLowMemoryMode(edge[i], springConstant, stepSize, useInverseQuadratic, graph, computator, compatibilityThreshold);
             }
         }
     }

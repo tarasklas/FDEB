@@ -5,7 +5,6 @@
 package org.gephi.edgelayout.api;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import org.gephi.edgelayout.spi.EdgeLayoutData;
 import org.gephi.graph.api.Edge;
@@ -14,6 +13,7 @@ import org.gephi.preview.api.Item;
 import org.gephi.preview.api.PreviewController;
 import org.gephi.preview.api.PreviewProperty;
 import org.gephi.preview.plugin.items.AbstractItem;
+import org.gephi.preview.types.RendererModes;
 import org.openide.util.Lookup;
 
 /**
@@ -28,7 +28,7 @@ public class SubdividedEdgeBigItem extends AbstractItem implements Item {
     SubdividedEdgeBigItem(Object source, String type) {
         super(source, type);
         edges = new ArrayList<SortedEdgeWrapper>();
-        if (Lookup.getDefault().lookup(PreviewController.class).getModel().getProperties().getValue(PreviewProperty.EDGE_LAYOUT_USE_RENDERER) == PreviewProperty.RendererModes.GradientRenderer) {
+        if (Lookup.getDefault().lookup(PreviewController.class).getModel().getProperties().getValue(PreviewProperty.EDGE_LAYOUT_USE_RENDERER) == RendererModes.GRADIENT) {
             for (Edge edge : ((Graph) source).getEdges()) {
                 if (edge.getEdgeData().getLayoutData() instanceof EdgeLayoutData) {
                     edges.add(new SortedEdgeWrapper(edge, ((EdgeLayoutData) edge.getEdgeData().getLayoutData()).getEdgeSortOrder()));
@@ -44,7 +44,7 @@ public class SubdividedEdgeBigItem extends AbstractItem implements Item {
                             try {
                                 edges.add(new SortedEdgeWrapper(edge, sort[i], i));
                             } catch (NullPointerException ex) {
-                                ex.printStackTrace();;
+                                ex.printStackTrace();
                             }
                         }
                     }
@@ -55,11 +55,11 @@ public class SubdividedEdgeBigItem extends AbstractItem implements Item {
     }
 
     public boolean isReady() {
-        if (edges == null || edges.size() == 0) {
+        if (edges == null || edges.isEmpty()) {
             return false;
         }
         if ((Lookup.getDefault().lookup(PreviewController.class).getModel().getProperties().getValue(PreviewProperty.EDGE_LAYOUT_USE_RENDERER)
-                == PreviewProperty.RendererModes.GradientRenderer)) {
+                == RendererModes.GRADIENT)) {
             for (SortedEdgeWrapper wrapper : edges) {
                 if (wrapper.edge.getEdgeData().getLayoutData() != null
                         && ((EdgeLayoutData) wrapper.edge.getEdgeData().getLayoutData()).getEdgeColor() == null) {
@@ -68,7 +68,7 @@ public class SubdividedEdgeBigItem extends AbstractItem implements Item {
             }
         }
         if ((Lookup.getDefault().lookup(PreviewController.class).getModel().getProperties().getValue(PreviewProperty.EDGE_LAYOUT_USE_RENDERER)
-                == PreviewProperty.RendererModes.GradientComplexRenderer)) {
+                == RendererModes.GRADIENT_COMPLEX)) {
             for (SortedEdgeWrapper wrapper : edges) {
                 if (wrapper.edge.getEdgeData().getLayoutData() != null
                         && ((EdgeLayoutData) wrapper.edge.getEdgeData().getLayoutData()).getSubdivisionEdgeColor() == null) {

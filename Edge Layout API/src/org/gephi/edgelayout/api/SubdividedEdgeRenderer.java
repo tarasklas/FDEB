@@ -17,6 +17,7 @@ import org.gephi.graph.api.Edge;
 import org.gephi.preview.api.*;
 import org.gephi.preview.spi.ItemBuilder;
 import org.gephi.preview.spi.Renderer;
+import org.gephi.preview.types.RendererModes;
 import org.openide.util.lookup.ServiceProvider;
 import org.w3c.dom.Element;
 import processing.core.PGraphics;
@@ -133,15 +134,15 @@ public class SubdividedEdgeRenderer implements Renderer {
 
     @Override
     public void render(Item item, RenderTarget target, PreviewProperties properties) {
-        if (item instanceof SubdividedEdgeItem && (properties.getValue(PreviewProperty.EDGE_LAYOUT_USE_RENDERER).equals(PreviewProperty.RendererModes.SimpleRenderer) || useSimpleRendererBecauseOtherAreEmpty)) {
-            assert (properties.getValue(PreviewProperty.EDGE_LAYOUT_USE_RENDERER).equals(PreviewProperty.RendererModes.SimpleRenderer)
+        if (item instanceof SubdividedEdgeItem && (properties.getValue(PreviewProperty.EDGE_LAYOUT_USE_RENDERER).equals(RendererModes.SIMPLE) || useSimpleRendererBecauseOtherAreEmpty)) {
+            assert (properties.getValue(PreviewProperty.EDGE_LAYOUT_USE_RENDERER).equals(RendererModes.SIMPLE)
                     || useSimpleRendererBecauseOtherAreEmpty);
             renderSimpleItem((SubdividedEdgeItem) item, target, properties);
         } else if (!useSimpleRendererBecauseOtherAreEmpty
-                && item instanceof SubdividedEdgeBigItem && properties.getValue(PreviewProperty.EDGE_LAYOUT_USE_RENDERER).equals(PreviewProperty.RendererModes.GradientRenderer)) {
+                && item instanceof SubdividedEdgeBigItem && properties.getValue(PreviewProperty.EDGE_LAYOUT_USE_RENDERER).equals(RendererModes.GRADIENT)) {
             renderBigItem((SubdividedEdgeBigItem) item, target, properties);
         } else if (!useSimpleRendererBecauseOtherAreEmpty
-                && item instanceof SubdividedEdgeBigItem && properties.getValue(PreviewProperty.EDGE_LAYOUT_USE_RENDERER).equals(PreviewProperty.RendererModes.GradientComplexRenderer)) {
+                && item instanceof SubdividedEdgeBigItem && properties.getValue(PreviewProperty.EDGE_LAYOUT_USE_RENDERER).equals(RendererModes.GRADIENT_COMPLEX)) {
             renderBigAndComplexItem((SubdividedEdgeBigItem) item, target, properties);
         }
     }
@@ -328,17 +329,13 @@ public class SubdividedEdgeRenderer implements Renderer {
     @Override
     public PreviewProperty[] getProperties() {
         List<PreviewProperty> properties = new ArrayList<PreviewProperty>();
-        /*
-         * In pure PropertySheet it's possible to easy make nice combobox, looks
-         * like this isn't possible with PreviewProperty, going to make a jpanel
-         * for that soon
-         */
+        PropertyEditorManager.registerEditor(RendererModes.class, RenderModePropertyEditor.class);
         properties.add(PreviewProperty.createProperty(this,
                 PreviewProperty.EDGE_LAYOUT_USE_RENDERER,
-                PreviewProperty.RendererModes.class,
+                RendererModes.class,
                 "Renderer mode",
                 "standart one-color renderer;gradient renderer; slow gradient renderer that requires precalculation",
-                PreviewProperty.CATEGORY_EDGE_LAYOUT).setValue(PreviewProperty.RendererModes.SimpleRenderer));
+                PreviewProperty.CATEGORY_EDGE_LAYOUT).setValue(RendererModes.SIMPLE));
 
         properties.add(PreviewProperty.createProperty(this,
                 PreviewProperty.EDGE_LAYOUT_REFRESH_RATE,
@@ -372,10 +369,9 @@ public class SubdividedEdgeRenderer implements Renderer {
                 "Forces user edge transparency for non simple rendering modes",
                 PreviewProperty.CATEGORY_EDGE_LAYOUT).setValue(false));
 
-        PropertyEditorManager.registerEditor(ColorWrapper.class, DependantColorPropertyEditor.class);
         properties.add(PreviewProperty.createProperty(this,
                 PreviewProperty.EDGE_LAYOUT_SIMPLE_RENDERER_COLOR,
-                ColorWrapper.class,
+                Color.class,
                 "Simple Renderer Color",
                 "Renderer color for 0th rendererer mode",
                 PreviewProperty.CATEGORY_EDGE_LAYOUT).setValue(new Color(0f, 0f, 0.5f)));
@@ -400,7 +396,7 @@ public class SubdividedEdgeRenderer implements Renderer {
     @Override
     public boolean isRendererForitem(Item item, PreviewProperties properties) {
         return (item instanceof SubdividedEdgeItem
-                || item instanceof SubdividedEdgeBigItem && !properties.getValue(PreviewProperty.EDGE_LAYOUT_USE_RENDERER).equals(PreviewProperty.RendererModes.SimpleRenderer));
+                || item instanceof SubdividedEdgeBigItem && !properties.getValue(PreviewProperty.EDGE_LAYOUT_USE_RENDERER).equals(RendererModes.SIMPLE));
     }
 
     @Override

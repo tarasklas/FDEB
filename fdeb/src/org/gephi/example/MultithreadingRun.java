@@ -123,7 +123,7 @@ public class MultithreadingRun {
          * PrintWriter debug = null; try { debug = new
          * PrintWriter("debugThreaded.txt"); } catch (FileNotFoundException ex)
          * { Exceptions.printStackTrace(ex); } for (Edge edge :
-         * graph.getEdges()) { FDEBLayoutData data =
+         * graph.getEdges().toArray()) { FDEBLayoutData data =
          * edge.getEdgeData().getLayoutData(); for (int j = 0; j <
          * data.subdivisionPoints.length; j++) {
          * debug.println(data.subdivisionPoints[j].x + " " +

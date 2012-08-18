@@ -43,14 +43,6 @@ public class FDEBCompatibilityComputator {
         return compatibility;
     }
 
-    public double angleCompatibility(Edge aEdge, Edge bEdge) {
-        PVector a = new PVector(aEdge.getTarget().getNodeData().x() - aEdge.getSource().getNodeData().x(),
-                aEdge.getTarget().getNodeData().y() - aEdge.getSource().getNodeData().y());
-        PVector b = new PVector(bEdge.getTarget().getNodeData().x() - bEdge.getSource().getNodeData().x(),
-                bEdge.getTarget().getNodeData().y() - bEdge.getSource().getNodeData().y());
-        return angleCompatibility(a, b);
-    }
-
     private double angleCompatibility(PVector a, PVector b) {
         double compatiblity = Math.abs(a.dot(b) / (a.mag() * b.mag()));
 
@@ -59,28 +51,28 @@ public class FDEBCompatibilityComputator {
 
     private double angleCompatibilityAffectedByDirection(PVector a, PVector b) {
         double compatibility = (a.dot(b) / (a.mag() * b.mag()) + 1.0) / 2.0;
-        assert (compatibility >= 0);
-        assert (compatibility <= 1);
+//        assert (compatibility >= 0);
+//        assert (compatibility <= 1);
         return compatibility;
     }
 
     private double scaleCompatibility(PVector a, PVector b) {
-        double lavg = (a.mag() + b.mag()) / 2;
+        double lavg = (a.mag() + b.mag()) / 2.0;
         double compatibility = 2.0 / (lavg / Math.min(a.mag(), b.mag()) + Math.max(a.mag(), b.mag()) / lavg);
-        assert (compatibility >= 0);
-        assert (compatibility <= 1);
+//        assert (compatibility >= 0);
+//        assert (compatibility <= 1);
         return compatibility;
     }
 
     private double positionCompatibility(PVector a, PVector b, Edge ae, Edge be) {
-        PVector aMid = new PVector((ae.getSource().getNodeData().x() + ae.getTarget().getNodeData().x()) / 2,
-                (ae.getSource().getNodeData().y() + ae.getTarget().getNodeData().y()) / 2);
-        PVector bMid = new PVector((be.getSource().getNodeData().x() + be.getTarget().getNodeData().x()) / 2,
-                (be.getSource().getNodeData().y() + be.getTarget().getNodeData().y()) / 2);
-        double lavg = (a.mag() + b.mag()) / 2;
+        PVector aMid = new PVector((ae.getSource().getNodeData().x() + ae.getTarget().getNodeData().x()) / 2.0f,
+                (ae.getSource().getNodeData().y() + ae.getTarget().getNodeData().y()) / 2.0f);
+        PVector bMid = new PVector((be.getSource().getNodeData().x() + be.getTarget().getNodeData().x()) / 2.0f,
+                (be.getSource().getNodeData().y() + be.getTarget().getNodeData().y()) / 2.0f);
+        double lavg = (a.mag() + b.mag()) / 2.0;
         double compatibility = lavg / (lavg + aMid.dist(bMid));
-        assert (compatibility >= 0);
-        assert (compatibility <= 1);
+//        assert (compatibility >= 0);
+//        assert (compatibility <= 1);
         return compatibility;
     }
 
@@ -93,20 +85,20 @@ public class FDEBCompatibilityComputator {
         double compatibility = Math.min(visibilityCompatibility(as, af, bs, bf), visibilityCompatibility(bs, bf, as, af));
 
         try {
-            assert (compatibility >= 0);
-            assert (compatibility <= 1);
+//            assert (compatibility >= 0);
+//            assert (compatibility <= 1);
         } catch (AssertionError ex) {
             return 0;
         }
         return compatibility;
     }
 
-    private double visibilityCompatibility(Point2D.Float as, Point2D.Float af, Point2D.Float bs, Point2D.Float bf) {
-        Point2D.Float i1 = projectPointToLine(as.x, as.y, af.x, af.y, bs.x, bs.y);
-        Point2D.Float i2 = projectPointToLine(as.x, as.y, af.x, af.y, bf.x, bf.y);
-        Point2D.Float im = new Point2D.Float((i1.x + i2.x) / 2, (i1.y + i2.y) / 2);
-        Point2D.Float bm = new Point2D.Float((bs.x + bf.x) / 2, (bs.y + bf.y) / 2);
-        return Math.max(0, 1 - 2 * bm.distance(im) / (i1.distance(i2)));
+    private double visibilityCompatibility(Point2D.Float p0, Point2D.Float p1, Point2D.Float q0, Point2D.Float q1) {
+        Point2D.Float i0 = projectPointToLine(p0.x, p0.y, p1.x, p1.y, q0.x, q0.y);
+        Point2D.Float i1 = projectPointToLine(p0.x, p0.y, p1.x, p1.y, q1.x, q1.y);
+        Point2D.Float im = new Point2D.Float((i0.x + i1.x) / 2.0f, (i0.y + i1.y) / 2.0f);
+        Point2D.Float pm = new Point2D.Float((p0.x + p1.x) / 2.0f, (p0.y + p1.y) / 2.0f);
+        return Math.max(0, 1 - 2 * pm.distance(im) / (i0.distance(i1)));
     }
 
     /**

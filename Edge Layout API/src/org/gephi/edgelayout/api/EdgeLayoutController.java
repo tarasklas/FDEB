@@ -41,7 +41,6 @@
  */
 package org.gephi.edgelayout.api;
 
-import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import org.gephi.edgelayout.spi.EdgeLayout;
 import org.gephi.project.api.Workspace;

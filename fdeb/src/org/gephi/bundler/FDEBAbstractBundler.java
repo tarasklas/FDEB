@@ -9,6 +9,7 @@ import java.util.*;
 import org.gephi.edgelayout.spi.*;
 import org.gephi.fdeb.FDEBLayoutData;
 import org.gephi.fdeb.utils.FDEBCompatibilityComputator;
+import org.gephi.fdeb.utils.FDEBUtilities;
 import org.gephi.graph.api.Edge;
 import org.gephi.preview.api.PreviewController;
 import org.gephi.preview.api.PreviewProperty;
@@ -25,11 +26,11 @@ public abstract class FDEBAbstractBundler extends AbstractEdgeLayout implements 
 
     public static final String GENERAL_OPTIONS = "General options";
     public static final String COMPATIBLITY_OPTIONS = "Compatibility options";
-    public static final String SPRINT_CONSTANT_OPTIONS = "Sprint constant options";
+    public static final String SPRING_CONSTANT_OPTIONS = "Spring constant options";
     //settable variables
     protected double stepSize, stepSizeAtTheBeginning; //S
     protected double iterationsPerCycle, iterationsPerCycleAtTheBeginning;//I
-    protected double sprintConstant;//K
+    protected double springConstant;//K
     protected double compatibilityThreshold;
     protected int numCycles;
     protected double stepDampingFactor;
@@ -54,11 +55,11 @@ public abstract class FDEBAbstractBundler extends AbstractEdgeLayout implements 
     @Override
     public void resetPropertiesValues() {
         numCycles = 6;
-        stepSizeAtTheBeginning = 0.4;
+        stepSizeAtTheBeginning = graphModel != null ? FDEBUtilities.calculateInitialStepSize(graphModel.getGraph()) : 1;
         iterationsPerCycleAtTheBeginning = 50;
-        //sprintConstant = 0.5;
+        springConstant = 0.1;
         stepDampingFactor = 0.5;
-        compatibilityThreshold = 0.1;
+        compatibilityThreshold = 0.5;
         subdivisionPointIncreaseRate = 2;
         useInverseQuadraticModel = false;
         useLowMemoryMode = false;
@@ -68,7 +69,7 @@ public abstract class FDEBAbstractBundler extends AbstractEdgeLayout implements 
 
     @Override
     public void removeLayoutData() {
-        for (Edge edge : graphModel.getGraph().getEdges()) {
+        for (Edge edge : graphModel.getGraph().getEdges().toArray()) {
             edge.getEdgeData().setLayoutData(null);
         }
     }
@@ -126,6 +127,7 @@ public abstract class FDEBAbstractBundler extends AbstractEdgeLayout implements 
     }
 
     public void setIterationsPerCycle(Double iterationsPerCycle) {
+        iterationsPerCycle = iterationsPerCycle > 0 ? iterationsPerCycle : 1;
         this.iterationsPerCycle = iterationsPerCycle;
         this.iterationsPerCycleAtTheBeginning = iterationsPerCycle;
     }
@@ -135,15 +137,17 @@ public abstract class FDEBAbstractBundler extends AbstractEdgeLayout implements 
     }
 
     public void setNumCycles(Integer numCycles) {
+        numCycles = numCycles > 0 ? numCycles : 1;
         this.numCycles = numCycles;
     }
 
-    public Double getSprintConstant() {
-        return sprintConstant;
+    public Double getSpringConstant() {
+        return springConstant;
     }
 
-    public void setSprintConstant(Double sprintConstant) {
-        this.sprintConstant = sprintConstant;
+    public void setSpringConstant(Double springConstant) {
+        springConstant = springConstant >= 0 ? springConstant : 0;
+        this.springConstant = springConstant;
     }
 
     public Double getStepDampingFactor() {
@@ -151,6 +155,8 @@ public abstract class FDEBAbstractBundler extends AbstractEdgeLayout implements 
     }
 
     public void setStepDampingFactor(Double stepDampingFactor) {
+        stepDampingFactor = stepDampingFactor >= 0 ? stepDampingFactor : 0;
+        stepDampingFactor = stepDampingFactor <= 1 ? stepDampingFactor : 1;
         this.stepDampingFactor = stepDampingFactor;
     }
 
@@ -159,6 +165,7 @@ public abstract class FDEBAbstractBundler extends AbstractEdgeLayout implements 
     }
 
     public void setStepSize(Double stepSize) {
+        stepSize = stepSize >= 0 ? stepSize : 0;
         this.stepSize = stepSize;
         this.stepSizeAtTheBeginning = stepSize;
     }
@@ -168,6 +175,8 @@ public abstract class FDEBAbstractBundler extends AbstractEdgeLayout implements 
     }
 
     public void setCompatibilityThreshold(Double compatibilityThreshold) {
+        compatibilityThreshold = compatibilityThreshold >= 0 ? compatibilityThreshold : 0;
+        compatibilityThreshold = compatibilityThreshold <= 1 ? compatibilityThreshold : 1;
         this.compatibilityThreshold = compatibilityThreshold;
     }
 
@@ -176,6 +185,7 @@ public abstract class FDEBAbstractBundler extends AbstractEdgeLayout implements 
     }
 
     public void setSubdivisionPointIncreaseRate(Double subdivisionPointIncreaseRate) {
+        subdivisionPointIncreaseRate = subdivisionPointIncreaseRate >= 1 ? subdivisionPointIncreaseRate : 1;
         this.subdivisionPointIncreaseRate = subdivisionPointIncreaseRate;
     }
 
@@ -224,6 +234,7 @@ public abstract class FDEBAbstractBundler extends AbstractEdgeLayout implements 
     }
 
     public void setIterationIncreaseRate(Double iterationIncreaseRate) {
+        iterationIncreaseRate = iterationIncreaseRate >= 0 ? iterationIncreaseRate : 0;
         this.iterationIncreaseRate = iterationIncreaseRate;
     }
 
@@ -288,13 +299,13 @@ public abstract class FDEBAbstractBundler extends AbstractEdgeLayout implements 
 
             properties.add(EdgeLayoutProperty.createProperty(this, Double.class,
                     "Spring constant",
-                    SPRINT_CONSTANT_OPTIONS, "Check \"Use user constant\" to change it",
-                    "getSprintConstant", "setSprintConstant"));
+                    SPRING_CONSTANT_OPTIONS, "Check \"Use user constant\" to change it",
+                    "getSpringConstant", "setSpringConstant"));
 
-            properties.add(EdgeLayoutProperty.createProperty(this, Boolean.class,
-                    "Use user constant",
-                    SPRINT_CONSTANT_OPTIONS, "Use user value for spring constant",
-                    "isUseUserConstant", "setUseUserConstant"));
+//            properties.add(EdgeLayoutProperty.createProperty(this, Boolean.class,
+//                    "Use user constant",
+//                    SPRING_CONSTANT_OPTIONS, "Use user value for spring constant",
+//                    "isUseUserConstant", "setUseUserConstant"));
 
             properties.add(EdgeLayoutProperty.createProperty(this, Boolean.class,
                     "Angle compatibility affected by direction",
@@ -336,7 +347,7 @@ public abstract class FDEBAbstractBundler extends AbstractEdgeLayout implements 
         double maxIntensity = 0;
         ArrayList<Double> intensity = new ArrayList<Double>();
         ArrayList intensities = new ArrayList();
-        for (Edge edge : graphModel.getGraph().getEdges()) {
+        for (Edge edge : graphModel.getGraph().getEdges().toArray()) {
             if (cancel) {
                 break;
             }
@@ -360,7 +371,7 @@ public abstract class FDEBAbstractBundler extends AbstractEdgeLayout implements 
         int x = intensity.size();
         System.err.println("boundaries: " + intensity.get(x / 5) + " " + intensity.get(x * 2 / 5) + " " + intensity.get(x * 3 / 5) + " " + intensity.get(x * 4 / 5));
         System.err.println("threshold " + threshold);
-        for (Edge edge : graphModel.getGraph().getEdges()) {
+        for (Edge edge : graphModel.getGraph().getEdges().toArray()) {
             if (cancel) {
                 break;
             }
@@ -377,7 +388,7 @@ public abstract class FDEBAbstractBundler extends AbstractEdgeLayout implements 
     public void endAlgo() {
         if (Lookup.getDefault().lookup(PreviewController.class).getModel().getProperties().getBooleanValue(PreviewProperty.EDGE_LAYOUT_PRECALCULATE_POINTS)) {
             System.err.println("end algo!1 " + System.currentTimeMillis());
-            for (Edge edge1 : graphModel.getGraph().getEdges()) {
+            for (Edge edge1 : graphModel.getGraph().getEdges().toArray()) {
                 if (cancel) {
                     break;
                 }
@@ -394,13 +405,42 @@ public abstract class FDEBAbstractBundler extends AbstractEdgeLayout implements 
         modifyAlgo();
         System.err.println("I AM DONE " + System.currentTimeMillis());
     }
+    
+    protected void createCompatibilityLists() {
+        if (useLowMemoryMode) {
+            return;
+        }
+//        for (Edge edge : graphModel.getGraph().getEdges().toArray()) {
+//            if (cancel) {
+//                return;
+//            }
+//            FDEBUtilities.createCompatibilityRecords(edge, compatibilityThreshold, graphModel.getGraph(), computator);
+//        }
+        
+        FDEBUtilities.createCompatibilityRecords(compatibilityThreshold, graphModel.getGraph(), computator);
+//        
+//        int totalEdges = graphModel.getGraph().getEdgeCount() * graphModel.getGraph().getEdgeCount();
+//        int passedEdges = 0;
+//        double csum = 0;
+//        for (Edge edge : graphModel.getGraph().getEdges().toArray()) {
+//            if (cancel) {
+//                return;
+//            }
+//            passedEdges += ((FDEBLayoutData) edge.getEdgeData().getLayoutData()).similarEdges.length;
+//            for (FDEBCompatibilityRecord record : ((FDEBLayoutData) edge.getEdgeData().getLayoutData()).similarEdges) {
+//                csum += record.compatibility;
+//            }
+//        }
+//        System.err.println("total: " + totalEdges + " passed " + passedEdges + " sum of compatibility " + csum
+//                + " fraction " + ((double) passedEdges) / totalEdges);
+    }
 
     private void slowIntensityCalculation() {
-        for (Edge edge1 : graphModel.getGraph().getEdges()) {
+        for (Edge edge1 : graphModel.getGraph().getEdges().toArray()) {
             if (cancel) {
                 break;
             }
-            for (Edge edge2 : graphModel.getGraph().getEdges()) {
+            for (Edge edge2 : graphModel.getGraph().getEdges().toArray()) {
                 if (cancel) {
                     break;
                 }
@@ -426,7 +466,7 @@ public abstract class FDEBAbstractBundler extends AbstractEdgeLayout implements 
 
     private void fastIntensityCalculation() {
         ArrayList<Point2D.Double> points = new ArrayList<Point2D.Double>();
-        for (Edge edge : graphModel.getGraph().getEdges()) {
+        for (Edge edge : graphModel.getGraph().getEdges().toArray()) {
             points.addAll(Arrays.asList(((EdgeLayoutData) edge.getEdgeData().getLayoutData()).getSubdivisonPoints()));
         }
         double minX = Integer.MAX_VALUE;
@@ -441,7 +481,7 @@ public abstract class FDEBAbstractBundler extends AbstractEdgeLayout implements 
             maxY = Math.max(maxY, point.y);
         }
         QuadNode root = new QuadNode(points.toArray(new Point2D.Double[0]));
-        for (Edge edge1 : graphModel.getGraph().getEdges()) {
+        for (Edge edge1 : graphModel.getGraph().getEdges().toArray()) {
             FDEBLayoutData data1 = edge1.getEdgeData().getLayoutData();
             Point2D.Double[] points1 = data1.getSubdivisonPoints();
             for (int i = 0; i < points1.length - 1; i++) {

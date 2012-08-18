@@ -4,11 +4,11 @@
  */
 package org.gephi.example;
 
-import org.gephi.bundler.FDEBBundler;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
+import org.gephi.bundler.FDEBBundler;
 import org.gephi.data.attributes.api.*;
 import org.gephi.edgelayout.api.SubdividedEdgeRenderer;
 import org.gephi.fdeb.FDEBLayoutData;
@@ -19,7 +19,6 @@ import org.gephi.io.importer.api.*;
 import org.gephi.io.processor.plugin.DefaultProcessor;
 import org.gephi.preview.api.*;
 import org.gephi.preview.plugin.renderers.*;
-import org.gephi.preview.plugin.renderers.NodeRenderer;
 import org.gephi.project.api.ProjectController;
 import org.gephi.project.api.Workspace;
 import org.gephi.ranking.api.RankingController;
@@ -115,7 +114,7 @@ public class PrototypeRun {
         } catch (FileNotFoundException ex) {
             Exceptions.printStackTrace(ex);
         }
-        for (Edge edge : graph.getEdges()) {
+        for (Edge edge : graph.getEdges().toArray()) {
             FDEBLayoutData data = edge.getEdgeData().getLayoutData();
             for (int j = 0; j < data.subdivisionPoints.length; j++) {
                 debug.println(data.subdivisionPoints[j].x + " " + data.subdivisionPoints[j].y);

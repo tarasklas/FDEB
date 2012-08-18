@@ -1,10 +1,8 @@
 package org.gephi.bundler;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import org.gephi.edgelayout.spi.EdgeLayout;
 import org.gephi.edgelayout.spi.EdgeLayoutBuilder;
-import org.gephi.fdeb.FDEBCompatibilityRecord;
 import org.gephi.fdeb.FDEBLayoutData;
 import org.gephi.fdeb.utils.FDEBUtilities;
 import org.gephi.graph.api.Edge;
@@ -28,20 +26,17 @@ public class FDEBBundler extends FDEBAbstractBundler implements EdgeLayout, Long
     @Override
     public void initAlgo() {
         startTime = System.currentTimeMillis();
-        for (Edge edge : graphModel.getGraph().getEdges()) {
+        for (Edge edge : graphModel.getGraph().getEdges().toArray()) {
             edge.getEdgeData().setLayoutData(
                     new FDEBLayoutData(edge.getSource().getNodeData().x(), edge.getSource().getNodeData().y(),
                     edge.getTarget().getNodeData().x(), edge.getTarget().getNodeData().y()));
         }
         cycle = 1;
         setConverged(false);
-        if (!useUserConstant) {
-            sprintConstant = FDEBUtilities.calculateSprintConstant(graphModel.getGraph());
-        }
         subdivisionPointsPerEdge = 1;//start and end doesnt count
         stepSize = stepSizeAtTheBeginning;
         iterationsPerCycle = iterationsPerCycleAtTheBeginning;
-        System.out.println("K " + sprintConstant);
+        System.out.println("K " + springConstant);
 
         createCompatibilityLists();
     }
@@ -54,7 +49,7 @@ public class FDEBBundler extends FDEBAbstractBundler implements EdgeLayout, Long
 
         System.err.println("Next iteration");
         for (int step = 0; step < iterationsPerCycle; step++) {
-            for (Edge edge : graphModel.getGraph().getEdges()) {
+            for (Edge edge : graphModel.getGraph().getEdges().toArray()) {
                 if (cancel) {
                     return;
                 }
@@ -62,19 +57,19 @@ public class FDEBBundler extends FDEBAbstractBundler implements EdgeLayout, Long
                         ((FDEBLayoutData) edge.getEdgeData().getLayoutData()).subdivisionPoints.length);
             }
 
-            for (Edge edge : graphModel.getGraph().getEdges()) {
+            for (Edge edge : graphModel.getGraph().getEdges().toArray()) {
                 if (cancel) {
                     return;
                 }
                 if (!useLowMemoryMode) {
-                    FDEBUtilities.updateNewSubdivisionPoints(edge, sprintConstant, stepSize, useInverseQuadraticModel);
+                    FDEBUtilities.updateNewSubdivisionPoints(edge, springConstant, stepSize, useInverseQuadraticModel);
                 } else {
-                    FDEBUtilities.updateNewSubdivisionPointsInLowMemoryMode(edge, sprintConstant, stepSize, useInverseQuadraticModel,
+                    FDEBUtilities.updateNewSubdivisionPointsInLowMemoryMode(edge, springConstant, stepSize, useInverseQuadraticModel,
                             graphModel.getGraph(), computator, compatibilityThreshold);
                 }
             }
 
-            for (Edge edge : graphModel.getGraph().getEdges()) {
+            for (Edge edge : graphModel.getGraph().getEdges().toArray()) {
                 ((FDEBLayoutData) edge.getEdgeData().getLayoutData()).subdivisionPoints = ((FDEBLayoutData) edge.getEdgeData().getLayoutData()).newSubdivisionPoints;
                 ((FDEBLayoutData) edge.getEdgeData().getLayoutData()).newSubdivisionPoints = null;
             }
@@ -102,35 +97,8 @@ public class FDEBBundler extends FDEBAbstractBundler implements EdgeLayout, Long
 
     void divideEdges() {
         subdivisionPointsPerEdge *= subdivisionPointIncreaseRate;
-        for (Edge edge : graphModel.getGraph().getEdges()) {
+        for (Edge edge : graphModel.getGraph().getEdges().toArray()) {
             FDEBUtilities.divideEdge(edge, subdivisionPointsPerEdge);
         }
-    }
-
-    private void createCompatibilityLists() {
-        if (useLowMemoryMode) {
-            return;
-        }
-        ArrayList<FDEBCompatibilityRecord> similar = new ArrayList<FDEBCompatibilityRecord>();
-        for (Edge edge : graphModel.getGraph().getEdges()) {
-            if (cancel) {
-                return;
-            }
-            FDEBUtilities.createCompatibilityRecords(edge, compatibilityThreshold, graphModel.getGraph(), computator);
-        }
-        int totalEdges = graphModel.getGraph().getEdgeCount() * graphModel.getGraph().getEdgeCount();
-        int passedEdges = 0;
-        double csum = 0;
-        for (Edge edge : graphModel.getGraph().getEdges()) {
-            if (cancel) {
-                return;
-            }
-            passedEdges += ((FDEBLayoutData) edge.getEdgeData().getLayoutData()).similarEdges.length;
-            for (FDEBCompatibilityRecord record : ((FDEBLayoutData) edge.getEdgeData().getLayoutData()).similarEdges) {
-                csum += record.compatibility;
-            }
-        }
-        System.err.println("total: " + totalEdges + " passed " + passedEdges + " sum of compatibility " + csum
-                + " fraction " + ((double) passedEdges) / totalEdges);
     }
 }

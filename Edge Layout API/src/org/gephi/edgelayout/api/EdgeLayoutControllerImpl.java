@@ -142,6 +142,7 @@ public class EdgeLayoutControllerImpl implements EdgeLayoutController {
         GraphController graphController = Lookup.getDefault().lookup(GraphController.class);
         if (model.getSelectedLayout() != null && graphController.getModel() != null) {
             model.getSelectedLayout().setGraphModel(graphController.getModel());
+            model.getSelectedLayout().resetPropertiesValues();
         }
     }
 
