@@ -116,7 +116,6 @@ public final class EdgeLayoutWindowTopComponent extends TopComponent implements 
     private GradientPresetPersistence gradientPresetPersistence;
 
     private void refreshPreview() {
-        System.err.println("refresh preview " + System.currentTimeMillis());
         if (controller.getModel() != null && controller.getModel().getSelectedLayout() != null && !controller.getModel().isRunning()) {
             controller.getModel().getSelectedLayout().modifyAlgo();
         }
@@ -197,23 +196,22 @@ public final class EdgeLayoutWindowTopComponent extends TopComponent implements 
                 // No simple panel, switch to PropertySheet instead
             }
             if (layoutPanel != null) {
-                customSettingsPanel.removeAll();
-                customSettingsPanel.add(layoutPanel);
-                settingsPanel.setVisible(false);
-                customSettingsPanel.setVisible(true);
-                customSettingsPanel.setEnabled(true);
+                settingsPanel.removeAll();
+                settingsPanel.add(layoutPanel);
+                settingsPanel.revalidate();
             } else {
+                JPanel propertySheet = new PropertySheet();
                 LayoutNode layoutNode;
                 layoutNode = new LayoutNode(controller.getModel().getSelectedLayout());
                 layoutNode.getPropertySets();
-                ((PropertySheet) settingsPanel).setNodes(new Node[]{layoutNode});
-                customSettingsPanel.setVisible(false);
-                settingsPanel.setVisible(true);
+                ((PropertySheet)propertySheet).setNodes(new Node[]{layoutNode});
+                settingsPanel.removeAll();
+                settingsPanel.add(propertySheet);
+                settingsPanel.revalidate();
             }
         } else {
-            ((PropertySheet) settingsPanel).setNodes(new Node[0]);
-            settingsPanel.setVisible(true);
-            customSettingsPanel.setVisible(false);
+            settingsPanel.removeAll();
+            settingsPanel.revalidate();
         }
     }
 
@@ -238,7 +236,6 @@ public final class EdgeLayoutWindowTopComponent extends TopComponent implements 
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        customSettingsPanel = new javax.swing.JPanel();
         runButton = new javax.swing.JButton();
         gradientSliderPanel = new javax.swing.JPanel();
         layoutComboBox = new javax.swing.JComboBox();
@@ -247,9 +244,7 @@ public final class EdgeLayoutWindowTopComponent extends TopComponent implements 
         presetsButton = new javax.swing.JButton();
         gradientsButton = new javax.swing.JButton();
         deleteButton = new javax.swing.JButton();
-        settingsPanel = new PropertySheet();
-
-        customSettingsPanel.setLayout(new java.awt.CardLayout());
+        settingsPanel = new javax.swing.JPanel();
 
         org.openide.awt.Mnemonics.setLocalizedText(runButton, org.openide.util.NbBundle.getMessage(EdgeLayoutWindowTopComponent.class, "EdgeLayoutWindowTopComponent.runButton.text")); // NOI18N
         runButton.addActionListener(new java.awt.event.ActionListener() {
@@ -312,6 +307,8 @@ public final class EdgeLayoutWindowTopComponent extends TopComponent implements 
             }
         });
 
+        settingsPanel.setLayout(new javax.swing.BoxLayout(settingsPanel, javax.swing.BoxLayout.LINE_AXIS));
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
@@ -326,7 +323,7 @@ public final class EdgeLayoutWindowTopComponent extends TopComponent implements 
                     .addComponent(gradientSliderPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                         .addComponent(layoutToolbar, javax.swing.GroupLayout.PREFERRED_SIZE, 167, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 625, Short.MAX_VALUE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addComponent(deleteButton))
                     .addComponent(layoutComboBox, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(settingsPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
@@ -440,6 +437,7 @@ public final class EdgeLayoutWindowTopComponent extends TopComponent implements 
             controller.setLayout(wrapper.getBuilder().buildLayout());
             runButton.setEnabled(true);
         } else {
+            controller.setLayout(null);
             runButton.setEnabled(false);
         }
         regenerateSettings();
@@ -555,7 +553,6 @@ public final class EdgeLayoutWindowTopComponent extends TopComponent implements 
         menu.show(layoutToolbar, 0, -menu.getPreferredSize().height);
     }//GEN-LAST:event_gradientsButtonActionPerformed
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JPanel customSettingsPanel;
     private javax.swing.JButton deleteButton;
     private javax.swing.JPanel gradientSliderPanel;
     private javax.swing.JButton gradientsButton;

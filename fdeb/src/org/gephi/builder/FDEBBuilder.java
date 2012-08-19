@@ -47,7 +47,6 @@ import org.gephi.bundler.FDEBBundler;
 import org.gephi.edgelayout.spi.EdgeLayout;
 import org.gephi.edgelayout.spi.EdgeLayoutBuilder;
 import org.gephi.edgelayout.spi.EdgeLayoutUI;
-import org.gephi.ui.FDEBAbstractUI;
 import org.openide.util.lookup.ServiceProvider;
 
 /**
@@ -60,7 +59,6 @@ public class FDEBBuilder implements EdgeLayoutBuilder {
     private FDEBUI ui = new FDEBUI();
 
     private static class FDEBUI implements EdgeLayoutUI {
-        private FDEBAbstractUI gui = new FDEBAbstractUI();
 
         @Override
         public String getDescription() {

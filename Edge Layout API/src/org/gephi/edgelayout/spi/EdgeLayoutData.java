@@ -76,7 +76,8 @@ public interface EdgeLayoutData extends LayoutData {
     public double[] getSubdivisionEdgeSortOrder();
     
     /**
-     * @return color for complex gradient renderer. See <code>getSubdivisionEdgeSortOrder()</code>.
+     * See <code>getSubdivisionEdgeSortOrder()</code>.
+     * @return color for complex gradient renderer.
      */
     public Color[] getSubdivisionEdgeColor();
 }
