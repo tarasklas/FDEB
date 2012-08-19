@@ -128,7 +128,7 @@ public class FDEBBundler extends FDEBAbstractBundler implements EdgeLayout, Long
         if (cycle == numCycles) {
             setConverged(true);
             endTime = System.currentTimeMillis();
-            System.err.println(endTime - startTime + " execution time");
+           // System.err.println(endTime - startTime + " execution time");
         } else {
             prepareForTheNextStep();
         }

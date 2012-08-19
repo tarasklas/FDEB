@@ -487,7 +487,6 @@ public abstract class FDEBAbstractBundler extends AbstractEdgeLayout implements 
             iterationsPerCycle *= iterationsIncreaseRate;
             subdivisionPoints *= subdivisionPointsIncreaseRate;
         }
-        System.err.println(res + " points");
         return res;
     }
 }
