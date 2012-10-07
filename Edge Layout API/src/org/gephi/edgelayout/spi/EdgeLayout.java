@@ -128,4 +128,9 @@ public interface EdgeLayout{
      * @return <code> True </code>, if preview should be refreshed.
      */
     public boolean shouldRefreshPreview(int refreshRate);
+    
+    /**
+     * Called when user stops algorithm execution.
+     */
+    public boolean cancel();
 }

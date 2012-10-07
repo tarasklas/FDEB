@@ -57,14 +57,13 @@ import org.gephi.desktop.preview.api.PreviewUIController;
 import org.gephi.edgelayout.api.EdgeLayoutController;
 import org.gephi.edgelayout.api.EdgeLayoutModel;
 import org.gephi.edgelayout.api.SubdividedEdgeRenderer;
+import org.gephi.edgelayout.spi.ColorChooserController;
 import org.gephi.edgelayout.spi.EdgeLayout;
 import org.gephi.edgelayout.spi.EdgeLayoutBuilder;
 import org.gephi.edgelayout.spi.EdgeLayoutProperty;
 import org.gephi.preview.api.ManagedRenderer;
 import org.gephi.preview.api.PreviewController;
-import org.gephi.preview.api.PreviewProperty;
-import org.gephi.preview.plugin.renderers.ArrowRenderer;
-import org.gephi.preview.plugin.renderers.EdgeRenderer;
+import org.gephi.preview.plugin.items.EdgeItem;
 import org.gephi.project.api.ProjectController;
 import org.gephi.project.api.Workspace;
 import org.gephi.project.api.WorkspaceListener;
@@ -104,7 +103,7 @@ persistenceType = TopComponent.PERSISTENCE_ALWAYS)
 preferredID = "EdgeLayoutWindowTopComponent")
 @Messages({
     "CTL_EdgeLayoutWindowAction=EdgeLayoutWindow",
-    "CTL_EdgeLayoutWindowTopComponent=EdgeLayoutWindow Window",
+    "CTL_EdgeLayoutWindowTopComponent=Edge Layout Window",
     "HINT_EdgeLayoutWindowTopComponent=This is a EdgeLayoutWindow window"
 })
 public final class EdgeLayoutWindowTopComponent extends TopComponent implements PropertyChangeListener {
@@ -175,9 +174,29 @@ public final class EdgeLayoutWindowTopComponent extends TopComponent implements 
         regenerateCombobox();
 
         gradientSliderPanel.setLayout(new BorderLayout());
-        gradientSlider = new GradientSlider(GradientSlider.HORIZONTAL, new float[]{0f, 0.4f, 0.6f, 1f},
-                new Color[]{Color.BLUE, Color.PINK, Color.RED, Color.YELLOW});
+
+        if (Lookup.getDefault().lookup(ColorChooserController.class).getColors()
+                != null
+                && Lookup.getDefault().lookup(ColorChooserController.class).getThumbPositions()
+                != null) {
+            gradientSlider = new GradientSlider(GradientSlider.HORIZONTAL,
+                    Lookup.getDefault().lookup(ColorChooserController.class).getThumbPositions(),
+                    Lookup.getDefault().lookup(ColorChooserController.class).getColors());
+        } else {
+            gradientSlider = new GradientSlider(GradientSlider.HORIZONTAL, new float[]{0f, 0.4f, 0.6f,
+                        1f}, new Color[]{Color.BLUE, Color.PINK, Color.RED, Color.YELLOW});
+            Lookup.getDefault().lookup(ColorChooserController.class).setColors(gradientSlider.getColors());
+            Lookup.getDefault().lookup(ColorChooserController.class).setThubmPositions(gradientSlider.getThumbPositions());
+        }
         gradientSliderPanel.add(gradientSlider, BorderLayout.CENTER);
+        gradientSlider.addChangeListener(new ChangeListener() {
+
+            @Override
+            public void stateChanged(ChangeEvent e) {
+                Lookup.getDefault().lookup(ColorChooserController.class).setColors(gradientSlider.getColors());
+                Lookup.getDefault().lookup(ColorChooserController.class).setThubmPositions(gradientSlider.getThumbPositions());
+            }
+        });
 
         layoutPresetPersistence = new LayoutPresetPersistence();
         gradientPresetPersistence = new GradientPresetPersistence();
@@ -204,7 +223,10 @@ public final class EdgeLayoutWindowTopComponent extends TopComponent implements 
                 LayoutNode layoutNode;
                 layoutNode = new LayoutNode(controller.getModel().getSelectedLayout());
                 layoutNode.getPropertySets();
-                ((PropertySheet)propertySheet).setNodes(new Node[]{layoutNode});
+                ((PropertySheet) propertySheet).setEnabled(false);
+                ((PropertySheet) propertySheet).setNodes(new Node[]{layoutNode});
+
+                propertySheet.setFocusable(false);
                 settingsPanel.removeAll();
                 settingsPanel.add(propertySheet);
                 settingsPanel.revalidate();
@@ -245,6 +267,7 @@ public final class EdgeLayoutWindowTopComponent extends TopComponent implements 
         gradientsButton = new javax.swing.JButton();
         deleteButton = new javax.swing.JButton();
         settingsPanel = new javax.swing.JPanel();
+        killButton = new javax.swing.JButton();
 
         org.openide.awt.Mnemonics.setLocalizedText(runButton, org.openide.util.NbBundle.getMessage(EdgeLayoutWindowTopComponent.class, "EdgeLayoutWindowTopComponent.runButton.text")); // NOI18N
         runButton.addActionListener(new java.awt.event.ActionListener() {
@@ -309,6 +332,13 @@ public final class EdgeLayoutWindowTopComponent extends TopComponent implements 
 
         settingsPanel.setLayout(new javax.swing.BoxLayout(settingsPanel, javax.swing.BoxLayout.LINE_AXIS));
 
+        org.openide.awt.Mnemonics.setLocalizedText(killButton, org.openide.util.NbBundle.getMessage(EdgeLayoutWindowTopComponent.class, "EdgeLayoutWindowTopComponent.killButton.text")); // NOI18N
+        killButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                killButtonActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
@@ -316,18 +346,22 @@ public final class EdgeLayoutWindowTopComponent extends TopComponent implements 
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addComponent(refreshButton)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(runButton, javax.swing.GroupLayout.PREFERRED_SIZE, 130, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addComponent(gradientSliderPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                         .addComponent(layoutToolbar, javax.swing.GroupLayout.PREFERRED_SIZE, 167, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 23, Short.MAX_VALUE)
                         .addComponent(deleteButton))
-                    .addComponent(layoutComboBox, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(settingsPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addContainerGap())
+                    .addComponent(settingsPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(layoutComboBox, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(refreshButton)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(killButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(runButton, javax.swing.GroupLayout.PREFERRED_SIZE, 77, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addContainerGap())))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -337,7 +371,8 @@ public final class EdgeLayoutWindowTopComponent extends TopComponent implements 
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(refreshButton)
-                    .addComponent(runButton))
+                    .addComponent(runButton)
+                    .addComponent(killButton))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(gradientSliderPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -352,7 +387,10 @@ public final class EdgeLayoutWindowTopComponent extends TopComponent implements 
     private void switchToSubdividedRenderer() {
         ManagedRenderer[] renderers = Lookup.getDefault().lookup(PreviewController.class).getModel().getManagedRenderers();
         for (int i = 0; i < renderers.length; i++) {
-            if (renderers[i].getRenderer() instanceof EdgeRenderer || renderers[i].getRenderer() instanceof ArrowRenderer) {
+            // if (renderers[i].getRenderer() instanceof EdgeRenderer || renderers[i].getRenderer() instanceof ArrowRenderer) {
+            // EdgeRenderer somehow can't be found by netbeans after I moved it from preview plugin because of the lookup bug, so temponary hack is
+            if (renderers[i].getRenderer().isRendererForitem(new EdgeItem(null), 
+                    Lookup.getDefault().lookup(PreviewController.class).getModel().getProperties())) {
                 renderers[i].setEnabled(false);
             }
         }
@@ -367,7 +405,9 @@ public final class EdgeLayoutWindowTopComponent extends TopComponent implements 
     private void switchToEdgeRenderer() {
         ManagedRenderer[] renderers = Lookup.getDefault().lookup(PreviewController.class).getModel().getManagedRenderers();
         for (int i = 0; i < renderers.length; i++) {
-            if (renderers[i].getRenderer() instanceof EdgeRenderer || renderers[i].getRenderer() instanceof ArrowRenderer) {
+            //  if (renderers[i].getRenderer() instanceof EdgeRenderer || renderers[i].getRenderer() instanceof ArrowRenderer) {
+            if (renderers[i].getRenderer().isRendererForitem(new EdgeItem(null),
+                    Lookup.getDefault().lookup(PreviewController.class).getModel().getProperties()))  {
                 renderers[i].setEnabled(true);
             } else if (renderers[i].getRenderer() instanceof SubdividedEdgeRenderer) {
                 renderers[i].setEnabled(false);
@@ -422,7 +462,6 @@ public final class EdgeLayoutWindowTopComponent extends TopComponent implements 
     }
 
     private void runButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_runButtonActionPerformed
-        Lookup.getDefault().lookup(PreviewController.class).getModel().getProperties().putValue(PreviewProperty.EDGE_LAYOUT_GRADIENT_SLIDER_LOCATION, gradientSlider);
         if (layoutIsRunning()) {
             stop();
         } else {
@@ -489,7 +528,7 @@ public final class EdgeLayoutWindowTopComponent extends TopComponent implements 
                     String input = question.getInputText();
                     if (input != null && !input.isEmpty()) {
                         layoutPresetPersistence.savePreset(input, model.getSelectedLayout());
-                        StatusDisplayer.getDefault().setStatusText(NbBundle.getMessage(EdgeLayoutWindowTopComponent.class, "EdgeLayoutWindowTopComponent.savePreset",layoutComboBox.getSelectedItem().toString(), input));
+                        StatusDisplayer.getDefault().setStatusText(NbBundle.getMessage(EdgeLayoutWindowTopComponent.class, "EdgeLayoutWindowTopComponent.savePreset", layoutComboBox.getSelectedItem().toString(), input));
                         NbPreferences.forModule(EdgeLayoutWindowTopComponent.class).put("EdgeLayoutWindowPanel.lastPresetName", input);
                     }
                 }
@@ -552,10 +591,18 @@ public final class EdgeLayoutWindowTopComponent extends TopComponent implements 
         menu.add(saveItem);
         menu.show(layoutToolbar, 0, -menu.getPreferredSize().height);
     }//GEN-LAST:event_gradientsButtonActionPerformed
+
+    private void killButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_killButtonActionPerformed
+        if (controller.canStop()) {
+            controller.killLayout();
+        }
+        regenerateRunButton(true);
+    }//GEN-LAST:event_killButtonActionPerformed
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton deleteButton;
     private javax.swing.JPanel gradientSliderPanel;
     private javax.swing.JButton gradientsButton;
+    private javax.swing.JButton killButton;
     private javax.swing.JComboBox layoutComboBox;
     private javax.swing.JToolBar layoutToolbar;
     private javax.swing.JButton presetsButton;
