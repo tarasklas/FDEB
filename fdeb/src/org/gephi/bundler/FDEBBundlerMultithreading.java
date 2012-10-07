@@ -68,8 +68,10 @@ public class FDEBBundlerMultithreading extends FDEBAbstractBundler implements Ed
     private int numberOfTasks = 8;
     private ExecutorService executor;
     private int progress;
+
     @Override
     public void initAlgo() {
+        cancel = false;
         executor = Executors.newCachedThreadPool();
 
         for (Edge edge : graphModel.getGraph().getEdges().toArray()) {
@@ -83,7 +85,9 @@ public class FDEBBundlerMultithreading extends FDEBAbstractBundler implements Ed
         progress = 0;
         iterationsPerCycle = iterationsPerCycleAtTheBeginning;
         subdivisionPointsPerEdge = 1;//start and end doesnt count
-        progressTicket.switchToDeterminate(calculateSumOfIterations(iterationsPerCycle, numCycles, iterationIncreaseRate, subdivisionPointsPerEdge, subdivisionPointIncreaseRate));
+        if (progressTicket != null) {
+            progressTicket.switchToDeterminate(calculateSumOfIterations(iterationsPerCycle, numCycles, iterationIncreaseRate, subdivisionPointsPerEdge, subdivisionPointIncreaseRate));
+        }
         createCompatibilityLists();
     }
 
@@ -93,16 +97,21 @@ public class FDEBBundlerMultithreading extends FDEBAbstractBundler implements Ed
     @Override
     public void goAlgo() {
         for (Edge edge : graphModel.getGraph().getEdges().toArray()) {
+            if (cancel) {
+                break;
+            }
             ((FDEBLayoutData) edge.getEdgeData().getLayoutData()).newSubdivisionPoints = Arrays.copyOf(((FDEBLayoutData) edge.getEdgeData().getLayoutData()).subdivisionPoints,
                     ((FDEBLayoutData) edge.getEdgeData().getLayoutData()).subdivisionPoints.length);
         }
-        for (int step = 0; step < iterationsPerCycle; step++) {
-            progress += (int)subdivisionPointsPerEdge;
-            progressTicket.progress(progress);
+        for (int step = 0; step < iterationsPerCycle && !cancel; step++) {
+            if (progressTicket != null) {
+                progress += (int) subdivisionPointsPerEdge;
+                progressTicket.progress(progress);
+            }
             Future[] calculationTasks = new Future[numberOfTasks];
             int cedges = graphModel.getGraph().getEdgeCount();
             Edge[] edges = graphModel.getGraph().getEdges().toArray();
-            for (int i = 0; i < numberOfTasks; i++) {
+            for (int i = 0; i < numberOfTasks && !cancel; i++) {
                 if (!useLowMemoryMode) {
                     calculationTasks[i] = executor.submit(new FDEBForceCalculationTask(edges, cedges * i / numberOfTasks,
                             Math.min(cedges, cedges * (i + 1) / numberOfTasks), springConstant, stepSize, useInverseQuadraticModel), computator);
@@ -112,7 +121,7 @@ public class FDEBBundlerMultithreading extends FDEBAbstractBundler implements Ed
                 }
             }
 
-            for (int i = 0; i < calculationTasks.length; i++) {
+            for (int i = 0; i < calculationTasks.length && !cancel; i++) {
                 try {
                     calculationTasks[i].get();
                 } catch (InterruptedException ex) {
@@ -123,12 +132,19 @@ public class FDEBBundlerMultithreading extends FDEBAbstractBundler implements Ed
             }
 
             for (Edge edge : edges) {
+                if (cancel) {
+                    break;
+                }
                 FDEBLayoutData data = edge.getEdgeData().getLayoutData();
                 System.arraycopy(data.newSubdivisionPoints, 0, data.subdivisionPoints, 0, data.newSubdivisionPoints.length);
             }
         }
 
-        StatusDisplayer.getDefault().setStatusText(NbBundle.getMessage(FDEBBundlerMultithreading.class, "after_iteration_message", cycle, numCycles));
+        try {
+            StatusDisplayer.getDefault().setStatusText(NbBundle.getMessage(FDEBBundler.class, "after_iteration_message", cycle, numCycles));
+        } catch (NoClassDefFoundError er) {
+            ;  //running in the toolkit mode, do nothing
+        }
         if (cycle == numCycles) {
             setConverged(true);
         } else {

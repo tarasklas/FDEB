@@ -77,9 +77,7 @@ public abstract class FDEBAbstractBundler extends AbstractEdgeLayout implements 
     protected static final double EPS = 1e-7;
     protected int cycle;
     protected double subdivisionPointsPerEdge;
-    protected ProgressTicket progressTicket;
     protected FDEBCompatibilityComputator computator;
-    protected boolean cancel;
     protected boolean useInverseQuadraticModel;
     protected boolean useLowMemoryMode;
     protected double iterationIncreaseRate;
@@ -109,18 +107,6 @@ public abstract class FDEBAbstractBundler extends AbstractEdgeLayout implements 
         for (Edge edge : graphModel.getGraph().getEdges().toArray()) {
             edge.getEdgeData().setLayoutData(null);
         }
-    }
-
-    @Override
-    public boolean cancel() {
-        this.cancel = true;
-        this.setConverged(true);
-        return true;
-    }
-
-    @Override
-    public void setProgressTicket(ProgressTicket progressTicket) {
-        this.progressTicket = progressTicket;
     }
     ///////////////////////////////////////
 
@@ -389,16 +375,22 @@ public abstract class FDEBAbstractBundler extends AbstractEdgeLayout implements 
                 break;
             }
             FDEBLayoutData data = edge.getEdgeData().getLayoutData();
+            if (data == null) {
+                continue;
+            }
             intensity.add(data.intensity + 1);
             if (Lookup.getDefault().lookup(PreviewController.class).getModel().getProperties().getBooleanValue(PreviewProperty.EDGE_LAYOUT_PRECALCULATE_POINTS)) {
-                for (double x : data.intensities) {
-                    intensities.add(x);
+                if (data.intensities != null) {
+                    for (double x : data.intensities) {
+                        intensities.add(x);
+                    }
                 }
             }
             maxIntensity = Math.max(maxIntensity, data.intensity + 1);
 
         }
-        if (Lookup.getDefault().lookup(PreviewController.class).getModel().getProperties().getBooleanValue(PreviewProperty.EDGE_LAYOUT_PRECALCULATE_POINTS)) {
+        if (Lookup.getDefault().lookup(PreviewController.class).getModel().getProperties().getBooleanValue(PreviewProperty.EDGE_LAYOUT_PRECALCULATE_POINTS)
+                && intensities != null) {
             Collections.sort(intensities);
         }
         Collections.sort(intensity);
@@ -408,8 +400,11 @@ public abstract class FDEBAbstractBundler extends AbstractEdgeLayout implements 
                 break;
             }
             FDEBLayoutData data = edge.getEdgeData().getLayoutData();
+            if (data == null) {
+                continue;
+            }
             data.updateColor(intensity);
-            if (Lookup.getDefault().lookup(PreviewController.class).getModel().getProperties().getBooleanValue(PreviewProperty.EDGE_LAYOUT_PRECALCULATE_POINTS)) {
+            if (Lookup.getDefault().lookup(PreviewController.class).getModel().getProperties().getBooleanValue(PreviewProperty.EDGE_LAYOUT_PRECALCULATE_POINTS) && intensities != null) {
                 data.updateColors(intensities);
             }
         }

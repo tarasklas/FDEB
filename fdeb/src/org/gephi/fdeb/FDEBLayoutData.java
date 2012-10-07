@@ -45,6 +45,7 @@ import java.awt.Color;
 import java.awt.Point;
 import java.util.ArrayList;
 import java.util.Collections;
+import org.gephi.edgelayout.spi.ColorChooserController;
 import org.gephi.edgelayout.spi.EdgeLayoutData;
 import org.gephi.preview.api.PreviewController;
 import org.gephi.preview.api.PreviewProperty;
@@ -79,23 +80,16 @@ public class FDEBLayoutData implements EdgeLayoutData {
         color = null;
     }
 
-
-    private Color pickGradientFromLookup(double f) {
-        /*
-         * That is likely woudn't work with toolkit, since gradientslider is set
-         * in EdgeLayoutWindowTopComponent.
-         */
-        GradientSlider gradientSlider = Lookup.getDefault().lookup(PreviewController.class).getModel().getProperties().getValue(PreviewProperty.EDGE_LAYOUT_GRADIENT_SLIDER_LOCATION);
-        assert (gradientSlider != null);
-        return (Color) gradientSlider.getValue((float) f);
+    private Color pickGradientFromLookup(float f) {
+        return Lookup.getDefault().lookup(ColorChooserController.class).getColor(f);
     }
 
     public void updateColor(ArrayList<Double> find) {
-        double f;
+        float f;
         if (Lookup.getDefault().lookup(PreviewController.class).getModel().getProperties().getBooleanValue(PreviewProperty.EDGE_LAYOUT_USE_PERCENTAGE_INSTEAD_OF_LINEAR_SCALE)) {
-            f = (double) Math.abs(Collections.binarySearch(find, intensity + 1)) / find.size();
+            f = (float) Math.abs(Collections.binarySearch(find, intensity + 1)) / find.size();
         } else {
-            f = intensity / find.get(find.size() - 1);
+            f = (float) (intensity / find.get(find.size() - 1));
         }
         if (f > 1) {
             f = 1;
@@ -108,11 +102,11 @@ public class FDEBLayoutData implements EdgeLayoutData {
             colors = new Color[subdivisionPoints.length];
         }
         for (int i = 0; i < colors.length; i++) {
-            double f;
+            float f;
             if (Lookup.getDefault().lookup(PreviewController.class).getModel().getProperties().getBooleanValue(PreviewProperty.EDGE_LAYOUT_USE_PERCENTAGE_INSTEAD_OF_LINEAR_SCALE)) {
-                f = (double) Math.abs(Collections.binarySearch(find, intensities[i])) / find.size();
+                f = (float) Math.abs(Collections.binarySearch(find, intensities[i])) / find.size();
             } else {
-                f = (intensities[i]) / find.get(find.size() - 1);
+                f = (float) ((intensities[i]) / find.get(find.size() - 1));
             }
             if (f > 1) {
                 f = 1;

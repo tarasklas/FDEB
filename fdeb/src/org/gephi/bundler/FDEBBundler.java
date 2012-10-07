@@ -68,6 +68,7 @@ public class FDEBBundler extends FDEBAbstractBundler implements EdgeLayout, Long
 
     @Override
     public void initAlgo() {
+        cancel = false;
         startTime = System.currentTimeMillis();
         for (Edge edge : graphModel.getGraph().getEdges().toArray()) {
             edge.getEdgeData().setLayoutData(
@@ -80,7 +81,9 @@ public class FDEBBundler extends FDEBAbstractBundler implements EdgeLayout, Long
         stepSize = stepSizeAtTheBeginning;
         iterationsPerCycle = iterationsPerCycleAtTheBeginning;
         progress = 0;
-        progressTicket.switchToDeterminate(calculateSumOfIterations(iterationsPerCycle, numCycles, iterationIncreaseRate, subdivisionPointsPerEdge, subdivisionPointIncreaseRate));
+        if (progressTicket != null) {
+            progressTicket.switchToDeterminate(calculateSumOfIterations(iterationsPerCycle, numCycles, iterationIncreaseRate, subdivisionPointsPerEdge, subdivisionPointIncreaseRate));
+        }
         createCompatibilityLists();
     }
     private int progress;
@@ -90,10 +93,11 @@ public class FDEBBundler extends FDEBAbstractBundler implements EdgeLayout, Long
         if (cancel) {
             return;
         }
-
         for (int step = 0; step < iterationsPerCycle; step++) {
-            progress+=(int)subdivisionPointsPerEdge;
-            progressTicket.progress(progress);
+            if (progressTicket != null) {
+                progress += (int) subdivisionPointsPerEdge;
+                progressTicket.progress(progress);
+            }
             for (Edge edge : graphModel.getGraph().getEdges().toArray()) {
                 if (cancel) {
                     return;
@@ -124,11 +128,15 @@ public class FDEBBundler extends FDEBAbstractBundler implements EdgeLayout, Long
             }
         }
 
-        StatusDisplayer.getDefault().setStatusText(NbBundle.getMessage(FDEBBundler.class, "after_iteration_message", cycle, numCycles));
+        try {
+            StatusDisplayer.getDefault().setStatusText(NbBundle.getMessage(FDEBBundler.class, "after_iteration_message", cycle, numCycles));
+        } catch (NoClassDefFoundError er) {
+            ;  //running in the toolkit mode, do nothing
+        }
         if (cycle == numCycles) {
             setConverged(true);
             endTime = System.currentTimeMillis();
-           // System.err.println(endTime - startTime + " execution time");
+            // System.err.println(endTime - startTime + " execution time");
         } else {
             prepareForTheNextStep();
         }
