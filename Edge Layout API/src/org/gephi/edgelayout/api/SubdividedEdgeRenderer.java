@@ -86,8 +86,7 @@ public class SubdividedEdgeRenderer implements Renderer {
         thickness = (float) previewModel.getProperties().getDoubleValue(PreviewProperty.EDGE_LAYOUT_EDGE_THICKNESS);
         originalColor = previewModel.getProperties().getColorValue(PreviewProperty.EDGE_LAYOUT_SIMPLE_RENDERER_COLOR);
         useSimpleRendererBecauseOtherAreEmpty = false;
-        if (previewModel.getItems("FDEB gradient curve") == null || previewModel.getItems("FDEB gradient curve").length == 0
-                || !((SubdividedEdgeBigItem) previewModel.getItems("FDEB gradient curve")[0]).isReady()) {
+        if (!((SubdividedEdgeBigItem) previewModel.getItems("FDEB gradient curve")[0]).isReady()) {
             useSimpleRendererBecauseOtherAreEmpty = true;
         }
     }
@@ -185,7 +184,6 @@ public class SubdividedEdgeRenderer implements Renderer {
     }
 
     private void renderBigItem(SubdividedEdgeBigItem item, RenderTarget target, PreviewProperties properties) {
-        System.err.println("render big item! " + System.currentTimeMillis());
         if (target instanceof ProcessingTarget) {
             renderBigProcessingItem(item, target, properties);
         } else if (target instanceof PDFTarget) {
@@ -211,6 +209,10 @@ public class SubdividedEdgeRenderer implements Renderer {
             EdgeLayoutData data = (EdgeLayoutData) edge.getEdgeData().getLayoutData();
             Point2D.Double[] points = data.getSubdivisonPoints();
 
+
+            if (data.getEdgeColor() == null || points == null) {
+                continue;
+            }
             Color color = new Color(data.getEdgeColor().getRed(), data.getEdgeColor().getGreen(), data.getEdgeColor().getBlue(), (int) (255 * alpha));
             PDFTarget pdfTarget = (PDFTarget) target;
             PdfContentByte cb = pdfTarget.getContentByte();
@@ -220,7 +222,7 @@ public class SubdividedEdgeRenderer implements Renderer {
             }
             cb.setRGBColorStroke(color.getRed(), color.getGreen(), color.getBlue());
             cb.setLineWidth(thickness);
-            
+
             float usedAlpha = (forceAlpha ? intAlpha : color.getAlpha());
             if (usedAlpha < 255) {
                 cb.saveState();
@@ -241,6 +243,10 @@ public class SubdividedEdgeRenderer implements Renderer {
             Edge edge = edgeWrapper.edge;
             EdgeLayoutData data = (EdgeLayoutData) edge.getEdgeData().getLayoutData();
             Point2D.Double[] points = data.getSubdivisonPoints();
+
+            if (data.getEdgeColor() == null || points == null) {
+                continue;
+            }
 
             Color color = new Color(data.getEdgeColor().getRed(), data.getEdgeColor().getGreen(), data.getEdgeColor().getBlue());
             SVGTarget svgTarget = (SVGTarget) target;
@@ -268,6 +274,10 @@ public class SubdividedEdgeRenderer implements Renderer {
             EdgeLayoutData data = (EdgeLayoutData) edge.getEdgeData().getLayoutData();
             Point2D.Double[] points = data.getSubdivisonPoints();
 
+            if (data.getEdgeColor() == null || points == null) {
+                continue;
+            }
+
             PGraphics graphics = ((ProcessingTarget) target).getGraphics();
 
             graphics.noFill();
@@ -290,6 +300,10 @@ public class SubdividedEdgeRenderer implements Renderer {
             EdgeLayoutData data = (EdgeLayoutData) edge.getEdgeData().getLayoutData();
             Point2D.Double[] points = data.getSubdivisonPoints();
 
+            if (data.getSubdivisionEdgeColor() == null || data.getSubdivisionEdgeColor()[edgeWrapper.id] == null || points == null) {
+                continue;
+            }
+
             Color color = data.getSubdivisionEdgeColor()[edgeWrapper.id];
             PDFTarget pdfTarget = (PDFTarget) target;
             PdfContentByte cb = pdfTarget.getContentByte();
@@ -301,7 +315,7 @@ public class SubdividedEdgeRenderer implements Renderer {
             cb.lineTo((float) points[i + 1].x, (float) points[i + 1].y);
             cb.setRGBColorStroke(color.getRed(), color.getGreen(), color.getBlue());
             cb.setLineWidth(thickness);
-            
+
             float usedAlpha = (forceAlpha ? intAlpha : color.getAlpha());
             if (usedAlpha < 255) {
                 cb.saveState();
@@ -326,6 +340,10 @@ public class SubdividedEdgeRenderer implements Renderer {
                 continue;
             }
 
+            if (data.getSubdivisionEdgeColor() == null || data.getSubdivisionEdgeColor()[edgeWrapper.id] == null || points == null) {
+                continue;
+            }
+
             Color color = data.getSubdivisionEdgeColor()[edgeWrapper.id];
             SVGTarget svgTarget = (SVGTarget) target;
             Element edgeElem = svgTarget.createElement("path");
@@ -347,6 +365,10 @@ public class SubdividedEdgeRenderer implements Renderer {
             Point2D.Double[] points = data.getSubdivisonPoints();
             if (data.getSubdivisonPoints() == null || data.getSubdivisionEdgeColor() == null
                     || edgeWrapper.id == data.getSubdivisonPoints().length - 1) {
+                continue;
+            }
+
+            if (data.getSubdivisionEdgeColor() == null || data.getSubdivisionEdgeColor()[edgeWrapper.id] == null || points == null) {
                 continue;
             }
             PGraphics graphics = ((ProcessingTarget) target).getGraphics();
@@ -394,7 +416,7 @@ public class SubdividedEdgeRenderer implements Renderer {
                 org.openide.util.NbBundle.getMessage(SubdividedEdgeRenderer.class, "edge_transparency.name"),
                 org.openide.util.NbBundle.getMessage(SubdividedEdgeRenderer.class, "edge_transparency.desc"),
                 PreviewProperty.CATEGORY_EDGE_LAYOUT).setValue(0.1));
-        
+
         properties.add(PreviewProperty.createProperty(this,
                 PreviewProperty.EDGE_LAYOUT_EDGE_TRANSPARENCY_FORCE,
                 Boolean.class,
@@ -429,18 +451,11 @@ public class SubdividedEdgeRenderer implements Renderer {
     @Override
     public boolean isRendererForitem(Item item, PreviewProperties properties) {
         return (item instanceof SubdividedEdgeItem
-                || item instanceof SubdividedEdgeBigItem && !properties.getValue(PreviewProperty.EDGE_LAYOUT_USE_RENDERER).equals(RendererModes.SIMPLE));
+                || (item instanceof SubdividedEdgeBigItem && !properties.getValue(PreviewProperty.EDGE_LAYOUT_USE_RENDERER).equals(RendererModes.SIMPLE)));
     }
 
     @Override
     public boolean needsItemBuilder(ItemBuilder itemBuilder, PreviewProperties properties) {
         return (itemBuilder instanceof SubdividedEdgeItemBuilder || itemBuilder instanceof SubdividedEdgeBigItemBuilder);
-    }
-}
-
-class ColorWrapper extends Color {
-
-    ColorWrapper(int r, int g, int b) {
-        super(r, g, b);
     }
 }

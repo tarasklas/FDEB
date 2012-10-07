@@ -89,9 +89,14 @@ public interface EdgeLayoutController {
     public boolean canExecute();
 
     /**
-     * Stop the Layout's execution.
+     * Stop the Layout's execution after current iteration.
      */
     public void stopLayout();
+    
+    /**
+     * Stop the Layout's execution immediately.
+     */
+    public void killLayout();
 
     /**
      * Determine if the current Layout execution can be stopped. If the current

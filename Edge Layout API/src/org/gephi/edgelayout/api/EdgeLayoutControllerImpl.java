@@ -100,7 +100,7 @@ public class EdgeLayoutControllerImpl implements EdgeLayoutController {
                 model = null;
             }
         });
-        
+
         listeners = new ArrayList<ChangeListener>();
 
         ProjectController projectController = Lookup.getDefault().lookup(ProjectController.class);
@@ -155,7 +155,11 @@ public class EdgeLayoutControllerImpl implements EdgeLayoutController {
     }
 
     public void stopLayout() {
-        model.getExecutor().cancel();
+        layoutRun.cancel();
+    }
+
+    public void killLayout() {
+        layoutRun.kill();
     }
 
     @Override
@@ -171,14 +175,15 @@ public class EdgeLayoutControllerImpl implements EdgeLayoutController {
     private static class EdgeLayoutRun implements LongTask, Runnable {
 
         private final EdgeLayout layout;
-        private boolean stopRun = false;
+        private boolean cancel = false;
+        private boolean kill = false;
         private ProgressTicket progressTicket;
         private final Integer iterations;
         private final ArrayList<ChangeListener> listeners;
-        
         public static final String REFRESH = "refresh";
         public static final String END_ALGO = "end";
         public static final String STOP_ALGO = "stop";
+        public static final String KILL_ALGO = "kill";
 
         public EdgeLayoutRun(EdgeLayout layout, ArrayList<ChangeListener> listeners) {
             this.layout = layout;
@@ -193,11 +198,15 @@ public class EdgeLayoutControllerImpl implements EdgeLayoutController {
         }
 
         public void refreshPreview(String event) {
-            for (ChangeListener listener : listeners)
+            System.err.println("refresh " + event + " " + System.currentTimeMillis() + " " + kill + " " + cancel + " " + iterations);
+            System.err.flush();
+            for (ChangeListener listener : listeners) {
                 listener.stateChanged(new ChangeEvent(event));
+            }
         }
 
         public void run() {
+            cancel = kill = false;
             int refreshRate = Lookup.getDefault().lookup(PreviewController.class).getModel().getProperties().getIntValue(PreviewProperty.EDGE_LAYOUT_REFRESH_RATE);
             Progress.setDisplayName(progressTicket, layout.getBuilder().getName());
             Progress.start(progressTicket);
@@ -207,30 +216,50 @@ public class EdgeLayoutControllerImpl implements EdgeLayoutController {
             }
 
             long i = 0;
-            while (layout.canAlgo() && !stopRun) {
+            while (layout.canAlgo() && !cancel && !kill) {
                 layout.goAlgo();
                 i++;
                 if (iterations != null && iterations.longValue() == i) {
                     break;
                 }
-                if (layout.shouldRefreshPreview(refreshRate)) {
+                if (!cancel && !kill && layout.shouldRefreshPreview(refreshRate)) {
                     refreshPreview(REFRESH);
                 }
+                if (cancel) {
+                    layout.cancel();
+                    layout.endAlgo();
+                    refreshPreview(STOP_ALGO);
+                }
             }
-            layout.endAlgo();
+            
+            if (!cancel && !kill) //succesfull end
+            {
+                layout.endAlgo();
+                refreshPreview(END_ALGO);
+            }
             if (i > 1) {
                 // Progress.finish(progressTicket, NbBundle.getMessage(EdgeLayoutControllerImpl.class, "LayoutRun.end", layout.getBuilder().getName(), i));
                 Progress.finish(progressTicket);
             } else {
                 Progress.finish(progressTicket);
             }
-            refreshPreview(END_ALGO);
         }
 
         public boolean cancel() {
-            stopRun = true;
-            Progress.finish(progressTicket);
-            refreshPreview(STOP_ALGO);
+            if (kill) //if already killed ignore stop
+            {
+                return true;
+            }
+            cancel = true;
+            //else layout will be stopped at run() function after its next layout.goAlgo() iteration so that no data will be lost
+            return true;
+        }
+
+        public boolean kill() {
+            kill = true;
+            cancel = false;// layout will be stopped by the time it's checked
+            layout.cancel();
+            refreshPreview(KILL_ALGO);
             return true;
         }
 

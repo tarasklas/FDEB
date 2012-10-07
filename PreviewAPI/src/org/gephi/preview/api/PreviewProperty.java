@@ -286,11 +286,6 @@ public class PreviewProperty {
      * <code>Color</color> property defining edge color for simple gradient renderer mode.
      */
     public static final String EDGE_LAYOUT_SIMPLE_RENDERER_COLOR = "edge.layout.simplerenderer.color";
-    /**
-     * Edge Layout
-     * <code>GradientSlider</code> property defining gradient slider with currently used gradient.
-     */
-    public static final String EDGE_LAYOUT_GRADIENT_SLIDER_LOCATION = "edge.layout.renderer.gradient.slider";
     
     //These 3 are actually fdeb options, but it would be unintuitive to move away, 
     /**

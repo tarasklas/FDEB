@@ -186,7 +186,7 @@ public class NodeRenderer implements Renderer {
                     NbBundle.getMessage(NodeRenderer.class, "NodeRenderer.property.opacity.description"),
                     PreviewProperty.CATEGORY_NODES).setValue(defaultOpacity)};
     }
-    
+
     private boolean showNodes(PreviewProperties properties){
         return properties.getFloatValue(PreviewProperty.NODE_OPACITY) > 0;
     }

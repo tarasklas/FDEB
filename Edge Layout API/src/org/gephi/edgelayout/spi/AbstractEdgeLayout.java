@@ -45,6 +45,8 @@ import org.gephi.dynamic.api.DynamicController;
 import org.gephi.dynamic.api.DynamicModel;
 import org.gephi.graph.api.GraphModel;
 import org.gephi.project.api.Workspace;
+import org.gephi.utils.longtask.spi.LongTask;
+import org.gephi.utils.progress.ProgressTicket;
 import org.openide.util.Lookup;
 
 /**
@@ -52,15 +54,19 @@ import org.openide.util.Lookup;
  *
  * @author Helder Suzuki <heldersuzuki@gephi.org>, Taras Klaskovsky <megaterik@gmail.com>
  */
-public abstract class AbstractEdgeLayout implements EdgeLayout {
+public abstract class AbstractEdgeLayout implements EdgeLayout, LongTask {
 
     private final EdgeLayoutBuilder layoutBuilder;
     protected GraphModel graphModel;
     protected DynamicModel dynamicModel;
     private boolean converged;
+    
+    protected boolean cancel;
+    protected ProgressTicket progressTicket;
 
     public AbstractEdgeLayout(EdgeLayoutBuilder layoutBuilder) {
         this.layoutBuilder = layoutBuilder;
+        cancel = false;
     }
 
     @Override
@@ -79,7 +85,7 @@ public abstract class AbstractEdgeLayout implements EdgeLayout {
     }
 
     public boolean canAlgo() {
-        return !isConverged() && graphModel != null;
+        return !cancel && !isConverged() && graphModel != null;
     }
 
     public void setConverged(boolean converged) {
@@ -88,5 +94,16 @@ public abstract class AbstractEdgeLayout implements EdgeLayout {
 
     public boolean isConverged() {
         return converged;
+    }
+    
+    @Override
+    public boolean cancel() {
+        this.cancel = true;
+        return true;
+    }
+
+    @Override
+    public void setProgressTicket(ProgressTicket progressTicket) {
+        this.progressTicket = progressTicket;
     }
 }

@@ -90,16 +90,19 @@ public class SubdividedEdgeBigItem extends AbstractItem implements Item {
         Collections.sort(edges);
     }
 
+    /*
+     * Model is ready if at least one edge has color
+     */
     public boolean isReady() {
         if (edges == null || edges.isEmpty()) {
             return false;
-        }
+        }        
         if ((Lookup.getDefault().lookup(PreviewController.class).getModel().getProperties().getValue(PreviewProperty.EDGE_LAYOUT_USE_RENDERER)
                 == RendererModes.GRADIENT)) {
             for (SortedEdgeWrapper wrapper : edges) {
                 if (wrapper.edge.getEdgeData().getLayoutData() != null
-                        && ((EdgeLayoutData) wrapper.edge.getEdgeData().getLayoutData()).getEdgeColor() == null) {
-                    return false;
+                        && ((EdgeLayoutData) wrapper.edge.getEdgeData().getLayoutData()).getEdgeColor() != null) {
+                    return true;
                 }
             }
         }
@@ -107,12 +110,12 @@ public class SubdividedEdgeBigItem extends AbstractItem implements Item {
                 == RendererModes.GRADIENT_COMPLEX)) {
             for (SortedEdgeWrapper wrapper : edges) {
                 if (wrapper.edge.getEdgeData().getLayoutData() != null
-                        && ((EdgeLayoutData) wrapper.edge.getEdgeData().getLayoutData()).getSubdivisionEdgeColor() == null) {
-                    return false;
+                        && ((EdgeLayoutData) wrapper.edge.getEdgeData().getLayoutData()).getSubdivisionEdgeColor() != null) {
+                    return true;
                 }
             }
         }
-        return true;
+        return false;
     }
 }
 
