@@ -211,6 +211,8 @@
                 <include name="org-gephi-io-processor-plugin.jar"/>
                 <include name="org-gephi-layout-api.jar"/>
                 <include name="org-gephi-layout-plugin.jar"/>
+                <include name="org-gephi-edgelayout.jar"/>
+                <include name="org-gephi-fdeb.jar"/>
                 <include name="org-gephi-preview-api.jar"/>
                 <include name="org-gephi-preview-plugin.jar"/>
                 <include name="org-gephi-project-api.jar"/>
